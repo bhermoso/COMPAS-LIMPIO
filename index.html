@@ -80,7 +80,7 @@
 
         .municipio-selector label { font-weight: 600; }
 
-        .municipio-selector select { padding: 0.5rem 1rem; border-radius: 4px; border: 1px solid #ccc; font-size: 1rem; background: white; }
+        .municipio-selector select { padding: 0.5rem 1rem; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.95rem; background: white; }
 
         
 
@@ -130,11 +130,11 @@
 
         .main { max-width: 1200px; margin: 2.5rem auto; padding: 0 1rem; }
 
-        .btn-accion { display: inline-block; background: #0074c8; color: white; padding: 0.85rem 1.2rem; border: 2px solid #0074c8; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-bottom: 1rem; white-space: nowrap; }
+        .btn-accion { display: inline-block; background: #3b9fd9; color: white; padding: 0.85rem 1.2rem; border: 2px solid #3b9fd9; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-bottom: 1rem; white-space: nowrap; }
 
-        .btn-accion:hover { background: #0074c8; border-color: #0074c8; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 116, 200, 0.4); }
+        .btn-accion:hover { background: #0074c8; border-color: #0074c8; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 116, 200, 0.25); }
 
-        .btn-accion.activo { background: #0074c8; border-color: #ffb61b; box-shadow: 0 0 0 3px rgba(255, 182, 27, 0.3); }
+        .btn-accion.activo { background: #0074c8; border-color: #ffb61b; box-shadow: 0 0 0 3px rgba(255, 182, 27, 0.2); }
 
         .btn-accion.activo::after { content: ' ▲'; }
 
@@ -144,23 +144,23 @@
 
         /* ESTILO PDF INSTITUCIONAL - Informe epidemiológico */
 
-        #btn-valoracion { 
+        #btn-valoracion {
 
-            background: linear-gradient(135deg, #FF6B35 0%, #F05A28 100%); 
+            background: linear-gradient(135deg, #FF8C5A 0%, #FF6B35 100%);
 
-            border: 3px solid #1B365D; 
+            border: 2px solid #2B4670;
 
-            border-radius: 0; 
+            border-radius: 0;
 
-            padding: 1.2rem 2rem; 
+            padding: 1.2rem 2rem;
 
-            font-size: 1.05rem; 
+            font-size: 1.05rem;
 
-            font-weight: 700; 
+            font-weight: 700;
 
             letter-spacing: 0.3px;
 
-            box-shadow: 0 4px 8px rgba(27, 54, 93, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 6px rgba(27, 54, 93, 0.15);
 
             text-transform: none;
 
@@ -200,31 +200,31 @@
 
         }
 
-        #btn-valoracion:hover { 
+        #btn-valoracion:hover {
 
-            background: linear-gradient(135deg, #1B365D 0%, #2B4670 100%); 
+            background: linear-gradient(135deg, #2B4670 0%, #3B5A8A 100%);
 
-            border-color: #FF6B35; 
+            border-color: #FF8C5A;
 
-            transform: translateY(-3px); 
+            transform: translateY(-2px);
 
-            box-shadow: 0 6px 16px rgba(255, 107, 53, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-
-        }
-
-        #btn-valoracion.activo { 
-
-            background: #1B365D; 
-
-            border-color: #FF6B35; 
-
-            box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.25);
 
         }
 
-        #btn-valoracion.activo::after { 
+        #btn-valoracion.activo {
 
-            content: ' ▲'; 
+            background: #2B4670;
+
+            border-color: #FF8C5A;
+
+            box-shadow: 0 0 0 3px rgba(255, 140, 90, 0.2);
+
+        }
+
+        #btn-valoracion.activo::after {
+
+            content: ' ▲';
 
             position: static;
 
@@ -248,19 +248,19 @@
 
         
 
-        .btn-accion.secundario { background: #94d40b; border-color: #94d40b; }
+        .btn-accion.secundario { background: #a8d84e; border-color: #a8d84e; color: white; }
 
-        .btn-accion.secundario:hover { background: #0074c8; }
+        .btn-accion.secundario:hover { background: #94d40b; }
 
-        .btn-accion.secundario.activo { background: #0074c8; border-color: #94d40b; }
+        .btn-accion.secundario.activo { background: #3b9fd9; border-color: #a8d84e; color: white; }
 
-        .btn-accion.terciario { background: #ff6600; border-color: #ff6600; }
+        .btn-accion.terciario { background: #ff8c42; border-color: #ff8c42; color: white; }
 
         .btn-accion.terciario:hover { background: #ff6600; }
 
-        .btn-accion.terciario.activo { background: #cc5200; border-color: #ffb61b; }
+        .btn-accion.terciario.activo { background: #e55c00; border-color: #ffb61b; color: white; }
 
-        .btn-exportar { background: #00acd9; border-color: #00acd9; font-size: 0.85rem; padding: 0.5rem 1rem; }
+        .btn-exportar { background: #4dc4e0; border-color: #4dc4e0; font-size: 0.85rem; padding: 0.5rem 1rem; }
 
         .btn-exportar:hover { background: #00acd9; }
 
@@ -304,41 +304,39 @@
 
         /* ESTILO PDF INSTITUCIONAL - Contenedor del Informe */
 
-        .informe-container { 
+        .informe-container {
 
-            border-radius: 0; 
+            border-radius: 6px;
 
-            border-top: 4px solid #FF6B35; 
-
-            box-shadow: 0 4px 12px rgba(27, 54, 93, 0.15); 
+            border-top: 3px solid #FF6B35;
 
         }
 
-        .informe-container h3 { 
+        .informe-container h3 {
 
-            color: #1B365D; 
+            color: #1B365D;
 
-            margin: 1.5rem 0 1rem; 
+            margin: 1.5rem 0 1rem;
 
-            padding: 0.8rem 1.2rem; 
+            padding: 0.7rem 1rem;
 
-            background: linear-gradient(90deg, #FF6B35 0%, #F05A28 100%); 
+            background: #FF6B35;
 
             color: white;
 
-            border-left: none; 
+            border-left: none;
 
-            border-radius: 0; 
+            border-radius: 0;
 
-            font-weight: 700; 
+            font-weight: 700;
 
-            font-size: 1.2rem;
+            font-size: 1.1rem;
 
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
 
             text-transform: none;
 
-            border-bottom: 3px solid #1B365D;
+            border-bottom: 2px solid #1B365D;
 
         }
 
@@ -368,13 +366,13 @@
 
         }
 
-        .informe-container h4 { 
+        .informe-container h4 {
 
-            color: #FF6B35; 
+            color: #FF6B35;
 
-            margin: 1.2rem 0 0.6rem; 
+            margin: 1.2rem 0 0.6rem;
 
-            font-weight: 700; 
+            font-weight: 700;
 
             border-bottom: 2px solid #FF6B35;
 
@@ -2422,11 +2420,11 @@
 
             <span class="itaca-nombre" style="
 
-                font-size: 4rem; 
+                font-size: 4rem;
 
-                font-weight: 700; 
+                font-weight: 700;
 
-                letter-spacing: 18px; 
+                letter-spacing: 18px;
 
                 text-transform: uppercase;
 
@@ -2457,41 +2455,68 @@
 
             <div style="display:flex; gap:0.5rem; justify-content:center; flex-wrap:wrap; margin-top:0.75rem;">
 
-                <button onclick="mostrarMetodologia()" style="background:transparent; border:1px solid #0074c8; color:#0074c8; padding:0.4rem 1rem; border-radius:20px; font-size:0.85rem; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#0074c8';this.style.color='white'" onmouseout="this.style.background='transparent';this.style.color='#0074c8'">ℹ️ Qué es COMPÁS</button>
+                <button onclick="mostrarMetodologia()" style="background:#f0f9ff; border:1px solid #bae6fd; border-left:3px solid #0074c8; color:#0c4a6e; padding:0.4rem 1rem; border-radius:6px; font-size:0.82rem; cursor:pointer; transition:all 0.15s;" onmouseover="this.style.background='#dbeafe';this.style.borderColor='#93c5fd'" onmouseout="this.style.background='#f0f9ff';this.style.borderColor='#bae6fd'">Qué es COMPÁS</button>
 
-                
+                <button onclick="abrirDrawerDocumentos()" style="background:#f0fdfa; border:1px solid #99f6e4; border-left:3px solid #00acd9; color:#134e4a; padding:0.4rem 1rem; border-radius:6px; font-size:0.82rem; cursor:pointer; transition:all 0.15s;" onmouseover="this.style.background='#ccfbf1';this.style.borderColor='#5eead4'" onmouseout="this.style.background='#f0fdfa';this.style.borderColor='#99f6e4'">Documentos del proceso</button>
 
-                <button onclick="abrirDrawerDocumentos()" style="background:transparent; border:1px solid #6366f1; color:#6366f1; padding:0.4rem 1rem; border-radius:20px; font-size:0.85rem; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#6366f1';this.style.color='white'" onmouseout="this.style.background='transparent';this.style.color='#6366f1'">📋 Documentos del proceso</button>
+                <button id="btn-editor-textos" onclick="compasTextEditor_toggleModo()" style="background:#f8fafc; border:1px solid #e2e8f0; border-left:3px solid #94a3b8; color:#475569; padding:0.4rem 1rem; border-radius:6px; font-size:0.82rem; cursor:pointer; transition:all 0.15s;" onmouseover="this.style.background='#f1f5f9';this.style.borderColor='#cbd5e1'" onmouseout="this.style.background='#f8fafc';this.style.borderColor='#e2e8f0'">Editar textos</button>
 
-                <button id="btn-editor-textos" onclick="compasTextEditor_toggleModo()" style="background:transparent; border:1px solid #475569; color:#475569; padding:0.4rem 1rem; border-radius:20px; font-size:0.85rem; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='#475569';this.style.color='white'" onmouseout="this.style.background='transparent';this.style.color='#475569'">✏️ Editar textos</button>
-
-                <a href="https://localizasalud.sanidad.gob.es/maparecursos/main/index" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; background:transparent; border:1px solid #6ea80a; color:#6ea80a; padding:0.4rem 1rem; border-radius:20px; font-size:0.85rem; text-decoration:none; transition:all 0.2s;" onmouseover="this.style.background='#6ea80a';this.style.color='white'" onmouseout="this.style.background='transparent';this.style.color='#6ea80a'">🗺️ Localiza Salud</a>
+                <a href="https://localizasalud.sanidad.gob.es/maparecursos/main/index" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; background:#f0fdf4; border:1px solid #bbf7d0; border-left:3px solid #6ea80a; color:#166534; padding:0.4rem 1rem; border-radius:6px; font-size:0.82rem; text-decoration:none; transition:all 0.15s;" onmouseover="this.style.background='#dcfce7';this.style.borderColor='#86efac'" onmouseout="this.style.background='#f0fdf4';this.style.borderColor='#bbf7d0'">Localiza Salud ↗</a>
 
             </div>
 
         </div>
 
-        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1rem; max-width:680px; margin:1.25rem auto 0; padding:0 1rem;">
-                <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:12px; padding:1.1rem 1.25rem; text-align:center;">
-                    <div style="font-weight:700; color:#0074c8; font-size:1rem; margin-bottom:0.4rem;">🔍 Analizar</div>
-                    <div style="font-size:0.81rem; color:#475569; line-height:1.55;">Perfil de salud local, determinantes, indicadores y síntesis analítica.</div>
+        <!-- Ciclo de trabajo COMPÁS — 5 fases -->
+        <div style="max-width:700px; margin:1.5rem auto 0; padding:0 1rem;">
+
+            <div style="display:flex; align-items:stretch; gap:0;">
+
+                <div style="flex:1; padding:.65rem .5rem; border-bottom:3px solid #0074c8; text-align:center;">
+                    <div style="font-size:.65rem; font-weight:700; color:#0074c8; letter-spacing:.08em; text-transform:uppercase;">1</div>
+                    <div style="font-size:.78rem; font-weight:700; color:#1e293b; margin:.15rem 0 .1rem;">Analizar</div>
+                    <div style="font-size:.68rem; color:#64748b; line-height:1.4;">Perfil de salud, determinantes e indicadores del territorio</div>
                 </div>
-                <div style="background:#fef9ee; border:1px solid #fde68a; border-radius:12px; padding:1.1rem 1.25rem; text-align:center;">
-                    <div style="font-weight:700; color:#b45309; font-size:1rem; margin-bottom:0.4rem;">🎯 Priorizar</div>
-                    <div style="font-size:0.81rem; color:#475569; line-height:1.55;">Priorización participativa y apoyo técnico para identificar problemas prioritarios.</div>
+
+                <div style="width:1px; background:#e2e8f0; flex-shrink:0;"></div>
+
+                <div style="flex:1; padding:.65rem .5rem; border-bottom:3px solid #00acd9; text-align:center;">
+                    <div style="font-size:.65rem; font-weight:700; color:#00acd9; letter-spacing:.08em; text-transform:uppercase;">2</div>
+                    <div style="font-size:.78rem; font-weight:700; color:#1e293b; margin:.15rem 0 .1rem;">Priorizar</div>
+                    <div style="font-size:.68rem; color:#64748b; line-height:1.4;">Participación ciudadana y convergencia de fuentes</div>
                 </div>
-                <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:1.1rem 1.25rem; text-align:center;">
-                    <div style="font-weight:700; color:#166534; font-size:1rem; margin-bottom:0.4rem;">📋 Planificar</div>
-                    <div style="font-size:0.81rem; color:#475569; line-height:1.55;">Propuesta de plan de acción, agenda anual y seguimiento del proceso local de salud.</div>
+
+                <div style="width:1px; background:#e2e8f0; flex-shrink:0;"></div>
+
+                <div style="flex:1; padding:.65rem .5rem; border-bottom:3px solid #94d40b; text-align:center;">
+                    <div style="font-size:.65rem; font-weight:700; color:#6ea80a; letter-spacing:.08em; text-transform:uppercase;">3</div>
+                    <div style="font-size:.78rem; font-weight:700; color:#1e293b; margin:.15rem 0 .1rem;">Planificar</div>
+                    <div style="font-size:.68rem; color:#64748b; line-height:1.4;">Plan de acción alineado con la estrategia autonómica</div>
                 </div>
+
+                <div style="width:1px; background:#e2e8f0; flex-shrink:0;"></div>
+
+                <div style="flex:1; padding:.65rem .5rem; border-bottom:3px solid #ffb61b; text-align:center;">
+                    <div style="font-size:.65rem; font-weight:700; color:#b45309; letter-spacing:.08em; text-transform:uppercase;">4</div>
+                    <div style="font-size:.78rem; font-weight:700; color:#1e293b; margin:.15rem 0 .1rem;">Ejecutar</div>
+                    <div style="font-size:.68rem; color:#64748b; line-height:1.4;">Agenda anual, actuaciones y coordinación intersectorial</div>
+                </div>
+
+                <div style="width:1px; background:#e2e8f0; flex-shrink:0;"></div>
+
+                <div style="flex:1; padding:.65rem .5rem; border-bottom:3px solid #dc143c; text-align:center;">
+                    <div style="font-size:.65rem; font-weight:700; color:#dc143c; letter-spacing:.08em; text-transform:uppercase;">5</div>
+                    <div style="font-size:.78rem; font-weight:700; color:#1e293b; margin:.15rem 0 .1rem;">Evaluar</div>
+                    <div style="font-size:.68rem; color:#64748b; line-height:1.4;">Seguimiento de indicadores y revisión del ciclo</div>
+                </div>
+
             </div>
-            
-            <div style="max-width:580px; margin:1rem auto 0; padding:0 1rem; text-align:center;">
-                <p style="font-size:0.83rem; color:#64748b; line-height:1.6; margin:0;">
-                    COMPÁS acompaña el proceso local de salud.<br>
-                    No sustituye la decisión técnica, municipal ni comunitaria.
-                </p>
+
+            <div style="text-align:center; margin-top:.7rem;">
+                <p style="font-size:.75rem; color:#94a3b8; margin:0;">COMPÁS acompaña el proceso local de salud. No sustituye la decisión técnica, municipal ni comunitaria.</p>
             </div>
+
+        </div>
             
             <div style="margin-top: 1.5rem; display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; justify-content: center;">
 
@@ -2499,9 +2524,9 @@
 
             <div class="estrategia-selector" style="display: flex; align-items: center; gap: 0.5rem;">
 
-                <label for="estrategia-salud" style="font-weight: 600; color: #334155;">🇪🇸 Estrategia:</label>
+                <label for="estrategia-salud" style="font-weight: 600; color: #475569; font-size:0.85rem;">Estrategia:</label>
 
-                <select id="estrategia-salud" onchange="onCambioEstrategia(this.value)" style="padding: 0.5rem 1rem; border-radius: 4px; border: 2px solid #0074c8; font-size: 0.95rem; background: white; cursor: pointer; min-width: 280px;">
+                <select id="estrategia-salud" onchange="onCambioEstrategia(this.value)" style="padding: 0.5rem 1rem; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.95rem; background: white; cursor: pointer; min-width: 280px;">
 
                     <option value="es-andalucia-epvsa">🇪🇸 EPVSA - Andalucía (España)</option>
 
@@ -2536,7 +2561,7 @@
         
 
             <div style="text-align:center; margin-top:1.25rem; padding-top:0.75rem; border-top:1px solid #e2e8f0; color:#94a3b8; font-size:0.78rem; font-weight:500; letter-spacing:0.04em; line-height:1.8;">
-                COMPÁS v3 — arquitectura modular<br>
+                COMPÁS v1 — arquitectura modular<br>
                 <span style="font-weight:400;">Desarrollado por Blas Hermoso</span>
             </div>
 
@@ -7570,238 +7595,69 @@
 
 
 
-<div id="modal-metodologia" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:10000; overflow-y:auto; padding:2rem;">
+<div id="modal-metodologia" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:10000; overflow-y:auto; padding:2rem;">
 
-    <div style="background:white; max-width:900px; margin:0 auto; border-radius:16px; overflow:hidden; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
+    <div style="background:white; max-width:720px; margin:0 auto; border-radius:8px; overflow:hidden;">
 
-        <div style="background:linear-gradient(135deg, #0074c8 0%, #00acd9 100%); color:white; padding:1.5rem 2rem; display:flex; justify-content:space-between; align-items:center;">
+        <div style="border-bottom:3px solid; border-image:linear-gradient(90deg,#0074c8,#00acd9,#94d40b,#ffb61b,#dc143c) 1; padding:1.25rem 2rem; display:flex; justify-content:space-between; align-items:center;">
 
-            <h2 style="margin:0; font-size:1.5rem;">ℹ️ Qué es COMPÁS</h2>
+            <h2 style="margin:0; font-size:1.15rem; font-weight:700; color:#1e293b; letter-spacing:.02em;">Qué es COMPÁS</h2>
 
-            <button onclick="cerrarMetodologia()" style="background:rgba(255,255,255,0.2); border:none; color:white; width:36px; height:36px; border-radius:50%; cursor:pointer; font-size:1.2rem;">✕</button>
-
-        </div>
-
-        <div id="compas-texto-modal-metodologia" data-compas-text-key="modal_metodologia" style="padding:2rem; line-height:1.7; color:#334155;">
-
-            <!-- ===== S1: QUÉ ES COMPÁS ===== -->
-            <h3 style="color:#0074c8; margin-top:0; border-bottom:2px solid #e0f2fe; padding-bottom:0.5rem; font-size:1.05rem;">Qué es COMPÁS</h3>
-            <div style="background:linear-gradient(135deg,#eff6ff,#dbeafe); border-left:4px solid #0074c8; border-radius:0 10px 10px 0; padding:1rem 1.5rem; margin-bottom:0.85rem; font-size:0.95rem; line-height:1.65; color:#1e293b;">
-                <strong style="color:#1e40af;">COMPÁS</strong> es una <strong style="color:#1e40af;">herramienta de apoyo técnico para la planificación local en salud</strong> en municipios andaluces, desarrollada por Blas Hermoso en el marco de trabajo del Distrito Sanitario Granada-Metropolitano. Facilita al ayuntamiento, al grupo motor y a la red local de salud la organización metodológica y documental del proceso local de salud de forma <strong>estructurada, trazable y sostenida en el tiempo</strong>.
-            </div>
-            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:0.65rem; margin-bottom:2rem;">
-                <div style="background:#f0f9ff; padding:0.85rem 1rem; border-radius:10px; border-left:4px solid #0074c8;">
-                    <div style="font-weight:700; color:#0074c8; margin-bottom:0.2rem; font-size:0.85rem;">🏛️ Ayuntamiento</div>
-                    <div style="font-size:0.8rem; color:#475569; line-height:1.5;">Responsable de la planificación, la aprobación institucional y la rendición de cuentas en materia de salud pública local.</div>
-                </div>
-                <div style="background:#f0fdf4; padding:0.85rem 1rem; border-radius:10px; border-left:4px solid #10b981;">
-                    <div style="font-weight:700; color:#065f46; margin-bottom:0.2rem; font-size:0.85rem;">⚙️ Grupo motor</div>
-                    <div style="font-size:0.8rem; color:#475569; line-height:1.5;">Órgano técnico-participativo que impulsa, coordina y sostiene el proceso local de salud en el tiempo.</div>
-                </div>
-                <div style="background:#fef9ee; padding:0.85rem 1rem; border-radius:10px; border-left:4px solid #ffb61b;">
-                    <div style="font-weight:700; color:#b45309; margin-bottom:0.2rem; font-size:0.85rem;">🤝 Red local de acción en salud</div>
-                    <div style="font-size:0.8rem; color:#475569; line-height:1.5;">Entidades, servicios y actores comunitarios que participan en el diagnóstico, la planificación y la acción sobre los determinantes de la salud.</div>
-                </div>
-            </div>
-
-            <!-- ===== S2: QUÉ INTEGRA ===== -->
-            <h3 style="color:#0074c8; border-bottom:2px solid #e0f2fe; padding-bottom:0.5rem; font-size:1.05rem;">Qué integra</h3>
-            <p style="font-size:0.88rem; color:#475569; margin-bottom:0.85rem;">COMPÁS reúne en un único entorno digital todos los componentes del proceso local de salud:</p>
-            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:0.65rem; margin-bottom:2rem;">
-                <div style="display:flex; gap:0.65rem; align-items:flex-start; padding:0.8rem 0.9rem; background:#f0f9ff; border-radius:8px; border-left:3px solid #0074c8;">
-                    <span style="font-size:1.1rem; flex-shrink:0;">🔍</span>
-                    <div>
-                        <div style="font-weight:700; color:#1e293b; font-size:0.83rem;">Perfil de salud local</div>
-                        <div style="font-size:0.77rem; color:#64748b; line-height:1.45; margin-top:0.15rem;">Informe de salud, estudios complementarios, determinantes e indicadores integrados con conclusiones y recomendaciones.</div>
-                    </div>
-                </div>
-                <div style="display:flex; gap:0.65rem; align-items:flex-start; padding:0.8rem 0.9rem; background:#fef9ee; border-radius:8px; border-left:3px solid #ffb61b;">
-                    <span style="font-size:1.1rem; flex-shrink:0;">🗳️</span>
-                    <div>
-                        <div style="font-weight:700; color:#1e293b; font-size:0.83rem;">Priorización participativa</div>
-                        <div style="font-size:0.77rem; color:#64748b; line-height:1.45; margin-top:0.15rem;">3 herramientas ciudadanas (temática, EPVSA, hábitos/problemas/colectivos) + 1 técnica. REDCap, CSV o cuestionario interno.</div>
-                    </div>
-                </div>
-                <div style="display:flex; gap:0.65rem; align-items:flex-start; padding:0.8rem 0.9rem; background:#faf5ff; border-radius:8px; border-left:3px solid #8b5cf6;">
-                    <span style="font-size:1.1rem; flex-shrink:0;">📋</span>
-                    <div>
-                        <div style="font-weight:700; color:#1e293b; font-size:0.83rem;">Plan de acción y fichas</div>
-                        <div style="font-size:0.77rem; color:#64748b; line-height:1.45; margin-top:0.15rem;">Actuaciones con trazabilidad EPVSA, responsable, indicadores y estado de ejecución.</div>
-                    </div>
-                </div>
-                <div style="display:flex; gap:0.65rem; align-items:flex-start; padding:0.8rem 0.9rem; background:#f0fdf4; border-radius:8px; border-left:3px solid #10b981;">
-                    <span style="font-size:1.1rem; flex-shrink:0;">📅</span>
-                    <div>
-                        <div style="font-weight:700; color:#1e293b; font-size:0.83rem;">Agenda y seguimiento anual</div>
-                        <div style="font-size:0.77rem; color:#64748b; line-height:1.45; margin-top:0.15rem;">Cronograma trimestral, sesión anual de seguimiento, actualización del perfil.</div>
-                    </div>
-                </div>
-                <div style="display:flex; gap:0.65rem; align-items:flex-start; padding:0.8rem 0.9rem; background:#fff1f2; border-radius:8px; border-left:3px solid #dc143c;">
-                    <span style="font-size:1.1rem; flex-shrink:0;">📊</span>
-                    <div>
-                        <div style="font-weight:700; color:#1e293b; font-size:0.83rem;">Sistema de indicadores (50)</div>
-                        <div style="font-size:0.77rem; color:#64748b; line-height:1.45; margin-top:0.15rem;">Cuadro de mandos con 50 indicadores, semáforos de gobernanza y comparación con Andalucía.</div>
-                    </div>
-                </div>
-                <div style="display:flex; gap:0.65rem; align-items:flex-start; padding:0.8rem 0.9rem; background:#f8fafc; border-radius:8px; border-left:3px solid #475569;">
-                    <span style="font-size:1.1rem; flex-shrink:0;">📄</span>
-                    <div>
-                        <div style="font-weight:700; color:#1e293b; font-size:0.83rem;">Documentación asistida</div>
-                        <div style="font-size:0.77rem; color:#64748b; line-height:1.45; margin-top:0.15rem;">Convocatorias, actas, perfil, plan de acción, plan local y agenda generados con los datos del municipio y revisables por el equipo técnico.</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ===== S3: PARA QUÉ SIRVE ===== -->
-            <h3 style="color:#0074c8; border-bottom:2px solid #e0f2fe; padding-bottom:0.5rem; font-size:1.05rem;">Para qué sirve</h3>
-            <p style="font-size:0.92rem; color:#334155; margin-bottom:0.85rem;">COMPÁS acompaña al municipio en el ejercicio de sus competencias en salud pública local a lo largo del proceso completo, articulado en una <strong>sistemática anual de gobernanza</strong>:</p>
-            <div style="border-radius:10px; overflow:hidden; border:1.5px solid #e2e8f0; margin-bottom:2rem;">
-                <div style="background:linear-gradient(135deg, #0074c8 0%, #00acd9 100%); color:white; padding:0.6rem 1.1rem; display:flex; align-items:center; gap:0.6rem;">
-                    <span style="background:rgba(255,255,255,0.25); border-radius:20px; padding:0.1rem 0.6rem; font-size:0.7rem; font-weight:700; letter-spacing:0.5px;">AÑO 1</span>
-                    <span style="font-weight:600; font-size:0.85rem;">Arranque del proceso local de salud</span>
-                </div>
-                <div style="background:#f0f9ff; padding:0.8rem 1.1rem; display:grid; grid-template-columns:repeat(4,1fr); gap:0.4rem;">
-                    <div style="text-align:center; padding:0.35rem 0.15rem;">
-                        <div style="font-size:0.95rem; margin-bottom:0.15rem;">🎓</div>
-                        <div style="font-size:0.7rem; font-weight:700; color:#0074c8; line-height:1.3;">Taller de impulso</div>
-                        <div style="font-size:0.65rem; color:#64748b; margin-top:0.15rem;">Grupo motor · hoja de ruta</div>
-                    </div>
-                    <div style="text-align:center; padding:0.35rem 0.15rem;">
-                        <div style="font-size:0.95rem; margin-bottom:0.15rem;">📊</div>
-                        <div style="font-size:0.7rem; font-weight:700; color:#0074c8; line-height:1.3;">Perfil de salud local</div>
-                        <div style="font-size:0.65rem; color:#64748b; margin-top:0.15rem;">Diagnóstico · Priorización</div>
-                    </div>
-                    <div style="text-align:center; padding:0.35rem 0.15rem;">
-                        <div style="font-size:0.95rem; margin-bottom:0.15rem;">🎯</div>
-                        <div style="font-size:0.7rem; font-weight:700; color:#0074c8; line-height:1.3;">Planificación</div>
-                        <div style="font-size:0.65rem; color:#64748b; margin-top:0.15rem;">Plan de acción · Agenda</div>
-                    </div>
-                    <div style="text-align:center; padding:0.35rem 0.15rem;">
-                        <div style="font-size:0.95rem; margin-bottom:0.15rem;">🏛️</div>
-                        <div style="font-size:0.7rem; font-weight:700; color:#0074c8; line-height:1.3;">Jornada anual</div>
-                        <div style="font-size:0.65rem; color:#64748b; margin-top:0.15rem;">Presentación · aprobación</div>
-                    </div>
-                </div>
-                <div style="background:linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color:white; padding:0.6rem 1.1rem; display:flex; align-items:center; gap:0.6rem;">
-                    <span style="background:rgba(255,255,255,0.25); border-radius:20px; padding:0.1rem 0.6rem; font-size:0.7rem; font-weight:700; letter-spacing:0.5px;">AÑOS 2–2030</span>
-                    <span style="font-weight:600; font-size:0.85rem;">Ciclo anual de seguimiento</span>
-                </div>
-                <div style="background:#f5f3ff; padding:0.8rem 1.1rem; display:grid; grid-template-columns:repeat(4,1fr); gap:0.4rem;">
-                    <div style="text-align:center; padding:0.35rem 0.15rem;">
-                        <div style="font-size:0.95rem; margin-bottom:0.15rem;">📋</div>
-                        <div style="font-size:0.7rem; font-weight:700; color:#6366f1; line-height:1.3;">Sesión de seguimiento</div>
-                        <div style="font-size:0.65rem; color:#64748b; margin-top:0.15rem;">Revisión de actuaciones</div>
-                    </div>
-                    <div style="text-align:center; padding:0.35rem 0.15rem;">
-                        <div style="font-size:0.95rem; margin-bottom:0.15rem;">🔄</div>
-                        <div style="font-size:0.7rem; font-weight:700; color:#6366f1; line-height:1.3;">Actualización del perfil</div>
-                        <div style="font-size:0.65rem; color:#64748b; margin-top:0.15rem;">Indicadores · evidencias</div>
-                    </div>
-                    <div style="text-align:center; padding:0.35rem 0.15rem;">
-                        <div style="font-size:0.95rem; margin-bottom:0.15rem;">✏️</div>
-                        <div style="font-size:0.7rem; font-weight:700; color:#6366f1; line-height:1.3;">Revisión del plan</div>
-                        <div style="font-size:0.65rem; color:#64748b; margin-top:0.15rem;">Ajuste de actuaciones</div>
-                    </div>
-                    <div style="text-align:center; padding:0.35rem 0.15rem;">
-                        <div style="font-size:0.95rem; margin-bottom:0.15rem;">🏛️</div>
-                        <div style="font-size:0.7rem; font-weight:700; color:#6366f1; line-height:1.3;">Jornada anual</div>
-                        <div style="font-size:0.65rem; color:#64748b; margin-top:0.15rem;">Rendición de cuentas</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ===== S4: QUÉ PAPEL TIENE LA IA ===== -->
-            <h3 style="color:#0074c8; border-bottom:2px solid #e0f2fe; padding-bottom:0.5rem; font-size:1.05rem;">Qué papel tiene la inteligencia artificial</h3>
-            <p style="font-size:0.88rem; color:#334155; margin-bottom:0.85rem;">COMPÁS incorpora funciones de análisis asistido por inteligencia artificial que apoyan al equipo técnico en tres tareas. Las salidas automatizadas tienen carácter de apoyo y requieren revisión profesional antes de su uso.</p>
-            <div style="display:flex; flex-direction:column; gap:0.6rem; margin-bottom:2rem;">
-                <div style="display:grid; grid-template-columns:auto 1fr; border-radius:9px; overflow:hidden; border:1px solid #e2e8f0;">
-                    <div style="background:#0369a1; color:white; padding:0.65rem 0.85rem; font-size:0.65rem; font-weight:700; writing-mode:vertical-rl; text-orientation:mixed; text-align:center; letter-spacing:0.06em;">Síntesis analítica</div>
-                    <div style="padding:0.65rem 0.9rem;">
-                        <div style="font-weight:700; font-size:0.85rem; color:#1e293b; margin-bottom:0.2rem;">Síntesis del perfil de salud</div>
-                        <div style="font-size:0.79rem; color:#64748b; line-height:1.5;">Interpreta el perfil de salud local e identifica los problemas con mayor carga sobre la población a partir de indicadores, determinantes y priorización ciudadana. Requiere validación técnica.</div>
-                    </div>
-                </div>
-                <div style="display:grid; grid-template-columns:auto 1fr; border-radius:9px; overflow:hidden; border:1px solid #e2e8f0;">
-                    <div style="background:#1d4ed8; color:white; padding:0.65rem 0.85rem; font-size:0.65rem; font-weight:700; writing-mode:vertical-rl; text-orientation:mixed; text-align:center; letter-spacing:0.06em;">Recomendaciones</div>
-                    <div style="padding:0.65rem 0.9rem;">
-                        <div style="font-weight:700; font-size:0.85rem; color:#1e293b; margin-bottom:0.2rem;">Orientaciones para la planificación</div>
-                        <div style="font-size:0.79rem; color:#64748b; line-height:1.5;">Conecta la síntesis del perfil con el marco estratégico EPVSA 2024–2030 y sugiere líneas de actuación. Son orientaciones de apoyo, no prescripciones.</div>
-                    </div>
-                </div>
-                <div style="display:grid; grid-template-columns:auto 1fr; border-radius:9px; overflow:hidden; border:1px solid #e2e8f0;">
-                    <div style="background:#166534; color:white; padding:0.65rem 0.85rem; font-size:0.65rem; font-weight:700; writing-mode:vertical-rl; text-orientation:mixed; text-align:center; letter-spacing:0.06em;">Propuesta de plan</div>
-                    <div style="padding:0.65rem 0.9rem;">
-                        <div style="font-weight:700; font-size:0.85rem; color:#1e293b; margin-bottom:0.2rem;">Propuesta inicial de planificación</div>
-                        <div style="font-size:0.79rem; color:#64748b; line-height:1.5;">Genera una propuesta inicial de programas y actuaciones a partir de las orientaciones anteriores. El equipo técnico y el grupo motor la revisan, modifican y aprueban en su totalidad.</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ===== S5: QUÉ NO SUSTITUYE ===== -->
-            <h3 style="color:#0074c8; border-bottom:2px solid #e0f2fe; padding-bottom:0.5rem; font-size:1.05rem;">Qué no sustituye</h3>
-            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:0.65rem; margin-bottom:2rem;">
-                <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:0.85rem 1rem;">
-                    <div style="font-weight:700; color:#dc2626; margin-bottom:0.25rem; font-size:0.85rem;">✗ La decisión política municipal</div>
-                    <div style="font-size:0.79rem; color:#475569; line-height:1.5;">La priorización, la selección de actuaciones y la aprobación del Plan son atribución exclusiva del ayuntamiento y del grupo motor.</div>
-                </div>
-                <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:0.85rem 1rem;">
-                    <div style="font-weight:700; color:#dc2626; margin-bottom:0.25rem; font-size:0.85rem;">✗ El liderazgo local del proceso</div>
-                    <div style="font-size:0.79rem; color:#475569; line-height:1.5;">El grupo motor y la red local son los protagonistas. COMPÁS es el instrumento que los acompaña, no el actor que lidera.</div>
-                </div>
-                <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:0.85rem 1rem;">
-                    <div style="font-weight:700; color:#dc2626; margin-bottom:0.25rem; font-size:0.85rem;">✗ La producción de datos epidemiológicos</div>
-                    <div style="font-size:0.79rem; color:#475569; line-height:1.5;">Trabaja con los datos que se le aportan. No genera estadísticas sanitarias propias ni sustituye encuestas de salud.</div>
-                </div>
-                <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:0.85rem 1rem;">
-                    <div style="font-weight:700; color:#dc2626; margin-bottom:0.25rem; font-size:0.85rem;">✗ La gestión asistencial</div>
-                    <div style="font-size:0.79rem; color:#475569; line-height:1.5;">Su ámbito es la salud pública local y comunitaria. No abarca gestión clínica, historia clínica ni prestación sanitaria individual.</div>
-                </div>
-                <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:0.85rem 1rem;">
-                    <div style="font-weight:700; color:#dc2626; margin-bottom:0.25rem; font-size:0.85rem;">✗ La participación ciudadana real</div>
-                    <div style="font-size:0.79rem; color:#475569; line-height:1.5;">COMPÁS organiza y estructura los procesos participativos, pero no los sustituye. La participación requiere presencia, convocatoria y deliberación real.</div>
-                </div>
-            </div>
-
-            <!-- ===== S6: MARCO INSTITUCIONAL ===== -->
-            <h3 style="color:#0074c8; border-bottom:2px solid #e0f2fe; padding-bottom:0.5rem; font-size:1.05rem;">Marco institucional</h3>
-            <p style="font-size:0.86rem; color:#475569; margin-bottom:0.85rem;">COMPÁS está diseñado íntegramente para el ámbito andaluz y se fundamenta en cuatro pilares normativos y estratégicos:</p>
-            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:0.85rem; margin-bottom:2rem;">
-                <div style="background:#f0f9ff; padding:1rem; border-radius:10px; border-left:4px solid #0074c8;">
-                    <div style="font-weight:700; color:#0074c8; margin-bottom:0.2rem; font-size:0.85rem;">⚖️ LAULA · Ley 5/2010</div>
-                    <div style="font-size:0.75rem; color:#94a3b8; margin-bottom:0.35rem;">Ley de Autonomía Local de Andalucía</div>
-                    <div style="font-size:0.8rem; color:#334155; line-height:1.5;"><strong>Art. 9.13</strong> — Establece como competencia propia de los municipios andaluces la promoción, defensa y protección de la salud pública local, incluyendo la elaboración e implantación del Plan Local de Salud.</div>
-                </div>
-                <div style="background:#f0fdf4; padding:1rem; border-radius:10px; border-left:4px solid #10b981;">
-                    <div style="font-weight:700; color:#065f46; margin-bottom:0.2rem; font-size:0.85rem;">⚕️ Ley 16/2011</div>
-                    <div style="font-size:0.75rem; color:#94a3b8; margin-bottom:0.35rem;">Ley de Salud Pública de Andalucía</div>
-                    <div style="font-size:0.8rem; color:#334155; line-height:1.5;"><strong>Art. 41</strong> — El Plan Local de Salud como instrumento básico de planificación. <strong>Art. 40</strong> — Autonomía local y coordinación de intervenciones de promoción de la salud comunitaria.</div>
-                </div>
-                <div style="background:#f0f9ff; padding:1rem; border-radius:10px; border-left:4px solid #0074c8;">
-                    <div style="font-weight:700; color:#0074c8; margin-bottom:0.2rem; font-size:0.85rem;">🇪🇸 EPVSA 2024–2030</div>
-                    <div style="font-size:0.75rem; color:#94a3b8; margin-bottom:0.35rem;">Estrategia de Promoción de una Vida Saludable en Andalucía</div>
-                    <div style="font-size:0.8rem; color:#334155; line-height:1.5;">Marco estratégico del SAS: 4 líneas, 10 objetivos y 15 programas. Eje vertebrador de la planificación local: orienta la selección de actuaciones y la medición de resultados.</div>
-                </div>
-                <div style="background:#fef9ee; padding:1rem; border-radius:10px; border-left:4px solid #ffb61b;">
-                    <div style="font-weight:700; color:#b45309; margin-bottom:0.2rem; font-size:0.85rem;">🤝 RELAS</div>
-                    <div style="font-size:0.75rem; color:#94a3b8; margin-bottom:0.35rem;">Red de Acción Local en Salud · Distrito Granada-Metropolitano</div>
-                    <div style="font-size:0.8rem; color:#334155; line-height:1.5;">Marco metodológico para el diagnóstico comunitario participativo: identifica hábitos, problemas de salud y colectivos prioritarios mediante participación ciudadana directa.</div>
-                </div>
-            </div>
-
-            <!-- ===== S7: IDEA-FUERZA FINAL ===== -->
-            <div style="background:linear-gradient(135deg,#f0f9ff,#f0fdf4); border-radius:12px; padding:1.25rem 1.5rem; border:1px solid #e2e8f0; margin-bottom:1.5rem;">
-                <p style="margin:0 0 0.35rem; font-size:0.88rem; color:#64748b; font-weight:600; letter-spacing:0.05em; text-transform:uppercase;">Principio rector</p>
-                <p style="margin:0; font-size:0.91rem; color:#334155; line-height:1.65;"><strong style="color:#0074c8;">COMPÁS</strong> acompaña, no sustituye. El municipio mantiene en todo momento el liderazgo del proceso: fija las prioridades, toma las decisiones y aprueba el plan. COMPÁS proporciona la estructura metodológica y el apoyo técnico para que ese proceso sea más sólido, documentado y sostenible en el tiempo.</p>
-            </div>
-
-            <!-- ===== PIE DEL MODAL ===== -->
-            <div style="text-align:center; margin-top:0.5rem; padding-top:1rem; border-top:1px solid #e2e8f0; color:#94a3b8; font-size:0.83rem; font-weight:500; letter-spacing:0.05em;">
-                COMPÁS v3 — arquitectura modular<br>
-                <span style="font-size:0.78rem; font-weight:400;">Desarrollado por Blas Hermoso</span>
-            </div>
-            <p id="footer-version" style="display:none;"><!-- Se actualiza dinámicamente con COMPAS_VERSION --></p>
+            <button onclick="cerrarMetodologia()" style="background:none; border:1px solid #e2e8f0; color:#64748b; width:30px; height:30px; border-radius:4px; cursor:pointer; font-size:1rem; line-height:1;">✕</button>
 
         </div>
+
+        <div id="compas-texto-modal-metodologia" data-compas-text-key="modal_metodologia" style="padding:2rem 2rem 1.5rem; color:#334155; font-size:.88rem; line-height:1.7;">
+
+            <!-- ===== CONTENIDO REESCRITO ===== -->
+
+            <p style="margin-top:0;"><strong style="color:#0074c8;">COMPÁS</strong> es una herramienta de apoyo técnico para la planificación local en salud, desarrollada en el Distrito Sanitario Granada-Metropolitano. Ayuda al municipio, al grupo motor y a la red local de salud a organizar el proceso de forma estructurada y sostenida en el tiempo.</p>
+
+            <h3 style="font-size:.9rem; font-weight:700; color:#1e293b; margin:1.5rem 0 .6rem; padding-bottom:.35rem; border-bottom:2px solid #e2e8f0;">El ciclo de trabajo</h3>
+
+            <p>COMPÁS organiza el proceso local de salud en cinco fases que forman un ciclo continuo:</p>
+
+            <ol style="padding-left:1.25rem; margin:.6rem 0 1rem;">
+                <li style="margin-bottom:.5rem;"><strong style="color:#0074c8;">Analizar.</strong> Perfil de salud del municipio a partir del informe epidemiológico y los datos de la Encuesta Andaluza de Salud.</li>
+                <li style="margin-bottom:.5rem;"><strong style="color:#00acd9;">Priorizar.</strong> Identificación de problemas prioritarios mediante participación ciudadana y convergencia con el análisis técnico.</li>
+                <li style="margin-bottom:.5rem;"><strong style="color:#6ea80a;">Planificar.</strong> Elaboración del plan de acción alineado con la Estrategia de Promoción de una Vida Saludable en Andalucía (EPVSA).</li>
+                <li style="margin-bottom:.5rem;"><strong style="color:#b45309;">Ejecutar.</strong> Agenda anual de actuaciones con responsables, cronograma y coordinación intersectorial.</li>
+                <li style="margin-bottom:.5rem;"><strong style="color:#dc143c;">Evaluar.</strong> Seguimiento de indicadores, revisión del plan y preparación del siguiente ciclo.</li>
+            </ol>
+
+            <h3 style="font-size:.9rem; font-weight:700; color:#1e293b; margin:1.5rem 0 .6rem; padding-bottom:.35rem; border-bottom:2px solid #e2e8f0;">Quién lo usa</h3>
+
+            <ul style="padding-left:1.25rem; margin:.4rem 0 1rem;">
+                <li style="margin-bottom:.35rem;"><strong>El ayuntamiento</strong>, responsable de la planificación y la aprobación institucional.</li>
+                <li style="margin-bottom:.35rem;"><strong>El grupo motor</strong>, órgano técnico-participativo que coordina el proceso.</li>
+                <li style="margin-bottom:.35rem;"><strong>La red local de acción en salud (RELAS)</strong>, actores comunitarios que participan en el diagnóstico y la acción.</li>
+            </ul>
+
+            <h3 style="font-size:.9rem; font-weight:700; color:#1e293b; margin:1.5rem 0 .6rem; padding-bottom:.35rem; border-bottom:2px solid #e2e8f0;">Qué no sustituye</h3>
+
+            <p>COMPÁS acompaña pero no reemplaza:</p>
+
+            <ul style="padding-left:1.25rem; margin:.4rem 0 1rem;">
+                <li style="margin-bottom:.3rem;">La decisión política municipal ni el liderazgo local del proceso.</li>
+                <li style="margin-bottom:.3rem;">La producción de datos epidemiológicos (trabaja con los datos que se le aportan).</li>
+                <li style="margin-bottom:.3rem;">La participación ciudadana real (la organiza, no la sustituye).</li>
+                <li style="margin-bottom:.3rem;">La gestión clínica ni la prestación sanitaria individual.</li>
+            </ul>
+
+            <h3 style="font-size:.9rem; font-weight:700; color:#1e293b; margin:1.5rem 0 .6rem; padding-bottom:.35rem; border-bottom:2px solid #e2e8f0;">Marco institucional</h3>
+
+            <p style="margin-bottom:.5rem;">COMPÁS se fundamenta en:</p>
+
+            <ul style="padding-left:1.25rem; margin:.4rem 0 .8rem;">
+                <li style="margin-bottom:.3rem;">Ley de Autonomía Local de Andalucía (LAULA, 5/2010) — competencia municipal en salud pública.</li>
+                <li style="margin-bottom:.3rem;">Ley de Salud Pública de Andalucía (16/2011) — planes locales de salud.</li>
+                <li style="margin-bottom:.3rem;">Estrategia de Promoción de una Vida Saludable en Andalucía (EPVSA 2024-2030).</li>
+                <li style="margin-bottom:.3rem;">IV Plan Andaluz de Salud — salud comunitaria y gobernanza local.</li>
+            </ul>
+
+            <p style="font-size:.8rem; color:#94a3b8; margin:1.5rem 0 0; padding-top:.75rem; border-top:1px solid #e2e8f0;">Desarrollo: B. Hermoso · Servicio Andaluz de Salud / Distrito Sanitario Granada-Metropolitano</p>
+
+</div>
 
     </div>
 
@@ -14110,6 +13966,18 @@ function compasTextEditor_toggleModo() {
 
     }
 
+    // Si se activa y no hay bloques visibles, abrir el modal de metodología para que el usuario vea un bloque editable
+    if (COMPAS_TEXT_EDITOR.enabled) {
+        var visibles = 0;
+        document.querySelectorAll('[data-compas-text-key]').forEach(function(el) {
+            if (el.offsetParent !== null) visibles++;
+        });
+        if (visibles === 0 && typeof mostrarMetodologia === 'function') {
+            mostrarMetodologia();
+            mostrarNotificacion({ title: 'Modo edición activo', message: 'Los bloques editables aparecen resaltados. Pulsa "Editar texto" en cada bloque para modificarlo.', type: 'info', duration: 4000 });
+        }
+    }
+
 }
 
 
@@ -17828,8 +17696,9 @@ function renderPlanAccion() {
 
 
     // M10: restaurar selección previa si existe (evita perder marcas al re-renderizar)
-
+    // Normalizar a array: Firebase puede convertir arrays con claves numéricas en objetos sparse
     var _selPrev = window.COMPAS && window.COMPAS.state && window.COMPAS.state.seleccionEPVSA;
+    if (_selPrev && !Array.isArray(_selPrev)) _selPrev = Object.values(_selPrev).filter(Boolean);
 
     if (_selPrev && _selPrev.length > 0) {
 
@@ -21853,7 +21722,14 @@ function generarDocumentoPlan() {
 
     }
 
-
+    // Fallback al plan persistido: si DOM vacío y propuesta vacía, usar selección del plan guardado
+    if (seleccion.length === 0 && !_hayCheckboxesDOM) {
+        var _selPlan = window.COMPAS && window.COMPAS.state && window.COMPAS.state.seleccionEPVSA;
+        if (_selPlan && !Array.isArray(_selPlan)) _selPlan = Object.values(_selPlan).filter(Boolean);
+        if (_selPlan && _selPlan.length > 0) {
+            seleccion = _selPlan;
+        }
+    }
 
     if (seleccion.length === 0) {
 
@@ -22354,6 +22230,9 @@ function generarDocumentoPlan() {
 
 
     // M10: persistir selección en Firebase para recuperarla al recargar
+    // Solo persistir si NO estamos en auto-rehidratación (evita sobreescribir con [] desde DOM vacío)
+
+    if (!_m11CargarModoActivo) {
 
     try {
 
@@ -22374,6 +22253,8 @@ function generarDocumentoPlan() {
         }
 
     } catch(e) { console.warn('M10: error guardando seleccionEPVSA:', e); }
+
+    } // fin guardia _m11CargarModoActivo para seleccionEPVSA
 
 }
 
@@ -22620,7 +22501,10 @@ function cargarPlanGuardado() {
 
     if (window.COMPAS && window.COMPAS.state) {
 
-        window.COMPAS.state.seleccionEPVSA = planFB.seleccionEPVSA;
+        // Normalizar a array: Firebase puede devolver objeto sparse en vez de array
+        var _selNorm = planFB.seleccionEPVSA;
+        if (_selNorm && !Array.isArray(_selNorm)) _selNorm = Object.values(_selNorm).filter(Boolean);
+        window.COMPAS.state.seleccionEPVSA = _selNorm;
 
         window.COMPAS.state.planAccion = {
 
@@ -46138,175 +46022,27 @@ function vrelas_generarPaginaVoto(municipio, sessionId) {
 
 <div id="drawer-documentos-overlay" onclick="cerrarDrawerDocumentos()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:2000;"></div>
 
-<div id="drawer-documentos" style="display:none; position:fixed; top:0; right:0; height:100vh; width:min(520px,95vw); background:white; z-index:2001; box-shadow:-4px 0 24px rgba(0,0,0,0.15); overflow-y:auto;">
+<div id="drawer-documentos" style="display:none; position:fixed; top:0; right:0; height:100vh; width:min(520px,95vw); background:white; z-index:2001; box-shadow:-4px 0 20px rgba(0,0,0,0.1); overflow-y:auto;">
 
-    <div style="background:linear-gradient(135deg,#6366f1,#8b5cf6); color:white; padding:1.25rem 1.5rem; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:1;">
+    <div style="border-bottom:3px solid; border-image:linear-gradient(90deg,#0074c8,#00acd9,#94d40b,#ffb61b,#dc143c) 1; padding:1rem 1.5rem; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:1; background:white;">
 
         <div>
 
-            <h2 style="margin:0; font-size:1.2rem;">&#128203; Documentos del proceso</h2>
+            <h2 style="margin:0; font-size:1.05rem; font-weight:700; color:#1e293b;">Documentos del proceso</h2>
 
-            <p style="margin:0.25rem 0 0; font-size:0.8rem; opacity:0.85;">Sistem&#225;tica de gobernanza del proceso local de salud 2026&#8211;2030</p>
+            <p style="margin:0.15rem 0 0; font-size:0.75rem; color:#94a3b8;">Proceso local de salud 2026–2030</p>
 
         </div>
 
-        <button onclick="cerrarDrawerDocumentos()" style="background:rgba(255,255,255,0.2); border:none; color:white; width:36px; height:36px; border-radius:50%; cursor:pointer; font-size:1.2rem;">&#x2715;</button>
+        <button onclick="cerrarDrawerDocumentos()" style="background:none; border:1px solid #e2e8f0; color:#64748b; width:30px; height:30px; border-radius:4px; cursor:pointer; font-size:1rem; line-height:1;">✕</button>
 
     </div>
 
-    <div id="compas-texto-drawer-documentos" data-compas-text-key="drawer_documentos" style="padding:1.5rem;">
+    <div id="compas-texto-drawer-documentos" data-compas-text-key="drawer_documentos" style="padding:1.25rem 1.5rem;">
 
-        <!-- SISTEMÁTICA DEL PROCESO LOCAL DE SALUD -->
+        <p style="margin:0 0 1rem; font-size:.84rem; color:#475569; line-height:1.6;">Documentación organizada por momentos del ciclo de trabajo. Cada sección incluye los documentos que se generan antes y después de cada fase del proceso.</p>
 
-
-
-        <!-- Introducción -->
-
-        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:0.9rem 1.15rem; margin-bottom:1.25rem;">
-
-            <p style="margin:0; font-size:0.85rem; color:#475569; line-height:1.65;">
-
-                <strong style="color:#1e293b;">COMP&#193;S</strong> acompa&#241;a el proceso local de salud en su totalidad: diagn&#243;stico, participaci&#243;n, planificaci&#243;n, implantaci&#243;n, seguimiento, evaluaci&#243;n y rendici&#243;n de cuentas. El Plan Local de Salud es uno de los productos de ese proceso, no su fin. Esta sistem&#225;tica organiza el trabajo del grupo motor hasta 2030.
-
-            </p>
-
-        </div>
-
-
-
-        <!-- AÑO 1 -->
-
-        <div style="border-radius:12px; overflow:hidden; margin-bottom:1rem; border:1.5px solid #bae6fd;">
-
-            <div style="background:linear-gradient(135deg,#0074c8,#00acd9); color:white; padding:0.7rem 1.2rem; display:flex; align-items:center; gap:0.7rem;">
-
-                <span style="background:rgba(255,255,255,0.25); border-radius:20px; padding:0.15rem 0.7rem; font-size:0.72rem; font-weight:700; letter-spacing:0.5px; white-space:nowrap;">A&#209;O 1 &middot; 2026</span>
-
-                <span style="font-weight:600; font-size:0.88rem;">Arranque del proceso</span>
-
-            </div>
-
-            <div style="background:#f0f9ff; padding:0.9rem 1.2rem;">
-
-                <ol style="margin:0; padding-left:1.2rem; display:flex; flex-direction:column; gap:0.55rem; list-style:decimal;">
-
-                    <li style="font-size:0.84rem; color:#0c4a6e; padding-left:0.25rem;">
-
-                        <strong>Taller de impulso comunitario para la salud</strong>
-
-                        <span style="display:block; color:#64748b; font-size:0.79rem; margin-top:0.1rem;">Constituci&#243;n del grupo motor y definici&#243;n de la hoja de ruta.</span>
-
-                    </li>
-
-                    <li style="font-size:0.84rem; color:#0c4a6e; padding-left:0.25rem;">
-
-                        <strong>Perfil de salud local</strong>
-
-                        <span style="display:block; color:#64748b; font-size:0.79rem; margin-top:0.1rem;">Informe de salud &middot; Estudios complementarios &middot; Determinantes sociales &middot; Indicadores &middot; Priorizaci&#243;n ciudadana.</span>
-
-                    </li>
-
-                    <li style="font-size:0.84rem; color:#0c4a6e; padding-left:0.25rem;">
-
-                        <strong>Planificaci&#243;n</strong>
-
-                        <span style="display:block; color:#64748b; font-size:0.79rem; margin-top:0.1rem;">Priorizaci&#243;n estrat&#233;gica y elaboraci&#243;n del plan de acci&#243;n.</span>
-
-                    </li>
-
-                    <li style="font-size:0.84rem; color:#0c4a6e; padding-left:0.25rem;">
-
-                        <strong>Jornada anual de Salud P&#250;blica</strong>
-
-                        <span style="display:block; color:#64748b; font-size:0.79rem; margin-top:0.1rem;">Presentaci&#243;n del Plan Local de Salud y propuesta de aprobaci&#243;n institucional.</span>
-
-                    </li>
-
-                </ol>
-
-            </div>
-
-        </div>
-
-
-
-        <!-- AÑOS 2-2030 -->
-
-        <div style="border-radius:12px; overflow:hidden; margin-bottom:1.15rem; border:1.5px solid #ddd6fe;">
-
-            <div style="background:linear-gradient(135deg,#6366f1,#8b5cf6); color:white; padding:0.7rem 1.2rem; display:flex; align-items:center; gap:0.7rem;">
-
-                <span style="background:rgba(255,255,255,0.25); border-radius:20px; padding:0.15rem 0.7rem; font-size:0.72rem; font-weight:700; letter-spacing:0.5px; white-space:nowrap;">A&#209;OS 2&#8211;2030</span>
-
-                <span style="font-weight:600; font-size:0.88rem;">Ciclo anual de seguimiento</span>
-
-            </div>
-
-            <div style="background:#f5f3ff; padding:0.9rem 1.2rem;">
-
-                <ol style="margin:0; padding-left:1.2rem; display:flex; flex-direction:column; gap:0.55rem; list-style:decimal;">
-
-                    <li style="font-size:0.84rem; color:#3730a3; padding-left:0.25rem;">
-
-                        <strong>Sesi&#243;n anual de seguimiento del plan</strong>
-
-                        <span style="display:block; color:#64748b; font-size:0.79rem; margin-top:0.1rem;">Revisi&#243;n del grado de ejecuci&#243;n de actuaciones y funcionamiento de la red local.</span>
-
-                    </li>
-
-                    <li style="font-size:0.84rem; color:#3730a3; padding-left:0.25rem;">
-
-                        <strong>Actualizaci&#243;n del perfil de salud</strong>
-
-                        <span style="display:block; color:#64748b; font-size:0.79rem; margin-top:0.1rem;">Revisi&#243;n de indicadores, determinantes y nuevas evidencias disponibles.</span>
-
-                    </li>
-
-                    <li style="font-size:0.84rem; color:#3730a3; padding-left:0.25rem;">
-
-                        <strong>Revisi&#243;n de la planificaci&#243;n</strong>
-
-                        <span style="display:block; color:#64748b; font-size:0.79rem; margin-top:0.1rem;">Ajuste del plan de acci&#243;n en funci&#243;n de resultados y prioridades emergentes.</span>
-
-                    </li>
-
-                    <li style="font-size:0.84rem; color:#3730a3; padding-left:0.25rem;">
-
-                        <strong>Jornada anual de Salud P&#250;blica</strong>
-
-                        <span style="display:block; color:#64748b; font-size:0.79rem; margin-top:0.1rem;">Presentaci&#243;n p&#250;blica de resultados, rendici&#243;n de cuentas y prioridades para el siguiente a&#241;o.</span>
-
-                    </li>
-
-                </ol>
-
-            </div>
-
-        </div>
-
-
-
-        <!-- Horizonte temporal 2026–2030 -->
-
-        <div style="display:flex; align-items:center; gap:0; margin-bottom:1.5rem;">
-
-            <div style="background:#0074c8; color:white; border-radius:6px 0 0 6px; padding:0.3rem 0.8rem; font-size:0.72rem; font-weight:700; white-space:nowrap;">2026 Arranque</div>
-
-            <div style="flex:1; height:4px; background:linear-gradient(to right,#0074c8,#6366f1); position:relative;">
-
-                <div style="position:absolute; top:-1.1rem; left:50%; transform:translateX(-50%); font-size:0.7rem; color:#6366f1; white-space:nowrap; font-weight:500;">Ciclo anual 2027&#8211;2029</div>
-
-            </div>
-
-            <div style="background:#6366f1; color:white; border-radius:0 6px 6px 0; padding:0.3rem 0.8rem; font-size:0.72rem; font-weight:700; white-space:nowrap;">2030 Evaluaci&#243;n final</div>
-
-        </div>
-
-
-
-        <!-- KITS DOCUMENTALES — Los 4 momentos -->
-
-        <p style="font-size: 0.78rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin: 0 0 0.75rem 0;">Kits documentales por momento</p>
+        <div style="font-size:.72rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:.06em; margin:0 0 .75rem; padding-bottom:.4rem; border-bottom:1px solid #e2e8f0;">Documentos por fase</div>
 
 
 
@@ -46314,23 +46050,19 @@ function vrelas_generarPaginaVoto(municipio, sessionId) {
 
         <div class="kit-reunion" style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 1.5rem; overflow: hidden;">
 
-            <div style="background: linear-gradient(135deg, #0074c8 0%, #00acd9 100%); color: white; padding: 1rem 1.5rem; cursor: pointer;" onclick="toggleKitReunion(1)">
+            <div style="background:#f8fafc; border-bottom:1px solid #e2e8f0; padding:.75rem 1.25rem; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="toggleKitReunion(1)">
 
-                <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
 
-                    <div>
+                    <div style="font-size:.65rem; font-weight:700; color:#0074c8; letter-spacing:.06em; text-transform:uppercase;">Fase 1</div>
 
-                        <span style="font-size: 0.75rem; opacity: 0.85; letter-spacing: 0.3px;">MOMENTO 1</span>
+                    <div style="font-size:.9rem; font-weight:700; color:#1e293b; margin-top:.1rem;">Taller de impulso y sesión de seguimiento</div>
 
-                        <h3 style="margin: 0.2rem 0 0 0; font-size: 1.05rem;">🎓 Taller de impulso &amp; Sesión de seguimiento</h3>
-
-                        <p style="margin: 0.2rem 0 0; font-size: 0.75rem; opacity: 0.85;">Año 1: constitución del grupo motor · Años 2–2030: revisión del grado de ejecución</p>
-
-                    </div>
-
-                    <span id="kit-1-toggle" style="font-size: 1.5rem;">▼</span>
+                    <div style="font-size:.72rem; color:#64748b; margin-top:.1rem;">Año 1: constitución del grupo motor · Años 2–2030: revisión del grado de ejecución</div>
 
                 </div>
+
+                <span id="kit-1-toggle" style="font-size:1rem; color:#94a3b8;">▼</span>
 
             </div>
 
@@ -46434,23 +46166,19 @@ function vrelas_generarPaginaVoto(municipio, sessionId) {
 
         <div class="kit-reunion" style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 1.5rem; overflow: hidden;">
 
-            <div style="background: linear-gradient(135deg, #94d40b 0%, #059669 100%); color: white; padding: 1rem 1.5rem; cursor: pointer;" onclick="toggleKitReunion(2)">
+            <div style="background:#f8fafc; border-bottom:1px solid #e2e8f0; padding:.75rem 1.25rem; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="toggleKitReunion(2)">
 
-                <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
 
-                    <div>
+                    <div style="font-size:.65rem; font-weight:700; color:#6ea80a; letter-spacing:.06em; text-transform:uppercase;">Fase 2</div>
 
-                        <span style="font-size: 0.75rem; opacity: 0.85; letter-spacing: 0.3px;">MOMENTO 2</span>
+                    <div style="font-size:.9rem; font-weight:700; color:#1e293b; margin-top:.1rem;">Perfil de salud local y actualización</div>
 
-                        <h3 style="margin: 0.2rem 0 0 0; font-size: 1.05rem;">📊 Perfil de salud local &amp; Actualización</h3>
-
-                        <p style="margin: 0.2rem 0 0; font-size: 0.75rem; opacity: 0.85;">Año 1: diagnóstico integral · Años 2–2030: revisión de indicadores y evidencias</p>
-
-                    </div>
-
-                    <span id="kit-2-toggle" style="font-size: 1.5rem;">▶</span>
+                    <div style="font-size:.72rem; color:#64748b; margin-top:.1rem;">Año 1: diagnóstico integral · Años 2–2030: revisión de indicadores y evidencias</div>
 
                 </div>
+
+                <span id="kit-2-toggle" style="font-size:1rem; color:#94a3b8;">▶</span>
 
             </div>
 
@@ -46512,23 +46240,19 @@ function vrelas_generarPaginaVoto(municipio, sessionId) {
 
         <div class="kit-reunion" style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 1.5rem; overflow: hidden;">
 
-            <div style="background: linear-gradient(135deg, #f59e0b 0%, #ff6600 100%); color: white; padding: 1rem 1.5rem; cursor: pointer;" onclick="toggleKitReunion(3)">
+            <div style="background:#f8fafc; border-bottom:1px solid #e2e8f0; padding:.75rem 1.25rem; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="toggleKitReunion(3)">
 
-                <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
 
-                    <div>
+                    <div style="font-size:.65rem; font-weight:700; color:#b45309; letter-spacing:.06em; text-transform:uppercase;">Fase 3</div>
 
-                        <span style="font-size: 0.75rem; opacity: 0.85; letter-spacing: 0.3px;">MOMENTO 3</span>
+                    <div style="font-size:.9rem; font-weight:700; color:#1e293b; margin-top:.1rem;">Planificación y revisión del plan</div>
 
-                        <h3 style="margin: 0.2rem 0 0 0; font-size: 1.05rem;">🎯 Planificación &amp; Revisión del plan</h3>
-
-                        <p style="margin: 0.2rem 0 0; font-size: 0.75rem; opacity: 0.85;">Año 1: elaboración del plan de acción · Años 2–2030: ajuste y actualización</p>
-
-                    </div>
-
-                    <span id="kit-3-toggle" style="font-size: 1.5rem;">▶</span>
+                    <div style="font-size:.72rem; color:#64748b; margin-top:.1rem;">Año 1: elaboración del plan de acción · Años 2–2030: ajuste y actualización</div>
 
                 </div>
+
+                <span id="kit-3-toggle" style="font-size:1rem; color:#94a3b8;">▶</span>
 
             </div>
 
@@ -46590,23 +46314,19 @@ function vrelas_generarPaginaVoto(municipio, sessionId) {
 
         <div class="kit-reunion" style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 1.5rem; overflow: hidden;">
 
-            <div style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; padding: 1rem 1.5rem; cursor: pointer;" onclick="toggleKitReunion(4)">
+            <div style="background:#f8fafc; border-bottom:1px solid #e2e8f0; padding:.75rem 1.25rem; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="toggleKitReunion(4)">
 
-                <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
 
-                    <div>
+                    <div style="font-size:.65rem; font-weight:700; color:#dc143c; letter-spacing:.06em; text-transform:uppercase;">Fase 4</div>
 
-                        <span style="font-size: 0.75rem; opacity: 0.85; letter-spacing: 0.3px;">MOMENTO 4</span>
+                    <div style="font-size:.9rem; font-weight:700; color:#1e293b; margin-top:.1rem;">Jornada anual de Salud Pública</div>
 
-                        <h3 style="margin: 0.2rem 0 0 0; font-size: 1.05rem;">🏛️ Jornada anual de Salud Pública</h3>
-
-                        <p style="margin: 0.2rem 0 0; font-size: 0.75rem; opacity: 0.85;">Año 1: presentación y aprobación institucional · Años 2–2030: rendición de cuentas</p>
-
-                    </div>
-
-                    <span id="kit-4-toggle" style="font-size: 1.5rem;">▶</span>
+                    <div style="font-size:.72rem; color:#64748b; margin-top:.1rem;">Año 1: presentación y aprobación institucional · Años 2–2030: rendición de cuentas</div>
 
                 </div>
+
+                <span id="kit-4-toggle" style="font-size:1rem; color:#94a3b8;">▶</span>
 
             </div>
 
@@ -53474,7 +53194,10 @@ function poblarPerfilNuevo(datos, nombre) {
 
             if (window.COMPAS && window.COMPAS.state) {
 
-                window.COMPAS.state.seleccionEPVSA = datos.seleccionEPVSA.seleccion;
+                // Normalizar a array: Firebase puede devolver objeto sparse
+                var _m10sel = datos.seleccionEPVSA.seleccion;
+                if (_m10sel && !Array.isArray(_m10sel)) _m10sel = Object.values(_m10sel).filter(Boolean);
+                window.COMPAS.state.seleccionEPVSA = _m10sel;
 
             }
 
@@ -57334,23 +57057,21 @@ if(window.COMPAS){window.COMPAS.v3={
 
 <div id="modal-ibse-monitor" style="display:none;position:fixed;inset:0;z-index:100010;background:rgba(15,23,42,.75);backdrop-filter:blur(4px);overflow-y:auto;padding:1rem;">
 
-  <div style="max-width:920px;margin:0 auto;background:white;border-radius:14px;box-shadow:0 24px 80px rgba(0,0,0,.3);overflow:hidden;">
+  <div style="max-width:800px;margin:0 auto;background:white;border-radius:6px;overflow:hidden;">
 
+    <!-- Cabecera -->
 
-
-    <!-- Cabecera v2 -->
-
-    <div style="background:linear-gradient(135deg,#0074c8,#00acd9);padding:1.25rem 1.5rem;display:flex;justify-content:space-between;align-items:center;">
+    <div style="border-bottom:3px solid;border-image:linear-gradient(90deg,#0074c8,#00acd9,#94d40b,#ffb61b,#dc143c) 1;padding:1rem 1.5rem;display:flex;justify-content:space-between;align-items:center;">
 
       <div>
 
-        <h2 style="margin:0;color:white;font-size:1.15rem;font-weight:800;">🔬 Monitor IBSE v2 — Índice de Bienestar Socioemocional</h2>
+        <h2 style="margin:0;color:#1e293b;font-size:1.05rem;font-weight:700;">Índice de Bienestar Socioemocional</h2>
 
-        <p id="ibsev2-subtitulo" style="margin:.2rem 0 0;color:rgba(255,255,255,.8);font-size:.78rem;">Algoritmo Bericat (2014) · Encuesta Andaluza de Salud 2023 · 4 factores</p>
+        <p id="ibsev2-subtitulo" style="margin:.15rem 0 0;color:#64748b;font-size:.75rem;">Bericat (2014) · Encuesta Andaluza de Salud 2023</p>
 
       </div>
 
-      <button onclick="ibse_v2_cerrar()" style="background:rgba(255,255,255,.2);border:none;color:white;width:34px;height:34px;border-radius:50%;font-size:1rem;cursor:pointer;">✕</button>
+      <button onclick="ibse_v2_cerrar()" style="background:none;border:1px solid #e2e8f0;color:#64748b;width:30px;height:30px;border-radius:4px;font-size:1rem;cursor:pointer;line-height:1;">✕</button>
 
     </div>
 
@@ -57362,8 +57083,6 @@ if(window.COMPAS){window.COMPAS.v3={
 
       <div style="text-align:center;padding:3rem 1rem;color:#94a3b8;">
 
-        <div style="font-size:2rem;margin-bottom:.5rem;">⏳</div>
-
         <p style="margin:0;">Cargando datos IBSE...</p>
 
       </div>
@@ -57374,11 +57093,11 @@ if(window.COMPAS){window.COMPAS.v3={
 
     <!-- Footer -->
 
-    <div style="padding:.85rem 1.5rem;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;background:#f8fafc;flex-wrap:wrap;gap:.5rem;">
+    <div style="padding:.75rem 1.5rem;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
 
-      <span style="font-size:.72rem;color:#94a3b8;">IBSE: P.57b (deprimido, feliz, solo, disfrutar, energía, tranquilo) + P.57c (optimista, bien consigo mismo) · EAS 2023</span>
+      <span style="font-size:.7rem;color:#94a3b8;">P.57b + P.57c · EAS 2023</span>
 
-      <button onclick="ibse_v2_cerrar()" style="padding:.5rem 1.25rem;background:linear-gradient(135deg,#0074c8,#00acd9);color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:.85rem;">Cerrar</button>
+      <button onclick="ibse_v2_cerrar()" style="padding:.4rem 1rem;background:none;border:1px solid #cbd5e1;color:#475569;border-radius:4px;font-weight:600;cursor:pointer;font-size:.8rem;">Cerrar</button>
 
     </div>
 
@@ -57538,6 +57257,9 @@ function ibse_v2_procesarFirebase(datos, rutaLabel) {
 
     _ibse_v2_respuestas = arr;
 
+    // Conservar datos crudos (con ítems individuales) para análisis por pregunta
+    window._ibse_v2_rawData = Object.values(datos);
+
     ibse_v2_renderTodo(arr, {fuente:rutaLabel, tipo:'firebase'});
 
 }
@@ -57554,11 +57276,11 @@ function ibse_v2_abrir() {
 
     var sub = document.getElementById('ibsev2-subtitulo');
 
-    if (sub) sub.textContent = '📍 ' + nombre + ' · Bericat 2014 · EAS 2023';
+    if (sub) sub.textContent = nombre + ' · Bericat 2014 · EAS 2023';
 
     var cont = document.getElementById('ibsev2-contenido');
 
-    if (cont) cont.innerHTML = '<div style="text-align:center;padding:3rem 1rem;color:#94a3b8;"><div style="font-size:2rem;margin-bottom:.5rem;">⏳</div><p style="margin:0;">Cargando datos IBSE...</p></div>';
+    if (cont) cont.innerHTML = '<div style="text-align:center;padding:3rem 1rem;color:#94a3b8;"><p style="margin:0;">Cargando datos IBSE...</p></div>';
 
     if (!mun || typeof db === 'undefined') {
 
@@ -57631,8 +57353,6 @@ function ibse_v2_renderSinDatos(cont, msg) {
 
     cont.innerHTML = '<div style="text-align:center;padding:3rem 1rem;">' +
 
-        '<div style="font-size:3rem;margin-bottom:.75rem;">🔬</div>' +
-
         '<p style="font-weight:600;color:#475569;margin:0 0 .4rem;">Sin datos IBSE para este municipio</p>' +
 
         '<p style="font-size:.82rem;color:#94a3b8;margin:0;">'+(msg||'')+'</p></div>';
@@ -57655,31 +57375,112 @@ function ibse_v2_renderTodo(arr, meta) {
 
     cont.innerHTML =
 
-        ibse_v2_renderMarco() +
-
+        // 1. Cabecera + IBSE global + factores
         ibse_v2_renderCabecera(agg, meta, arr.length) +
 
         ibse_v2_renderResultados(agg) +
 
+        // 2. Calidad muestral
         ibse_v2_renderMuestra(arr, dist) +
 
         ibse_v2_renderRepresentatividad(dist) +
 
         ibse_v2_renderJuicioMuestra(dist) +
 
+        // 2b. SAM embebido (pirámide demográfica) — acordeón nativo COMPÁS
+        '<div class="acordeon-item abierto" style="margin-bottom:1rem;">' +
+          '<div class="acordeon-header" onclick="toggleAcordeon(this)" style="padding:.6rem 1rem;font-size:.85rem;">' +
+            '<span>Ajuste muestral (SAM)</span>' +
+            '<span class="flecha">▼</span>' +
+          '</div>' +
+          '<div class="acordeon-contenido" style="padding:.85rem 1rem;">' +
+            '<div id="ibse-sam-container"><div style="font-size:.75rem;color:#94a3b8;">Cargando ajuste muestral...</div></div>' +
+          '</div>' +
+        '</div>' +
+
+        // 3. Contextualización externa
+        ibse_v2_renderContextoExterno(agg) +
+
+        // 4. Resultados por sexo, edad, cruce
         ibse_v2_renderPiramide(dist) +
 
         ibse_v2_renderDesagregados(dist) +
 
+        // 5. Análisis por pregunta y edad
+        ibse_v2_renderAnalisisPorEdad() +
+
+        // 6. Interpretación
         ibse_v2_renderInterpretacion(agg, arr, dist) +
 
-        ibse_v2_renderAlertas(agg, arr, dist);
+        ibse_v2_renderAlertas(agg, arr, dist) +
+
+        // 7. Marco IBSE (reducido, al final)
+        ibse_v2_renderMarco();
+
+    // 8. SAM embebido — renderizar pirámide demográfica tras inyectar DOM
+    requestAnimationFrame(function() {
+        if (typeof sam_renderMonitorMuestra !== 'function') {
+            var _sc = document.getElementById('ibse-sam-container');
+            if (_sc) _sc.innerHTML = '<div style="font-size:.75rem;color:#94a3b8;">SAM no disponible.</div>';
+            return;
+        }
+        try {
+            var _samGrupos = ['18-29','30-44','45-64','65-74','75+'];
+            var _samMuestra = { hombres: {}, mujeres: {} };
+            _samGrupos.forEach(function(g) {
+                var ga = dist.edades[g] || [];
+                _samMuestra.hombres[g] = ga.filter(function(r) { return r.sexo === 1; }).length;
+                _samMuestra.mujeres[g] = ga.filter(function(r) { return r.sexo === 2; }).length;
+            });
+            var _samPob = sam_obtenerPoblacion() || _SAM_POB_DEMO;
+            var _samN = (typeof sam_calcularNObjetivo === 'function') ? sam_calcularNObjetivo() : arr.length;
+            var _samEsDemo = !sam_obtenerPoblacion();
+            sam_renderMonitorMuestra('ibse-sam-container', _samPob, _samMuestra, _samN, _samEsDemo, arr.length);
+        } catch(e) {
+            console.warn('[IBSE→SAM] error renderizando SAM:', e);
+            var _sc2 = document.getElementById('ibse-sam-container');
+            if (_sc2) _sc2.innerHTML = '<div style="font-size:.75rem;color:#94a3b8;">Error al cargar ajuste muestral.</div>';
+        }
+    });
 
 }
 
 
 
+function ibse_v2_renderContextoExterno(agg) {
+    if (!agg || !agg.ibse_total) return '';
+    var local = agg.ibse_total.toFixed(1);
+    var refAnd = 62.4, refGra = 60.8;
+    var difA = (agg.ibse_total - refAnd).toFixed(1);
+    var difG = (agg.ibse_total - refGra).toFixed(1);
+
+    return '<div style="margin-bottom:1.2rem;">' +
+        '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.4rem;">Contexto externo</div>' +
+        '<p style="font-size:.78rem;color:#475569;line-height:1.55;margin:0 0 .4rem;">' +
+            'Municipio: <strong>'+local+'</strong> · ' +
+            'Andalucía (EAS 2023): <strong>'+refAnd.toFixed(1)+'</strong> ('+( difA>=0?'+':'')+difA+') · ' +
+            'Granada: <strong>'+refGra.toFixed(1)+'</strong> ('+(difG>=0?'+':'')+difG+')' +
+        '</p>' +
+        '<p style="font-size:.7rem;color:#94a3b8;line-height:1.45;margin:0;">' +
+            'Referencia: VI Encuesta Andaluza de Salud (2023), encuesta poblacional probabilística. ' +
+            'Los datos del municipio son de recogida no probabilística. Comparación orientativa.' +
+        '</p>' +
+    '</div>';
+}
+
 function ibse_v2_renderMarco() {
+
+    // Versión reducida — definición, estructura y escala
+    return '<div style="margin-bottom:1rem;padding-top:.75rem;border-top:1px solid #e2e8f0;">' +
+        '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.3rem;">Referencia metodológica</div>' +
+        '<p style="font-size:.78rem;color:#374151;line-height:1.55;margin:0 0 .4rem;">El <strong>Índice de Bienestar Socioemocional (IBSE)</strong> mide el estado emocional a partir del balance entre emociones positivas y negativas. Autor: Eduardo Bericat (Universidad de Sevilla). Validado en la Encuesta Andaluza de Salud.</p>' +
+        '<p style="font-size:.78rem;color:#374151;line-height:1.55;margin:0 0 .4rem;"><strong>Estructura:</strong> 8 preguntas → 4 factores (Vínculo, Situación, Control, Persona) → 1 índice global (escala 0–100).</p>' +
+        '<p style="font-size:.75rem;color:#64748b;margin:0;">Escala: 76–100 alto · 51–75 moderado · 26–50 bajo · 0–25 muy bajo</p>' +
+    '</div>';
+}
+
+// ── Función original renderMarco extendida (conservada como referencia interna) ──
+function _ibse_v2_renderMarco_legacy() {
 
     var secStyle = 'margin-bottom:.6rem;';
 
@@ -57690,10 +57491,10 @@ function ibse_v2_renderMarco() {
     var liStyle = 'font-size:.74rem;color:#374151;line-height:1.5;margin-bottom:.15rem;';
 
     var factores = [
-        {n:'VINCULO', ic:'\uD83E\uDD1D', col:'#16a34a', items:'deprimido/a, solo/a', desc:'Calidad de las relaciones sociales y sentimiento de pertenencia.'},
-        {n:'SITUACION', ic:'\uD83C\uDFE0', col:'#d97706', items:'feliz, disfrutar de la vida', desc:'Valoracion de las condiciones de vida y satisfaccion vital.'},
-        {n:'CONTROL', ic:'\uD83E\uDDED', col:'#ea580c', items:'energia, tranquilo/a', desc:'Capacidad percibida de manejar el entorno y la propia vida.'},
-        {n:'PERSONA', ic:'\uD83E\uDDD1', col:'#9333ea', items:'optimista, bien conmigo mismo/a', desc:'Autoestima, autovaloracion y fortaleza del yo.'}
+        {n:'VÍNCULO', ic:'\uD83E\uDD1D', col:'#16a34a', items:'deprimido/a, solo/a', desc:'Calidad de las relaciones sociales y sentimiento de pertenencia.'},
+        {n:'SITUACIÓN', ic:'\uD83C\uDFE0', col:'#d97706', items:'feliz, disfrutar de la vida', desc:'Valoración de las condiciones de vida y satisfacción vital.'},
+        {n:'CONTROL', ic:'\uD83E\uDDED', col:'#ea580c', items:'energía, tranquilo/a', desc:'Capacidad percibida de manejar el entorno y la propia vida.'},
+        {n:'PERSONA', ic:'\uD83E\uDDD1', col:'#9333ea', items:'optimista, bien conmigo mismo/a', desc:'Autoestima, autovaloración y fortaleza del yo.'}
     ];
 
     var factHtml = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:.5rem;margin:.5rem 0 .6rem;">';
@@ -57719,27 +57520,27 @@ function ibse_v2_renderMarco() {
         // 1. Definicion
         '<div style="'+secStyle+'">' +
 
-            '<h4 style="'+hStyle+'">Que es el IBSE</h4>' +
+            '<h4 style="'+hStyle+'">Qué es el IBSE</h4>' +
 
-            '<p style="'+pStyle+'">El <strong>Indice de Bienestar Socioemocional (IBSE)</strong> es un indicador compuesto de bienestar subjetivo que mide el estado emocional de una poblacion a partir del balance entre emociones positivas y negativas experimentadas recientemente. Sintetiza cuatro dimensiones del bienestar en un unico valor en escala 0\u2013100, permitiendo el analisis comparado entre grupos poblacionales.</p>' +
+            '<p style="'+pStyle+'">El <strong>Índice de Bienestar Socioemocional (IBSE)</strong> es un indicador compuesto de bienestar subjetivo que mide el estado emocional de una población a partir del balance entre emociones positivas y negativas experimentadas recientemente. Sintetiza cuatro dimensiones del bienestar en un único valor en escala 0\u2013100, permitiendo el análisis comparado entre grupos poblacionales.</p>' +
 
         '</div>' +
 
         // 2. Autoria
         '<div style="'+secStyle+'">' +
 
-            '<h4 style="'+hStyle+'">Base cientifica</h4>' +
+            '<h4 style="'+hStyle+'">Base científica</h4>' +
 
-            '<p style="'+pStyle+'"><strong>Autor:</strong> Eduardo Bericat Alastuey (Universidad de Sevilla). El IBSE se desarrolla en el marco de la investigacion sociologica sobre calidad de vida y bienestar subjetivo, utilizando datos de la <em>European Social Survey</em> (ESS). Su construccion y validacion empirica se describen en publicaciones como <em>Social Indicators Research</em> (2014) y en el libro <em>Excluidos de la felicidad</em> (CIS, 2018). El indice ha sido utilizado en investigacion social comparada para analizar desigualdades en bienestar emocional en contextos europeos.</p>' +
+            '<p style="'+pStyle+'"><strong>Autor:</strong> Eduardo Bericat Alastuey (Universidad de Sevilla). El IBSE se desarrolla en el marco de la investigación sociológica sobre calidad de vida y bienestar subjetivo, utilizando datos de la <em>European Social Survey</em> (ESS). Su construcción y validación empírica se describen en publicaciones como <em>Social Indicators Research</em> (2014) y en el libro <em>Excluidos de la felicidad</em> (CIS, 2018). El índice ha sido utilizado en investigación social comparada para analizar desigualdades en bienestar emocional en contextos europeos.</p>' +
 
         '</div>' +
 
         // 3. Estructura
         '<div style="'+secStyle+'">' +
 
-            '<h4 style="'+hStyle+'">Estructura: 8 items \u2192 4 factores \u2192 1 indice</h4>' +
+            '<h4 style="'+hStyle+'">Estructura: 8 ítems \u2192 4 factores \u2192 1 índice</h4>' +
 
-            '<p style="'+pStyle+'">El cuestionario consta de <strong>8 preguntas</strong> agrupadas en <strong>4 factores</strong>. Los items 1\u20136 usan escala de frecuencia (1\u20134) y los items 7\u20138 usan escala de acuerdo (1\u20135). Tras homogeneizacion y normalizacion Bericat, cada factor se expresa en escala 0\u2013100. El IBSE global es la media aritmetica de los cuatro factores.</p>' +
+            '<p style="'+pStyle+'">El cuestionario consta de <strong>8 preguntas</strong> agrupadas en <strong>4 factores</strong>. Los ítems 1\u20136 usan escala de frecuencia (1\u20134) y los ítems 7\u20138 usan escala de acuerdo (1\u20135). Tras homogeneización y normalización Bericat, cada factor se expresa en escala 0\u2013100. El IBSE global es la media aritmética de los cuatro factores.</p>' +
 
             factHtml +
 
@@ -57748,7 +57549,7 @@ function ibse_v2_renderMarco() {
         // 4. Interpretacion
         '<div style="'+secStyle+'">' +
 
-            '<h4 style="'+hStyle+'">Interpretacion</h4>' +
+            '<h4 style="'+hStyle+'">Interpretación</h4>' +
 
             '<div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.3rem;">' +
 
@@ -57769,7 +57570,7 @@ function ibse_v2_renderMarco() {
 
             '<h4 style="'+hStyle+'">Aplicaciones</h4>' +
 
-            '<p style="'+pStyle+'">El IBSE se utiliza en investigacion social y en analisis de desigualdades socioemocionales por sexo, edad y condiciones de vida. En Andalucia, el IBSE-8 se incorpora como indicador de bienestar emocional en la <strong>VI Encuesta Andaluza de Salud (2023)</strong>. Su aplicacion permite complementar indicadores clasicos con una medida del bienestar subjetivo relevante para la planificacion en salud publica y el analisis comunitario.</p>' +
+            '<p style="'+pStyle+'">El IBSE se utiliza en investigación social y en análisis de desigualdades socioemocionales por sexo, edad y condiciones de vida. En Andalucía, el IBSE-8 se incorpora como indicador de bienestar emocional en la <strong>VI Encuesta Andaluza de Salud (2023)</strong>. Su aplicación permite complementar indicadores clásicos con una medida del bienestar subjetivo relevante para la planificación en salud pública y el análisis comunitario.</p>' +
 
         '</div>' +
 
@@ -57778,7 +57579,7 @@ function ibse_v2_renderMarco() {
 
             '<h4 style="'+hStyle+'">Limitaciones</h4>' +
 
-            '<p style="'+pStyle+'margin:0;">El IBSE mide bienestar <strong>subjetivo</strong>, no condiciones objetivas de vida, y no permite establecer relaciones causales. Sus resultados dependen de la percepcion individual y del contexto social. En este estudio, los datos proceden de una muestra <strong>no probabilistica y autoseleccionada</strong>, por lo que deben interpretarse como representativos del grupo participante y no directamente extrapolables a la poblacion general sin analisis adicional de calidad muestral y posibles ajustes.</p>' +
+            '<p style="'+pStyle+'margin:0;">El IBSE mide bienestar <strong>subjetivo</strong>, no condiciones objetivas de vida, y no permite establecer relaciones causales. Sus resultados dependen de la percepción individual y del contexto social. En este estudio, los datos proceden de una muestra <strong>no probabilística y autoseleccionada</strong>, por lo que deben interpretarse como representativos del grupo participante y no directamente extrapolables a la población general sin análisis adicional de calidad muestral y posibles ajustes.</p>' +
 
         '</div>' +
 
@@ -57790,13 +57591,9 @@ function ibse_v2_renderMarco() {
 
 function ibse_v2_renderCabecera(agg, meta, n) {
 
-    var fuente = meta.tipo==='firebase' ? '🔥 Firebase' : '📄 CSV';
-
-    return '<div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:.65rem 1rem;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.4rem;">' +
-
-        '<div style="font-size:.8rem;color:#0369a1;">'+fuente+' · <code style="font-size:.73rem;background:#e0f2fe;padding:.1rem .35rem;border-radius:4px;">'+meta.fuente+'</code></div>' +
-
-        '<div style="font-size:.8rem;color:#64748b;">n = <strong>'+n+'</strong> respuestas procesadas</div></div>';
+    return '<div style="margin-bottom:.8rem;font-size:.78rem;color:#64748b;">' +
+        'n = <strong style="color:#1e293b;">'+n+'</strong> respuestas · Fuente: '+meta.fuente +
+    '</div>';
 
 }
 
@@ -57804,91 +57601,43 @@ function ibse_v2_renderCabecera(agg, meta, n) {
 
 function ibse_v2_renderResultados(agg) {
 
-    var kpis = [
+    var media = agg.ibse_total;
+    var nivel = media>=76?'alto':media>=51?'moderado':media>=26?'bajo':'muy bajo';
+    var nivelCol = media>=76?'#166534':media>=51?'#854d0e':media>=26?'#c2410c':'#dc2626';
 
-        {lbl:'IBSE Global', val:agg.ibse_total,       col:'#7c3aed',bg:'#ede9fe',brd:'#c4b5fd'},
-
-        {lbl:'Vínculo',     val:agg.factor_vinculo,    col:'#16a34a',bg:'#f0fdf4',brd:'#86efac'},
-
-        {lbl:'Situación',   val:agg.factor_situacion,  col:'#d97706',bg:'#fffbeb',brd:'#fcd34d'},
-
-        {lbl:'Control',     val:agg.factor_control,    col:'#ea580c',bg:'#fff7ed',brd:'#fdba74'},
-
-        {lbl:'Persona',     val:agg.factor_persona,    col:'#9333ea',bg:'#fdf4ff',brd:'#e9d5ff'}
-
+    var factores = [
+        {lbl:'Vínculo',   val:agg.factor_vinculo,   col:'#475569'},
+        {lbl:'Situación', val:agg.factor_situacion,  col:'#475569'},
+        {lbl:'Control',   val:agg.factor_control,    col:'#475569'},
+        {lbl:'Persona',   val:agg.factor_persona,    col:'#475569'}
     ];
 
-    var kpiHtml = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:.6rem;margin-bottom:.9rem;">';
+    var html = '<div style="margin-bottom:1.2rem;">';
 
-    kpis.forEach(function(k){
+    // IBSE global — texto directo
+    html += '<div style="display:flex;align-items:baseline;gap:.5rem;margin-bottom:.6rem;">';
+    html += '<span style="font-size:2rem;font-weight:900;color:'+nivelCol+';">'+media.toFixed(1)+'</span>';
+    html += '<span style="font-size:.85rem;color:#64748b;">/ 100</span>';
+    html += '<span style="font-size:.8rem;font-weight:600;color:'+nivelCol+';margin-left:.3rem;">'+nivel+'</span>';
+    html += '</div>';
 
-        var v = (k.val!==null&&!isNaN(k.val)) ? k.val.toFixed(1) : '—';
-
-        kpiHtml += '<div style="background:'+k.bg+';border:1px solid '+k.brd+';border-radius:10px;padding:.75rem;text-align:center;">' +
-
-            '<div style="font-size:.65rem;font-weight:700;color:'+k.col+';text-transform:uppercase;letter-spacing:.04em;">'+k.lbl+'</div>' +
-
-            '<div style="font-size:1.65rem;font-weight:900;color:'+k.col+';">'+v+'</div></div>';
-
+    // Factores — barras discretas sin fondo
+    html += '<div style="display:grid;gap:.35rem;max-width:360px;">';
+    factores.forEach(function(f) {
+        var v = (f.val!=null&&!isNaN(f.val)) ? f.val : 0;
+        var pct = Math.max(0,Math.min(100,v));
+        var vTxt = (f.val!=null&&!isNaN(f.val)) ? f.val.toFixed(1) : '\u2014';
+        html += '<div style="display:flex;align-items:center;gap:.4rem;">';
+        html += '<div style="font-size:.75rem;color:#64748b;width:62px;text-align:right;">'+f.lbl+'</div>';
+        html += '<div style="flex:1;height:4px;background:#e5e7eb;border-radius:2px;overflow:hidden;">';
+        html += '<div style="width:'+pct+'%;height:100%;background:#94a3b8;border-radius:2px;"></div></div>';
+        html += '<div style="font-size:.75rem;font-weight:700;color:#1e293b;width:32px;">'+vTxt+'</div>';
+        html += '</div>';
     });
+    html += '</div>';
 
-    kpiHtml += '</div>';
-
-    var media = agg.ibse_total;
-
-    var nivel = media>=76?{lbl:'ALTO',    col:'#10b981',bg:'#dcfce7',em:'😊'}:
-
-                media>=51?{lbl:'MODERADO',col:'#f59e0b',bg:'#fef9c3',em:'😐'}:
-
-                media>=26?{lbl:'BAJO',    col:'#f97316',bg:'#ffedd5',em:'😟'}:
-
-                          {lbl:'MUY BAJO',col:'#ef4444',bg:'#fee2e2',em:'😢'};
-
-    var barPct = Math.max(0,Math.min(100,media));
-
-    var factorBars = [['Vínculo',agg.factor_vinculo,'#16a34a'],['Situación',agg.factor_situacion,'#d97706'],
-
-                      ['Control',agg.factor_control,'#ea580c'],['Persona',agg.factor_persona,'#9333ea']];
-
-    var semHtml = '<div style="background:'+nivel.bg+';border:1px solid '+nivel.col+'40;border-radius:10px;padding:.9rem 1.1rem;margin-bottom:.9rem;display:flex;align-items:center;gap:1.1rem;flex-wrap:wrap;">' +
-
-        '<div style="font-size:2.2rem;line-height:1;">'+nivel.em+'</div>' +
-
-        '<div style="flex:1;min-width:140px;">' +
-
-          '<div style="font-size:1.2rem;font-weight:900;color:'+nivel.col+';">'+media.toFixed(1)+' — '+nivel.lbl+'</div>' +
-
-          '<div style="font-size:.75rem;color:#64748b;margin:.1rem 0 .45rem;">IBSE Global · Escala 0–100</div>' +
-
-          '<div style="height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">' +
-
-          '<div style="width:'+barPct+'%;height:100%;background:'+nivel.col+';border-radius:4px;"></div></div>' +
-
-        '</div>' +
-
-        '<div style="display:grid;gap:.18rem;min-width:155px;">' +
-
-        factorBars.map(function(f){
-
-            var pct=Math.max(0,Math.min(100,f[1]||0));
-
-            var lv=(f[1]!==null&&!isNaN(f[1]))?f[1].toFixed(0):'—';
-
-            return '<div style="display:flex;align-items:center;gap:.35rem;">' +
-
-                '<div style="font-size:.66rem;color:#64748b;width:56px;text-align:right;">'+f[0]+'</div>' +
-
-                '<div style="flex:1;height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;">' +
-
-                '<div style="width:'+pct+'%;height:100%;background:'+f[2]+';"></div></div>' +
-
-                '<div style="font-size:.66rem;font-weight:700;color:'+f[2]+';width:26px;">'+lv+'</div></div>';
-
-        }).join('') +
-
-        '</div></div>';
-
-    return kpiHtml + semHtml;
+    html += '</div>';
+    return html;
 
 }
 
@@ -57904,66 +57653,22 @@ function ibse_v2_renderMuestra(arr, dist) {
 
     var mM=nM>0?dist.sexos[2].reduce(function(s,r){return s+r.ibse_total;},0)/nM:null;
 
-    var html='<div style="display:grid;grid-template-columns:1fr 1fr;gap:.65rem;margin-bottom:.9rem;">';
-
-    // Bloque muestra
-
-    html+='<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:.8rem;">' +
-
-        '<div style="font-size:.68rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem;">Muestra</div>' +
-
-        '<div style="font-size:1.7rem;font-weight:900;color:#0074c8;">'+n+'</div>' +
-
-        '<div style="font-size:.73rem;color:#94a3b8;">respuestas completas</div>' +
-
-        '<div style="margin-top:.4rem;font-size:.73rem;color:#64748b;">Con sexo: '+(nH+nM)+' · Con edad: '+nEdadOk+'</div></div>';
-
-    // Bloque sexo
-
-    html+='<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:.8rem;">';
-
-    html+='<div style="font-size:.68rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem;">Por sexo</div>';
+    var html = '<div style="margin-bottom:1rem;font-size:.78rem;color:#475569;line-height:1.55;">';
+    html += '<strong style="color:#1e293b;">Muestra:</strong> '+n+' respuestas';
+    html += ' · con sexo: '+(nH+nM)+' · con edad: '+nEdadOk;
 
     if (mH!==null||mM!==null) {
-
-        [[mH,nH,'👨','#5b8dd9','Hombres'],[mM,nM,'👩','#e8789a','Mujeres']].forEach(function(s){
-
-            if (s[0]===null) return;
-
-            var pct=Math.max(0,Math.min(100,s[0]));
-
-            html+='<div style="display:flex;align-items:center;gap:.35rem;margin-bottom:.35rem;">' +
-
-                '<span style="font-size:1rem;">'+s[2]+'</span>' +
-
-                '<div style="flex:1;">' +
-
-                  '<div style="display:flex;justify-content:space-between;font-size:.7rem;">' +
-
-                  '<span style="color:#64748b;">'+s[4]+' (n='+s[1]+')</span>' +
-
-                  '<span style="font-weight:700;color:'+s[3]+';">'+s[0].toFixed(1)+'</span></div>' +
-
-                  '<div style="height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;margin-top:.12rem;">' +
-
-                  '<div style="width:'+pct+'%;height:100%;background:'+s[3]+';"></div></div>' +
-
-                '</div></div>';
-
-        });
-
+        html += '<br>';
+        if (mH!==null) html += 'Hombres: '+mH.toFixed(1)+' (n='+nH+')';
+        if (mH!==null&&mM!==null) html += ' · ';
+        if (mM!==null) html += 'Mujeres: '+mM.toFixed(1)+' (n='+nM+')';
         if (mH!==null&&mM!==null) {
-
             var dif=Math.abs(mH-mM);
-
-            html+='<div style="font-size:.7rem;color:'+(dif>5?'#f59e0b':'#94a3b8')+';">'+(dif>5?'⚠️ ':'')+' Brecha género: '+dif.toFixed(1)+' pts</div>';
-
+            if (dif>5) html += ' · <span style="color:#b45309;">Brecha: '+dif.toFixed(1)+' pts</span>';
         }
+    }
 
-    } else { html+='<div style="font-size:.76rem;color:#94a3b8;">Sin datos de sexo</div>'; }
-
-    html+='</div></div>';
-
+    html += '</div>';
     return html;
 
 }
@@ -57976,9 +57681,9 @@ function ibse_v2_renderPiramide(dist) {
 
     if (!grupos.some(function(g){return dist.edades[g].length>0;})) return '';
 
-    var html='<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:.8rem;margin-bottom:.9rem;">';
+    var html='<div style="margin-bottom:1rem;">';
 
-    html+='<div style="font-size:.68rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.6rem;">IBSE por grupo de edad</div>';
+    html+='<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.4rem;">IBSE por grupo de edad</div>';
 
     html+='<div style="display:grid;gap:.35rem;">';
 
@@ -58024,17 +57729,17 @@ function ibse_v2_renderDesagregados(dist) {
 
     var html='<div style="margin-bottom:.9rem;">';
 
-    html+='<div style="font-size:.68rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem;">Desagregados IBSE por edad y sexo</div>';
+    html+='<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.4rem;">Desagregados por edad y sexo</div>';
 
     html+='<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:.76rem;">';
 
-    html+='<thead><tr style="background:#f1f5f9;">' +
+    html+='<thead><tr>' +
 
-        '<th style="padding:.35rem .5rem;text-align:left;color:#475569;font-weight:700;border-bottom:2px solid #e2e8f0;">Edad</th>' +
+        '<th style="padding:.35rem .5rem;text-align:left;color:#475569;font-weight:700;border-bottom:1px solid #e2e8f0;">Edad</th>' +
 
-        '<th style="padding:.35rem .5rem;text-align:center;color:#5b8dd9;font-weight:700;border-bottom:2px solid #e2e8f0;">👨 Hombres</th>' +
+        '<th style="padding:.35rem .5rem;text-align:center;color:#475569;font-weight:700;border-bottom:1px solid #e2e8f0;">Hombres</th>' +
 
-        '<th style="padding:.35rem .5rem;text-align:center;color:#e8789a;font-weight:700;border-bottom:2px solid #e2e8f0;">👩 Mujeres</th>' +
+        '<th style="padding:.35rem .5rem;text-align:center;color:#475569;font-weight:700;border-bottom:1px solid #e2e8f0;">Mujeres</th>' +
 
         '<th style="padding:.35rem .5rem;text-align:center;color:#7c3aed;font-weight:700;border-bottom:2px solid #e2e8f0;">Total</th>' +
 
@@ -58076,6 +57781,144 @@ function ibse_v2_renderDesagregados(dist) {
 
 
 
+// ── Análisis de las 8 preguntas IBSE por grupo de edad ────────────────
+function monitorIBSE_analizarPorEdad() {
+    var raw = window._ibse_v2_rawData;
+    if (!raw || !raw.length) return null;
+
+    var ITEMS = [
+        {id:'ibse_deprimido',  label:'Deprimido/a',         escala:4, invertir:true},
+        {id:'ibse_feliz',      label:'Feliz',               escala:4, invertir:false},
+        {id:'ibse_solo',       label:'Solo/a',              escala:4, invertir:true},
+        {id:'ibse_disfrutar',  label:'Disfrutar de la vida',escala:4, invertir:false},
+        {id:'ibse_energia',    label:'Energía',             escala:4, invertir:false},
+        {id:'ibse_tranquilo',  label:'Tranquilo/a',         escala:4, invertir:false},
+        {id:'ibse_optimista',  label:'Optimista',           escala:5, invertir:true},
+        {id:'ibse_bienmismo',  label:'Bien conmigo mismo/a',escala:5, invertir:true}
+    ];
+    var GRUPOS = ['16-29','30-44','45-64','65+'];
+
+    function grupoEdad(e) {
+        if (e==null||isNaN(e)) return null;
+        if (e<30) return '16-29';
+        if (e<45) return '30-44';
+        if (e<65) return '45-64';
+        return '65+';
+    }
+
+    // % favorable:
+    // Invertidos escala 1-4 (deprimido, solo): favorable = val <= 2 (nunca/algún momento)
+    // Invertidos escala 1-5 (optimista, bienmismo): favorable = val <= 2 (muy de acuerdo/de acuerdo)
+    // No invertidos escala 1-4 (feliz, disfrutar, energia, tranquilo): favorable = val >= 3
+    function esFavorable(item, val) {
+        if (item.invertir) return val <= 2;
+        return val > Math.floor(item.escala / 2);
+    }
+
+    var result = ITEMS.map(function(item) {
+        var porGrupo = {};
+        GRUPOS.forEach(function(g) { porGrupo[g] = {fav:0, n:0}; });
+
+        raw.forEach(function(d) {
+            var v = parseInt(d[item.id]);
+            if (isNaN(v)) return;
+            var edad = parseInt(d.edad);
+            var g = grupoEdad(edad);
+            if (!g) return;
+            porGrupo[g].n++;
+            if (esFavorable(item, v)) porGrupo[g].fav++;
+        });
+
+        var pcts = {};
+        var vals = [];
+        var peorGrupo = null, peorPct = 101;
+        GRUPOS.forEach(function(g) {
+            var pg = porGrupo[g];
+            var pct = pg.n > 0 ? Math.round(pg.fav / pg.n * 100) : null;
+            pcts[g] = pct;
+            if (pct !== null) {
+                vals.push({g:g, pct:pct});
+                if (pct < peorPct) { peorPct = pct; peorGrupo = g; }
+            }
+        });
+
+        var brecha = vals.length >= 2 ? Math.max.apply(null,vals.map(function(v){return v.pct;})) - Math.min.apply(null,vals.map(function(v){return v.pct;})) : 0;
+
+        // Patrón
+        var patron = '\u2248'; // ≈
+        if (vals.length >= 3) {
+            var diffs = [];
+            for (var i=1;i<vals.length;i++) diffs.push(vals[i].pct - vals[i-1].pct);
+            var allUp = diffs.every(function(d){return d>=0;}) && diffs.some(function(d){return d>5;});
+            var allDown = diffs.every(function(d){return d<=0;}) && diffs.some(function(d){return d<-5;});
+            if (allUp) patron = '\u2191';
+            else if (allDown) patron = '\u2193';
+            else if (brecha > 15) patron = 'mixto';
+        }
+
+        return {
+            id: item.id, label: item.label,
+            porGrupo: porGrupo, pcts: pcts,
+            brecha: brecha, patron: patron, peorGrupo: peorGrupo
+        };
+    });
+
+    return {preguntas: result, grupos: GRUPOS};
+}
+
+function ibse_v2_renderAnalisisPorEdad() {
+    var analisis = monitorIBSE_analizarPorEdad();
+    if (!analisis || !analisis.preguntas.length) return '';
+
+    var pregs = analisis.preguntas;
+    var grupos = analisis.grupos;
+
+    // Verificar que hay al menos un grupo con datos
+    var tieneAlgo = pregs.some(function(p) {
+        return grupos.some(function(g) { return p.porGrupo[g].n > 0; });
+    });
+    if (!tieneAlgo) return '';
+
+    var patronLabel = {'\u2191':'Mejora con edad','\u2193':'Empeora con edad','\u2248':'Sin diferencias','mixto':'Patrón mixto'};
+    var patronColor = {'\u2191':'#166534','\u2193':'#dc2626','\u2248':'#64748b','mixto':'#b45309'};
+
+    var html = '<div style="margin-bottom:1rem;">';
+    html += '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.4rem;">Respuestas favorables por pregunta y edad</div>';
+
+    html += '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:.76rem;">';
+    html += '<thead><tr>';
+    html += '<th style="padding:.35rem .5rem;text-align:left;color:#475569;font-weight:700;border-bottom:1px solid #e2e8f0;">Pregunta</th>';
+    grupos.forEach(function(g) {
+        html += '<th style="padding:.35rem .5rem;text-align:center;color:#475569;font-weight:700;border-bottom:1px solid #e2e8f0;">'+g+'</th>';
+    });
+    html += '<th style="padding:.35rem .5rem;text-align:center;color:#475569;font-weight:700;border-bottom:1px solid #e2e8f0;">Brecha</th>';
+    html += '<th style="padding:.35rem .5rem;text-align:center;color:#475569;font-weight:700;border-bottom:1px solid #e2e8f0;">Patr\u00f3n</th>';
+    html += '<th style="padding:.35rem .5rem;text-align:left;color:#475569;font-weight:700;border-bottom:1px solid #e2e8f0;">Peor grupo</th>';
+    html += '</tr></thead><tbody>';
+
+    pregs.forEach(function(p, idx) {
+        var bg = idx % 2 === 0 ? 'white' : '#f8fafc';
+        html += '<tr style="background:'+bg+';border-bottom:1px solid #f1f5f9;">';
+        html += '<td style="padding:.35rem .5rem;font-weight:600;color:#1e293b;">'+p.label+'</td>';
+        grupos.forEach(function(g) {
+            var pg = p.porGrupo[g];
+            var pct = p.pcts[g];
+            var col = pct === null ? '#94a3b8' : pct >= 70 ? '#166534' : pct >= 50 ? '#854d0e' : '#dc2626';
+            var txt = pct !== null ? pct+'%' : '\u2014';
+            var n = pg.n > 0 ? '<div style="font-size:.6rem;color:#94a3b8;">n='+pg.n+'</div>' : '';
+            html += '<td style="padding:.35rem .5rem;text-align:center;color:'+col+';font-weight:700;">'+txt+n+'</td>';
+        });
+        var brechaCol = p.brecha > 20 ? '#dc2626' : p.brecha > 10 ? '#b45309' : '#64748b';
+        html += '<td style="padding:.35rem .5rem;text-align:center;font-weight:700;color:'+brechaCol+';">'+p.brecha+'</td>';
+        html += '<td style="padding:.35rem .5rem;text-align:center;font-weight:600;color:'+patronColor[p.patron]+';">'+p.patron+(patronLabel[p.patron]?' <span style="font-size:.6rem;font-weight:400;">'+patronLabel[p.patron]+'</span>':'')+'</td>';
+        html += '<td style="padding:.35rem .5rem;color:'+(p.peorGrupo?'#dc2626':'#94a3b8')+';">'+(p.peorGrupo||'\u2014')+'</td>';
+        html += '</tr>';
+    });
+
+    html += '</tbody></table></div></div>';
+    return html;
+}
+
 function ibse_v2_renderInterpretacion(agg, arr, dist) {
 
     var n = arr.length;
@@ -58085,10 +57928,10 @@ function ibse_v2_renderInterpretacion(agg, arr, dist) {
     var media = agg.ibse_total;
 
     var factores = [
-        {nombre:'Vinculo social',       val:agg.factor_vinculo,    col:'#16a34a'},
-        {nombre:'Situacion emocional',  val:agg.factor_situacion,  col:'#d97706'},
+        {nombre:'Vínculo social',       val:agg.factor_vinculo,    col:'#16a34a'},
+        {nombre:'Situación emocional',  val:agg.factor_situacion,  col:'#d97706'},
         {nombre:'Control percibido',    val:agg.factor_control,    col:'#ea580c'},
-        {nombre:'Autopercepcion',       val:agg.factor_persona,    col:'#9333ea'}
+        {nombre:'Autopercepción',       val:agg.factor_persona,    col:'#9333ea'}
     ];
 
     var fMax = factores.reduce(function(a,b){return (b.val||0)>(a.val||0)?b:a;});
@@ -58103,10 +57946,10 @@ function ibse_v2_renderInterpretacion(agg, arr, dist) {
     var parrafos = [];
 
     // 1. Sintesis global
-    parrafos.push('El bienestar socioemocional de la poblacion participante se situa en nivel <strong>' + nivelTxt + '</strong> (' + media.toFixed(1) + '/100), basado en ' + n + ' respuestas.' + (n < 30 ? ' <em>La muestra es reducida; los resultados son orientativos.</em>' : ''));
+    parrafos.push('El bienestar socioemocional de la población participante se sitúa en nivel <strong>' + nivelTxt + '</strong> (' + media.toFixed(1) + '/100), basado en ' + n + ' respuestas.' + (n < 30 ? ' <em>La muestra es reducida; los resultados son orientativos.</em>' : ''));
 
     // 2. Factores
-    parrafos.push('La dimension mas fuerte es <strong>' + fMax.nombre + '</strong> (' + (fMax.val||0).toFixed(1) + ') y la mas debil <strong>' + fMin.nombre + '</strong> (' + (fMin.val||0).toFixed(1) + ').' + (brecha > 15 ? ' La brecha de ' + brecha.toFixed(1) + ' puntos indica un desequilibrio significativo entre dimensiones.' : ' Las dimensiones muestran un equilibrio razonable.'));
+    parrafos.push('La dimensión más fuerte es <strong>' + fMax.nombre + '</strong> (' + (fMax.val||0).toFixed(1) + ') y la más débil <strong>' + fMin.nombre + '</strong> (' + (fMin.val||0).toFixed(1) + ').' + (brecha > 15 ? ' La brecha de ' + brecha.toFixed(1) + ' puntos indica un desequilibrio significativo entre dimensiones.' : ' Las dimensiones muestran un equilibrio razonable.'));
 
     // 3. Sexo (solo si hay base)
     var nH = dist.sexos[1].length, nM = dist.sexos[2].length;
@@ -58117,12 +57960,12 @@ function ibse_v2_renderInterpretacion(agg, arr, dist) {
         var difSexo = Math.abs(mH - mM);
         if (difSexo > 5) {
             var menor = mH < mM ? 'hombres' : 'mujeres';
-            parrafos.push('Se observa una brecha de genero de ' + difSexo.toFixed(1) + ' puntos: los <strong>' + menor + '</strong> presentan menor bienestar (' + (mH<mM?mH:mM).toFixed(1) + ' vs ' + (mH<mM?mM:mH).toFixed(1) + '). Con n=' + nH + ' hombres y n=' + nM + ' mujeres, esta diferencia merece atencion aunque su significacion estadistica no esta confirmada.');
+            parrafos.push('Se observa una brecha de género de ' + difSexo.toFixed(1) + ' puntos: los <strong>' + menor + '</strong> presentan menor bienestar (' + (mH<mM?mH:mM).toFixed(1) + ' vs ' + (mH<mM?mM:mH).toFixed(1) + '). Con n=' + nH + ' hombres y n=' + nM + ' mujeres, esta diferencia merece atención aunque su significación estadística no está confirmada.');
         } else {
-            parrafos.push('No se detecta brecha relevante de genero (diferencia: ' + difSexo.toFixed(1) + ' puntos, n=' + nH + ' H / n=' + nM + ' M).');
+            parrafos.push('No se detecta brecha relevante de género (diferencia: ' + difSexo.toFixed(1) + ' puntos, n=' + nH + ' H / n=' + nM + ' M).');
         }
     } else {
-        parrafos.push('La muestra no tiene base suficiente para analisis por sexo (n=' + nH + ' hombres, n=' + nM + ' mujeres; minimo recomendado: 5 por grupo).');
+        parrafos.push('La muestra no tiene base suficiente para análisis por sexo (n=' + nH + ' hombres, n=' + nM + ' mujeres; mínimo recomendado: 5 por grupo).');
     }
 
     // 4. Edad (solo grupos con n >= 5)
@@ -58142,25 +57985,25 @@ function ibse_v2_renderInterpretacion(agg, arr, dist) {
     });
 
     if (!tieneAlgunGrupo) {
-        parrafos.push('Ningun grupo de edad alcanza el minimo de 5 respuestas para un analisis desagregado fiable.');
+        parrafos.push('Ningún grupo de edad alcanza el mínimo de 5 respuestas para un análisis desagregado fiable.');
     } else if (edadTextos.length) {
         parrafos.push(edadTextos.join(' '));
     } else {
-        parrafos.push('Ningun grupo de edad con muestra suficiente presenta bienestar bajo (<50).');
+        parrafos.push('Ningún grupo de edad con muestra suficiente presenta bienestar bajo (<50).');
     }
 
     // 5. Relacion con calidad muestral
     if (n < 100) {
-        parrafos.push('<em>Nota metodologica: con n=' + n + ', los resultados desagregados tienen precision limitada. Se recomienda ampliar la muestra antes de extraer conclusiones definitivas por subgrupo.</em>');
+        parrafos.push('<em>Nota metodológica: con n=' + n + ', los resultados desagregados tienen precisión limitada. Se recomienda ampliar la muestra antes de extraer conclusiones definitivas por subgrupo.</em>');
     }
 
     // Render
-    var html = '<div style="background:white;border:1px solid #e2e8f0;border-top:3px solid #0074c8;border-radius:10px;padding:1rem 1.1rem;margin-bottom:.9rem;">';
+    var html = '<div style="margin-bottom:1rem;">';
 
-    html += '<div style="font-size:.68rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.6rem;">Interpretacion analitica</div>';
+    html += '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.4rem;">Interpretación</div>';
 
     parrafos.forEach(function(p) {
-        html += '<p style="font-size:.78rem;color:#374151;line-height:1.55;margin:0 0 .45rem;">' + p + '</p>';
+        html += '<p style="font-size:.78rem;color:#475569;line-height:1.55;margin:0 0 .4rem;">' + p + '</p>';
     });
 
     html += '</div>';
@@ -58207,17 +58050,15 @@ function ibse_v2_renderAlertas(agg, arr, dist) {
 
     if (!alertas.length) return '';
 
-    var colores={danger:['#fee2e2','#ef4444','🔴'],warn:['#fef9c3','#f59e0b','⚠️'],info:['#e0f2fe','#0369a1','ℹ️']};
+    var html='<div style="margin-bottom:1rem;">';
 
-    var html='<div style="margin-bottom:.5rem;">';
-
-    html+='<div style="font-size:.68rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem;">Alertas automáticas</div>';
+    html+='<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.3rem;">Alertas</div>';
 
     alertas.forEach(function(a){
 
-        var c=colores[a.tipo]||colores.info;
+        var prefix = a.tipo==='danger'?'Alerta: ':a.tipo==='warn'?'Atención: ':'Nota: ';
 
-        html+='<div style="background:'+c[0]+';border-left:3px solid '+c[1]+';border-radius:0 8px 8px 0;padding:.55rem .75rem;margin-bottom:.35rem;font-size:.78rem;color:#1e293b;">'+c[2]+' '+a.msg+'</div>';
+        html+='<p style="font-size:.75rem;color:#475569;line-height:1.5;margin:0 0 .3rem;"><strong style="color:'+(a.tipo==='danger'?'#dc2626':'#64748b')+';">'+prefix+'</strong>'+a.msg+'</p>';
 
     });
 
@@ -58410,15 +58251,9 @@ function ibse_v2_renderRepresentatividad(dist) {
 
         // Tabla simplificada: solo conseguido, sin comparación
 
-        var html = '<div style="background:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;padding:.85rem 1rem;margin-bottom:.9rem;">';
+        var html = '<div style="margin-bottom:1rem;">';
 
-        html += '<div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:.3rem;margin-bottom:.6rem;">';
-
-        html += '<div style="font-size:.68rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;">Representatividad muestral</div>';
-
-        html += '<div style="font-size:.68rem;color:#f59e0b;background:#fef9c3;padding:.15rem .5rem;border-radius:20px;">⚙️ Sin datos de población · Parcial</div>';
-
-        html += '</div>';
+        html += '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.3rem;">Representatividad muestral <span style="font-size:.7rem;font-weight:400;color:#94a3b8;">(sin datos de población)</span></div>';
 
         // Resumen conseguido por sexo como proporción interna
 
@@ -58436,9 +58271,9 @@ function ibse_v2_renderRepresentatividad(dist) {
 
             '<th style="padding:.3rem .45rem;text-align:left;color:#475569;font-weight:700;border-bottom:1px solid #e2e8f0;">Edad</th>' +
 
-            '<th style="padding:.3rem .45rem;text-align:center;color:#5b8dd9;font-weight:700;border-bottom:1px solid #e2e8f0;">👨 H cons.</th>' +
+            '<th style="padding:.3rem .45rem;text-align:center;color:#5b8dd9;font-weight:700;border-bottom:1px solid #e2e8f0;">H cons.</th>' +
 
-            '<th style="padding:.3rem .45rem;text-align:center;color:#e8789a;font-weight:700;border-bottom:1px solid #e2e8f0;">👩 M cons.</th>' +
+            '<th style="padding:.3rem .45rem;text-align:center;color:#e8789a;font-weight:700;border-bottom:1px solid #e2e8f0;">M cons.</th>' +
 
             '<th style="padding:.3rem .45rem;text-align:center;color:#64748b;font-weight:700;border-bottom:1px solid #e2e8f0;">Total</th>' +
 
@@ -58476,7 +58311,7 @@ function ibse_v2_renderRepresentatividad(dist) {
 
         html += '</div>';
 
-        html += '<div style="font-size:.72rem;color:#94a3b8;margin-top:.3rem;">ℹ️ Para comparar con población real: <code>window._ibse_v2_pob["'+mun+'"] = &#123; \'18-29\':&#123;h:…,m:…&#125;, … &#125;</code></div>';
+        html += '<div style="font-size:.72rem;color:#94a3b8;margin-top:.3rem;">Para comparar con población real: cargar padrón oficial del municipio.</div>';
 
         html += '</div>';
 
@@ -58490,11 +58325,13 @@ function ibse_v2_renderRepresentatividad(dist) {
 
     var rep = ibse_v2_calcularRepresentatividad(dist, pob, nObj);
 
-    if (!rep) return '';
+    if (!rep) return '<div style="margin-bottom:1rem;">' +
+        '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.2rem;">Representatividad muestral</div>' +
+        '<div style="font-size:.75rem;color:#64748b;line-height:1.5;">Representatividad no evaluable: los datos de población disponibles no permiten calcular la distribución esperada por sexo y edad.</div></div>';
 
 
 
-    var colEstado = {ok:['#dcfce7','#16a34a','✓ OK'], infra:['#fee2e2','#ef4444','⬇ Infra'], sobre:['#fef9c3','#d97706','⬆ Sobre'], nd:['#f1f5f9','#94a3b8','—']};
+    var colEstado = {ok:['#dcfce7','#16a34a','OK'], infra:['#fee2e2','#ef4444','Infra'], sobre:['#fef9c3','#d97706','Sobre'], nd:['#f1f5f9','#94a3b8','\u2014']};
 
     var maxObj  = Math.max.apply(null, rep.filas.map(function(f){return f.obj;}));
 
@@ -58504,29 +58341,11 @@ function ibse_v2_renderRepresentatividad(dist) {
 
 
 
-    var html = '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:.85rem 1rem;margin-bottom:.9rem;">';
+    var html = '<div style="margin-bottom:1rem;">';
 
-    html += '<div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:.3rem;margin-bottom:.7rem;">';
+    html += '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.3rem;">Representatividad muestral</div>';
 
-    html += '<div style="font-size:.68rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;">Representatividad muestral</div>';
-
-    html += '<div style="font-size:.7rem;color:#64748b;">Pob. ref: <strong>'+rep.pobTotal.toLocaleString()+'</strong>'+(nObj?' · Obj: <strong>'+nObj+'</strong>':' · Obj: <em style="color:#94a3b8;">= conseguido</em>')+' · Conseguido: <strong>'+rep.nCons+'</strong></div>';
-
-    html += '</div>';
-
-
-
-    // Leyenda
-
-    html += '<div style="display:flex;gap:.75rem;margin-bottom:.5rem;flex-wrap:wrap;">';
-
-    html += '<div style="display:flex;align-items:center;gap:.3rem;font-size:.68rem;color:#64748b;"><div style="width:12px;height:12px;background:#cbd5e1;border-radius:2px;"></div>% Población</div>';
-
-    html += '<div style="display:flex;align-items:center;gap:.3rem;font-size:.68rem;color:#64748b;"><div style="width:12px;height:12px;background:#5b8dd9;border-radius:2px;"></div>Objetivo</div>';
-
-    html += '<div style="display:flex;align-items:center;gap:.3rem;font-size:.68rem;color:#64748b;"><div style="width:12px;height:12px;background:#10b981;border-radius:2px;"></div>Conseguido</div>';
-
-    html += '</div>';
+    html += '<div style="font-size:.75rem;color:#64748b;margin-bottom:.5rem;">Población: '+rep.pobTotal.toLocaleString()+(nObj?' · Objetivo: '+nObj:'')+' · Conseguido: '+rep.nCons+'</div>';
 
 
 
@@ -58534,7 +58353,7 @@ function ibse_v2_renderRepresentatividad(dist) {
 
     html += '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:.74rem;">';
 
-    html += '<thead><tr style="background:#f1f5f9;">' +
+    html += '<thead><tr>' +
 
         '<th style="padding:.3rem .45rem;text-align:left;color:#475569;font-weight:700;border-bottom:1px solid #e2e8f0;white-space:nowrap;">Celda</th>' +
 
@@ -58560,7 +58379,7 @@ function ibse_v2_renderRepresentatividad(dist) {
 
         var ce   = colEstado[f.estado] || colEstado.nd;
 
-        var sexLbl = f.sexo===1 ? '<span style="color:#5b8dd9;">👨 H</span>' : '<span style="color:#e8789a;">👩 M</span>';
+        var sexLbl = f.sexo===1 ? '<span style="color:#5b8dd9;">H</span>' : '<span style="color:#e8789a;">M</span>';
 
         var grupLbl = f.grupo !== lastGrupo ? '<span style="font-weight:700;color:#334155;">'+f.grupo+'</span> ' : '';
 
@@ -58632,7 +58451,7 @@ function ibse_v2_renderRepresentatividad(dist) {
 
     html += '<div style="margin-top:.55rem;font-size:.72rem;color:#64748b;">';
 
-    html += '✓ OK: <strong>'+nOk+'</strong> · ⬇ Infra: <strong style="color:'+(nInfra>0?'#ef4444':'#64748b')+';">'+nInfra+'</strong> · ⬆ Sobre: <strong style="color:'+(nSobre>0?'#d97706':'#64748b')+';">'+nSobre+'</strong> celdas</div>';
+    html += 'OK: '+nOk+' · Infra: '+nInfra+' · Sobre: '+nSobre+' celdas</div>';
 
     html += '</div>';
 
@@ -58662,37 +58481,31 @@ function ibse_v2_renderJuicioMuestra(dist) {
 
         if (nCons >= 100) {
 
-            nivel = 'TAMANO ACEPTABLE'; col = '#d97706'; bg = '#fffbeb'; brd = '#fcd34d';
+            nivel = 'TAMAÑO ACEPTABLE'; col = '#d97706'; bg = '#fffbeb'; brd = '#fcd34d';
 
-            texto = 'La muestra tiene n=' + nCons + ', un tamano razonable para analisis exploratorio. Sin embargo, no se dispone de datos de poblacion para evaluar su representatividad por edad y sexo. Los resultados deben interpretarse con cautela.';
+            texto = 'La muestra tiene n=' + nCons + ', un tamaño razonable para análisis exploratorio. Sin embargo, no se dispone de datos de población para evaluar su representatividad por edad y sexo. Los resultados deben interpretarse con cautela.';
 
         } else if (nCons >= 30) {
 
             nivel = 'MUESTRA LIMITADA'; col = '#ea580c'; bg = '#fff7ed'; brd = '#fdba74';
 
-            texto = 'La muestra (n=' + nCons + ') permite un analisis preliminar pero es insuficiente para conclusiones robustas. Sin datos de poblacion no es posible valorar representatividad.';
+            texto = 'La muestra (n=' + nCons + ') permite un análisis preliminar pero es insuficiente para conclusiones robustas. Sin datos de población no es posible valorar representatividad.';
 
         } else {
 
             nivel = 'MUESTRA INSUFICIENTE'; col = '#ef4444'; bg = '#fee2e2'; brd = '#fca5a5';
 
-            texto = 'La muestra (n=' + nCons + ') es demasiado pequena para analisis fiable. Amplie la recogida antes de interpretar resultados.';
+            texto = 'La muestra (n=' + nCons + ') es demasiado pequeña para análisis fiable. Amplíe la recogida antes de interpretar resultados.';
 
         }
 
-        return '<div style="background:' + bg + ';border:1px solid ' + brd + ';border-radius:10px;padding:.8rem 1rem;margin-bottom:.9rem;">' +
+        return '<div style="margin-bottom:1rem;">' +
 
-            '<div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;">' +
+            '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.2rem;">Calidad muestral: <span style="color:' + col + ';">' + nivel + '</span></div>' +
 
-            '<div style="font-size:1.4rem;line-height:1;">' + (nCons >= 100 ? '\u26A0\uFE0F' : nCons >= 30 ? '\u{1F7E0}' : '\u{1F534}') + '</div>' +
+            '<div style="font-size:.75rem;color:#475569;line-height:1.5;">' + texto + '</div>' +
 
-            '<div style="flex:1;min-width:180px;">' +
-
-            '<div style="font-size:.78rem;font-weight:800;color:' + col + ';">' + nivel + '</div>' +
-
-            '<div style="font-size:.73rem;color:#475569;margin-top:.15rem;line-height:1.45;">' + texto + '</div>' +
-
-            '</div></div></div>';
+            '</div>';
 
     }
 
@@ -58702,7 +58515,9 @@ function ibse_v2_renderJuicioMuestra(dist) {
 
     var rep = ibse_v2_calcularRepresentatividad(dist, pob, nObj);
 
-    if (!rep || !rep.filas || rep.filas.length === 0) return '';
+    if (!rep || !rep.filas || rep.filas.length === 0) return '<div style="margin-bottom:1rem;">' +
+        '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.2rem;">Calidad muestral</div>' +
+        '<div style="font-size:.75rem;color:#64748b;line-height:1.5;">No es posible evaluar la calidad muestral ni la susceptibilidad de reponderación por falta de población base válida por sexo y edad.</div></div>';
 
 
 
@@ -58750,23 +58565,23 @@ function ibse_v2_renderJuicioMuestra(dist) {
 
     // NO RECOMENDABLE:   resto
 
-    var veredicto, vCol, vBg, vBrd, vEmoji;
+    var veredicto, vCol;
 
     if (pctOk >= 0.80 && desvMedia <= 0.10) {
 
-        veredicto = 'APTA'; vCol = '#16a34a'; vBg = '#dcfce7'; vBrd = '#86efac'; vEmoji = '\u2705';
+        veredicto = 'APTA'; vCol = '#16a34a';
 
     } else if (pctOk >= 0.60 && desvMedia <= 0.20) {
 
-        veredicto = 'APTA CON CAUTELAS'; vCol = '#d97706'; vBg = '#fef9c3'; vBrd = '#fcd34d'; vEmoji = '\u26A0\uFE0F';
+        veredicto = 'APTA CON CAUTELAS'; vCol = '#d97706';
 
     } else if (pctOk >= 0.40 || desvMedia <= 0.30) {
 
-        veredicto = 'DEBIL'; vCol = '#ea580c'; vBg = '#ffedd5'; vBrd = '#fdba74'; vEmoji = '\u{1F7E0}';
+        veredicto = 'DEBIL'; vCol = '#ea580c';
 
     } else {
 
-        veredicto = 'NO RECOMENDABLE'; vCol = '#ef4444'; vBg = '#fee2e2'; vBrd = '#fca5a5'; vEmoji = '\u{1F534}';
+        veredicto = 'NO RECOMENDABLE'; vCol = '#ef4444';
 
     }
 
@@ -58776,71 +58591,88 @@ function ibse_v2_renderJuicioMuestra(dist) {
 
     var textoPartes = [];
 
-    textoPartes.push('De las ' + nCeldas + ' celdas evaluables (edad\u00D7sexo), ' + nOk + ' (' + (pctOk*100).toFixed(0) + '%) tienen desviacion \u226410% respecto al objetivo.');
+    textoPartes.push('De las ' + nCeldas + ' celdas evaluables (edad\u00D7sexo), ' + nOk + ' (' + (pctOk*100).toFixed(0) + '%) tienen desviación \u226410% respecto al objetivo.');
 
     if (nInfra > 0) textoPartes.push(nInfra + ' celda' + (nInfra>1?'s':'') + ' infrarepresentada' + (nInfra>1?'s':'') + '.');
 
     if (nSobre > 0) textoPartes.push(nSobre + ' celda' + (nSobre>1?'s':'') + ' sobrerrepresentada' + (nSobre>1?'s':'') + '.');
 
-    textoPartes.push('Desviacion media: ' + (desvMedia*100).toFixed(1) + '%.');
+    textoPartes.push('Desviación media: ' + (desvMedia*100).toFixed(1) + '%.');
 
     if (veredicto === 'APTA') {
 
-        textoPartes.push('La muestra es adecuada para analisis directo sin ajustes.');
+        textoPartes.push('Resultados descriptivos utilizables directamente para la muestra observada. No extrapolables directamente a la población.');
 
     } else if (veredicto === 'APTA CON CAUTELAS') {
 
-        textoPartes.push('La muestra permite analisis general, pero los resultados por subgrupo deben interpretarse con precaucion. Se recomienda reponderacion si se dispone de datos poblacionales completos.');
+        textoPartes.push('Resultados descriptivos utilizables sin ajuste, con cautela. Los desagregados por subgrupo deben interpretarse con prudencia.');
 
     } else if (veredicto === 'DEBIL') {
 
-        textoPartes.push('La muestra presenta sesgos relevantes. Los resultados globales son orientativos; los desagregados por edad o sexo no son fiables sin correccion.');
+        textoPartes.push('Resultados orientativos sin ajuste. Los desagregados por edad o sexo requieren corrección estadística para ser interpretables.');
 
     } else {
 
-        textoPartes.push('La muestra tiene sesgos graves. No se recomienda extraer conclusiones sin ampliacion significativa de la recogida o reponderacion forzada.');
+        textoPartes.push('Resultados no recomendables para interpretación directa sin ajuste estadístico.');
 
+    }
+
+    // Evaluación de aptitud para reponderación (cobertura sexo×edad)
+    var celdasVacias = rep.filas.filter(function(f) { return f.estado !== 'nd' && f.cons === 0 && f.obj > 0; }).length;
+    var repondVeredicto, repondCol, repondTxt;
+    if (celdasVacias >= 3 || nCeldas < 4) {
+        repondVeredicto = 'NO APTA'; repondCol = '#ef4444';
+        repondTxt = 'La muestra no permite aplicar ajustes por sexo y edad: la falta de cobertura en determinadas celdas impide realizar ajustes consistentes.';
+
+    } else if (celdasVacias > 0 || desvMedia > 0.30) {
+        repondVeredicto = 'CON LIMITACIONES'; repondCol = '#d97706';
+        repondTxt = 'La muestra permite aplicar ajustes por sexo y edad, aunque los desequilibrios observados pueden afectar la estabilidad de los pesos. Los resultados reponderados deben interpretarse con cautela.';
+    } else {
+        repondVeredicto = 'VIABLE'; repondCol = '#16a34a';
+        repondTxt = 'La muestra permite aplicar ajustes por sexo y edad, y la estructura observada permite ajustes estables. Los resultados reponderados deben interpretarse como aproximación corregida.';
+    }
+
+    // Proxy de estabilidad: soporte empírico por celda
+    var celdasMuyDebil = celdasEval.filter(function(f) { return f.cons > 0 && f.cons < 5; }).length;
+    var celdasDebil = celdasEval.filter(function(f) { return f.cons >= 5 && f.cons < 10; }).length;
+    var celdasLimitado = celdasEval.filter(function(f) { return f.cons >= 10 && f.cons < 20; }).length;
+    var soporteTxt = '';
+    if (celdasMuyDebil > 0) {
+        soporteTxt = celdasMuyDebil + ' celda' + (celdasMuyDebil>1?'s':'') + ' con menos de 5 casos: riesgo alto de ajustes inestables en esas celdas.';
+    } else if (celdasDebil > 0) {
+        soporteTxt = celdasDebil + ' celda' + (celdasDebil>1?'s':'') + ' con menos de 10 casos: soporte débil para ajustes estables.';
+    } else if (celdasLimitado > 0) {
+        soporteTxt = 'Cobertura completa, pero ' + celdasLimitado + ' celda' + (celdasLimitado>1?'s':'') + ' con menos de 20 casos: soporte limitado para ajustes de alta precisión.';
+    } else {
+        soporteTxt = 'Soporte observado por celda razonable para aplicar ajustes con estabilidad operativa.';
     }
 
 
 
-    // Render
+    // Render — dos bloques separados
 
-    var html = '<div style="background:' + vBg + ';border:1px solid ' + vBrd + ';border-radius:10px;padding:.8rem 1rem;margin-bottom:.9rem;">';
+    var html = '<div style="margin-bottom:1rem;">';
 
-    html += '<div style="font-size:.68rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem;">Juicio de calidad muestral</div>';
+    // 1. Calidad muestral directa
+    html += '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.3rem;">Calidad muestral directa: <span style="color:' + vCol + ';">' + veredicto + '</span></div>';
 
-    html += '<div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">';
+    html += '<div style="font-size:.75rem;color:#64748b;margin-bottom:.3rem;">';
 
-    // KPI visual
+    html += 'Celdas OK: ' + nOk + '/' + nCeldas + ' (' + (pctOk*100).toFixed(0) + '%)';
 
-    html += '<div style="text-align:center;min-width:90px;">';
+    html += ' · Infra: ' + nInfra + ' · Sobre: ' + nSobre;
 
-    html += '<div style="font-size:1.6rem;line-height:1;">' + vEmoji + '</div>';
+    html += ' · Desv. media: ' + (desvMedia*100).toFixed(1) + '%</div>';
 
-    html += '<div style="font-size:.82rem;font-weight:900;color:' + vCol + ';margin-top:.2rem;">' + veredicto + '</div>';
+    html += '<div style="font-size:.75rem;color:#475569;line-height:1.5;margin-bottom:.6rem;">' + textoPartes.join(' ') + '</div>';
 
-    html += '</div>';
+    // 2. Susceptibilidad de reponderación (separada)
+    html += '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.2rem;">Susceptibilidad de reponderación: <span style="color:' + repondCol + ';">' + repondVeredicto + '</span></div>';
 
-    // Metricas
+    html += '<div style="font-size:.75rem;color:#475569;line-height:1.5;">' + repondTxt + '</div>';
 
-    html += '<div style="display:grid;grid-template-columns:repeat(3,auto);gap:.3rem .8rem;font-size:.72rem;">';
-
-    html += '<div style="color:#64748b;">Celdas OK</div><div style="font-weight:700;color:#16a34a;">' + nOk + '/' + nCeldas + '</div><div style="color:#94a3b8;">(' + (pctOk*100).toFixed(0) + '%)</div>';
-
-    html += '<div style="color:#64748b;">Infra</div><div style="font-weight:700;color:' + (nInfra>0?'#ef4444':'#64748b') + ';">' + nInfra + '</div><div style="color:#94a3b8;">celdas</div>';
-
-    html += '<div style="color:#64748b;">Sobre</div><div style="font-weight:700;color:' + (nSobre>0?'#d97706':'#64748b') + ';">' + nSobre + '</div><div style="color:#94a3b8;">celdas</div>';
-
-    html += '<div style="color:#64748b;">Desv. media</div><div style="font-weight:700;color:' + vCol + ';">' + (desvMedia*100).toFixed(1) + '%</div><div></div>';
-
-    html += '</div>';
-
-    html += '</div>';
-
-    // Texto
-
-    html += '<div style="font-size:.73rem;color:#475569;line-height:1.5;margin-top:.5rem;">' + textoPartes.join(' ') + '</div>';
+    // Proxy de estabilidad (complemento, no tercer sistema)
+    html += '<div style="font-size:.72rem;color:#64748b;line-height:1.45;margin-top:.25rem;">' + soporteTxt + '</div>';
 
     html += '</div>';
 
