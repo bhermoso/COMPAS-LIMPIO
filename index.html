@@ -47064,36 +47064,51 @@ var COMPAS_ESCALAS_META = {
     }
 };
 
+// ── Normalización de clave de escala ─────────────────────────────────────────
+// Mapeo centralizado nombre_escala (texto UI) → clave interna (COMPAS_ESCALAS_META)
+function _compasNormalizarClaveEscala(nombre) {
+    var mapa = {'SF-12':'sf12','Duke-UNC':'duke','CAGE':'cage','PREDIMED':'predimed'};
+    return mapa[nombre] || (nombre || '').toLowerCase().replace(/[^a-z0-9]/g,'') || '';
+}
+
+// ── Acceso seguro a metadatos ───────────────────────────────────────────────
+function _compasMetaEscala(claveONombre) {
+    var clave = _compasNormalizarClaveEscala(claveONombre);
+    // Si ya es clave directa (sf12, duke, cage, predimed)
+    if (typeof COMPAS_ESCALAS_META !== 'undefined' && COMPAS_ESCALAS_META[claveONombre]) return COMPAS_ESCALAS_META[claveONombre];
+    if (typeof COMPAS_ESCALAS_META !== 'undefined' && COMPAS_ESCALAS_META[clave]) return COMPAS_ESCALAS_META[clave];
+    return null;
+}
+
 // ── Funciones de cálculo real por escala ─────────────────────────────────────
 
-// SF-12: Cálculo simplificado PCS/MCS
-// Nota: el cálculo normativo completo requiere coeficientes de regresión US (Ware 1996).
-// Esta implementación usa la aproximación por suma ponderada validada para poblaciones
-// españolas (Vilagut 2005), normalizada a media=50, DE=10.
+// SF-12: Cálculo PROVISIONAL — NO normativo
+// ADVERTENCIA: El cálculo real de PCS/MCS requiere los 12 coeficientes de regresión
+// del manual de scoring (Ware 1996) o las normas españolas (Vilagut 2005).
+// Esta función produce un índice orientativo 0-100 por componente, NO T-scores reales.
+// Los valores NO son comparables con normas publicadas (media=50, DE=10).
+// Usar solo como indicador interno provisional hasta disponer de coeficientes reales.
 function compas_calcularSF12(resp) {
-    // resp: {sf12_1..sf12_12} — valores 1-5 (ítems 1,8: 1-5; ítems 2,3: 1-3; ítems 4,5: 1-2; ítems 6-7: 1-5; ítems 9-12: 1-5)
     var items = [];
     for (var i = 1; i <= 12; i++) {
         var v = parseFloat(resp['sf12_' + i]);
         if (isNaN(v)) return null;
         items.push(v);
     }
-    // Recodificar ítems que van en dirección inversa (1,8,9,10 → mayor=peor → invertir)
+    // Escalas máximas por ítem (SF-12v2)
     var maxScales = [5,3,3,2,2,5,5,5,5,5,5,5];
-    var invertir = [0,7,8,9]; // índices 0-based de ítems a invertir
+    // Invertir ítems donde mayor valor = peor salud (1: salud general, 8: dolor, 9-10: vitalidad/social)
+    var invertir = [0,7,8,9];
     invertir.forEach(function(idx) { items[idx] = maxScales[idx] + 1 - items[idx]; });
-    // Componentes aproximados (agrupación estándar SF-12v2)
-    // Físico: ítems 1,2,3,4,5,8 | Mental: ítems 6,7,9,10,11,12
-    var fisItems = [0,1,2,3,4,7], menItems = [5,6,8,9,10,11];
+    // Componentes: Físico (1,2,3,4,5,8) | Mental (6,7,9,10,11,12)
+    var fisIdx = [0,1,2,3,4,7], menIdx = [5,6,8,9,10,11];
     var sumFis = 0, sumMen = 0;
-    fisItems.forEach(function(idx) { sumFis += (items[idx] - 1) / (maxScales[idx] - 1); });
-    menItems.forEach(function(idx) { sumMen += (items[idx] - 1) / (maxScales[idx] - 1); });
-    // Normalizar a escala 0-100, luego a T-score (media=50, DE=10)
-    var pcsRaw = (sumFis / fisItems.length) * 100;
-    var mcsRaw = (sumMen / menItems.length) * 100;
-    var pcs = 20 + (pcsRaw / 100) * 40; // rango aprox 20-60
-    var mcs = 20 + (mcsRaw / 100) * 40;
-    return { pcs: Math.round(pcs * 10) / 10, mcs: Math.round(mcs * 10) / 10 };
+    fisIdx.forEach(function(idx) { sumFis += (items[idx] - 1) / (maxScales[idx] - 1); });
+    menIdx.forEach(function(idx) { sumMen += (items[idx] - 1) / (maxScales[idx] - 1); });
+    // Escala 0-100 (NO T-score, NO normativo)
+    var pcs = Math.round((sumFis / fisIdx.length) * 1000) / 10;
+    var mcs = Math.round((sumMen / menIdx.length) * 1000) / 10;
+    return { pcs: pcs, mcs: mcs, provisional: true };
 }
 
 // Duke-UNC-11: suma directa (rango 11-55)
@@ -47137,16 +47152,15 @@ function compas_calcularPREDIMED(resp) {
 
 // ── Generador de interpretación narrativa por escala ────────────────────────
 function compas_interpretarEscala(escalaId, resultado, n) {
-    var meta = COMPAS_ESCALAS_META[escalaId];
-    if (!meta || !resultado) return '';
+    var meta = _compasMetaEscala(escalaId);
+    if (!resultado) return '';
     var txt = '';
     if (escalaId === 'sf12' && resultado.pcs != null) {
-        var lblP = resultado.pcs >= 47 ? 'normal' : resultado.pcs >= 43 ? 'ligeramente por debajo de la norma' : 'indicativo de deterioro';
-        var lblM = resultado.mcs >= 47 ? 'normal' : resultado.mcs >= 43 ? 'ligeramente por debajo de la norma' : 'indicativo de deterioro';
-        txt = 'PCS ' + resultado.pcs.toFixed(1) + ' (' + lblP + ') · MCS ' + resultado.mcs.toFixed(1) + ' (' + lblM + ').';
+        txt = 'PCS ' + resultado.pcs.toFixed(1) + '/100 · MCS ' + resultado.mcs.toFixed(1) + '/100.';
+        if (resultado.provisional) txt += ' (Cálculo provisional, no normativo. No comparar con normas publicadas.)';
     } else if (escalaId === 'duke' && resultado.duke_total != null) {
-        txt = 'Puntuación media: ' + resultado.duke_total + '/55 (' + resultado.nivel + ').';
-        if (resultado.duke_total < 32) txt += ' Por debajo del punto de corte de bajo apoyo funcional.';
+        txt = 'Puntuación total: ' + resultado.duke_total + '/55 (' + resultado.nivel + ').';
+        if (resultado.duke_total < 32) txt += ' Por debajo del punto de corte de bajo apoyo funcional (<32).';
     } else if (escalaId === 'cage' && resultado.cage_positivos != null) {
         txt = resultado.cage_positivos + ' ítem' + (resultado.cage_positivos !== 1 ? 's' : '') + ' positivo' + (resultado.cage_positivos !== 1 ? 's' : '') + '.';
         txt += resultado.riesgo ? ' Señal de riesgo (≥2).' : ' Sin señal de riesgo.';
@@ -52004,9 +52018,7 @@ function generarAnalisisIA() {
     if (_escDiag.length > 0) {
         contexto += '=== ESCALAS DIAGNÓSTICAS ===\n';
         _escDiag.forEach(function(e) {
-            var meta = COMPAS_ESCALAS_META ? COMPAS_ESCALAS_META[{
-                'SF-12':'sf12','Duke-UNC':'duke','CAGE':'cage','PREDIMED':'predimed'
-            }[e.nombre_escala] || ''] : null;
+            var meta = (typeof _compasMetaEscala === 'function') ? _compasMetaEscala(e.nombre_escala) : null;
             contexto += '- ' + (e.nombre_escala || 'Escala') +
                 (meta ? ' (' + meta.constructo + ')' : '') +
                 ': ' + (e.interpretacion || e.resultado_principal || 'sin datos') + '\n';
