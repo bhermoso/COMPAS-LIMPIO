@@ -7575,6 +7575,7 @@
           <input type="number" id="duke-edad" min="14" max="110" placeholder="ej. 45" style="width:100%; padding:0.5rem; border:1.5px solid #d1d5db; border-radius:8px; font-size:0.85rem; box-sizing:border-box;">
         </div>
       </div>
+      <div id="duke-info-muestral"></div>
       <p style="font-size:0.78rem; color:#6b7280; margin:0 0 0.75rem; font-style:italic;">Escala: 1 = Mucho menos de lo que deseo · 2 = Menos de lo que deseo · 3 = Ni mucho ni poco · 4 = Casi como deseo · 5 = Tanto como deseo</p>
       <div id="duke-items" style="display:grid; gap:0.75rem; margin-bottom:1.5rem;"></div>
       <div id="duke-form-error" style="display:none; background:#fef2f2; color:#dc2626; padding:0.6rem 1rem; border-radius:8px; font-size:0.83rem; margin-bottom:1rem;"></div>
@@ -60210,6 +60211,7 @@ function duke_abrirCuestionario() {
     var errEl = document.getElementById('duke-form-error');
     if (errEl) errEl.style.display = 'none';
     modal.style.display = 'block';
+    if (typeof duke_renderInfoMuestral === 'function') duke_renderInfoMuestral();
 }
 
 function duke_cerrarCuestionario() {
@@ -60273,6 +60275,112 @@ function duke_enviarRespuesta() {
     } else {
         console.warn('[Duke-UNC] Firebase no disponible. Respuesta no persistida.');
     }
+}
+
+// ── Duke: patrón muestral (población → N → simulador) ─────────────────
+
+function duke_obtenerInfoMuestral() {
+    var mun = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
+    var pob = (typeof compas_pob_obtener === 'function') ? compas_pob_obtener(mun) : null;
+    var N = (typeof compas_pob_calcularN === 'function') ? compas_pob_calcularN(mun) : 150;
+    return { mun: mun, pob: pob, N: N, pobTotal: pob ? pob.total : null };
+}
+
+// Genera N respuestas Duke simuladas con distribución sexo×edad proporcional a la población.
+// Persiste cada una en Firebase. Llama callback(n) al terminar.
+function duke_simularCasos(callback) {
+    var info = duke_obtenerInfoMuestral();
+    var mun = info.mun;
+    if (!mun) { alert('Selecciona un municipio.'); return; }
+    var N = info.N;
+    var pob = info.pob || { hombres:{'18-29':290,'30-44':410,'45-64':480,'65-74':200,'75+':150}, mujeres:{'18-29':280,'30-44':400,'45-64':510,'65-74':260,'75+':195}, total:3175 };
+    var teor = (typeof sam_generarPiramideTeorica === 'function') ? sam_generarPiramideTeorica(pob, N) : null;
+
+    // Construir lista de casos con sexo/edad proporcionales
+    var casos = [];
+    var GR = ['18-29','30-44','45-64','65-74','75+'];
+    var edadRangoMin = {'18-29':18,'30-44':30,'45-64':45,'65-74':65,'75+':75};
+    var edadRangoMax = {'18-29':29,'30-44':44,'45-64':64,'65-74':74,'75+':89};
+
+    if (teor) {
+        GR.forEach(function(g) {
+            for (var i = 0; i < (teor.hombres[g] || 0); i++) casos.push({sexo:'H', sexo_num:1, edad: edadRangoMin[g] + Math.floor(Math.random() * (edadRangoMax[g] - edadRangoMin[g] + 1))});
+            for (var j = 0; j < (teor.mujeres[g] || 0); j++) casos.push({sexo:'M', sexo_num:2, edad: edadRangoMin[g] + Math.floor(Math.random() * (edadRangoMax[g] - edadRangoMin[g] + 1))});
+        });
+    } else {
+        // Sin pirámide teórica: distribución uniforme
+        for (var k = 0; k < N; k++) {
+            var sx = Math.random() < 0.48 ? 'H' : 'M';
+            var edB = Math.random();
+            var ed = edB < 0.15 ? 18 + Math.floor(Math.random()*12) : edB < 0.40 ? 30 + Math.floor(Math.random()*15) : edB < 0.70 ? 45 + Math.floor(Math.random()*20) : edB < 0.88 ? 65 + Math.floor(Math.random()*10) : 75 + Math.floor(Math.random()*15);
+            casos.push({sexo: sx, sexo_num: sx === 'H' ? 1 : 2, edad: ed});
+        }
+    }
+
+    // Generar respuestas Duke simuladas con distribución realista
+    // Duke: apoyo social media ~38, DE ~8 (referencia española AP)
+    function _dukeSimResp() {
+        var resp = {};
+        for (var i = 1; i <= 11; i++) {
+            // Distribución sesgada hacia valores altos (población general: apoyo moderado-alto)
+            var r = Math.random();
+            resp['duke_' + i] = r < 0.05 ? 1 : r < 0.12 ? 2 : r < 0.30 ? 3 : r < 0.60 ? 4 : 5;
+        }
+        return resp;
+    }
+
+    if (typeof db === 'undefined') { alert('Firebase no disponible.'); return; }
+
+    var ref = db.ref('escalas_respuestas/duke/' + mun);
+    var batch = [];
+    var ts = new Date().toISOString();
+
+    casos.forEach(function(c) {
+        var resp = _dukeSimResp();
+        var calc = compas_calcularDuke(resp);
+        var datos = {};
+        Object.keys(resp).forEach(function(k) { datos[k] = resp[k]; });
+        datos.sexo = c.sexo;
+        datos.sexo_num = c.sexo_num;
+        datos.edad = c.edad;
+        datos.timestamp = ts;
+        datos.municipio = mun;
+        datos.fuente = 'simulacion';
+        if (calc) {
+            datos.duke_total = calc.duke_total;
+            datos.nivel = calc.nivel;
+            datos.interpretacion = compas_interpretarEscala('duke', calc, null);
+        }
+        batch.push(datos);
+    });
+
+    // Escribir en Firebase (batch por set, no push individual por rendimiento)
+    var batchObj = {};
+    batch.forEach(function(d, i) { batchObj['sim_' + i] = d; });
+    ref.set(batchObj).then(function() {
+        console.info('[Duke] ' + batch.length + ' respuestas simuladas guardadas para ' + mun);
+        if (typeof callback === 'function') callback(batch.length);
+    }).catch(function(e) {
+        console.warn('[Duke] Error al guardar simulación:', e);
+    });
+}
+
+// UI: info muestral + botón simular (se inserta en el cuestionario)
+function duke_renderInfoMuestral() {
+    var info = duke_obtenerInfoMuestral();
+    var el = document.getElementById('duke-info-muestral');
+    if (!el) return;
+    var pobTxt = info.pobTotal ? info.pobTotal.toLocaleString() + ' adultos' : 'sin datos de población';
+    el.innerHTML =
+        '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:.65rem .85rem;font-size:.78rem;color:#92400e;margin-bottom:.75rem;">' +
+            '<strong>Municipio:</strong> ' + (info.mun || '—') + ' · ' +
+            '<strong>Población:</strong> ' + pobTxt + ' · ' +
+            '<strong>N mínima representativa:</strong> ' + info.N +
+            '<div style="margin-top:.4rem;">' +
+                '<button onclick="duke_simularCasos(function(n){ duke_renderInfoMuestral(); mostrarNotificacion({title:\'Duke-UNC\',message:n+\' respuestas simuladas\',type:\'success\',duration:2500}); })" ' +
+                'style="background:#b45309;color:white;border:none;border-radius:6px;padding:.35rem .75rem;font-size:.75rem;font-weight:600;cursor:pointer;">Simular ' + info.N + ' casos</button>' +
+            '</div>' +
+        '</div>';
 }
 
 // ── Agregación Duke desde respuestas individuales ─────────────────────
