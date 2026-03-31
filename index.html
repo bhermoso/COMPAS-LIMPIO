@@ -57417,32 +57417,158 @@ function ibse_v2_renderTodo(arr, meta) {
         // 7. Marco IBSE (reducido, al final)
         ibse_v2_renderMarco();
 
-    // 8. SAM embebido — renderizar pirámide demográfica tras inyectar DOM
-    requestAnimationFrame(function() {
-        if (typeof sam_renderMonitorMuestra !== 'function') {
-            var _sc = document.getElementById('ibse-sam-container');
-            if (_sc) _sc.innerHTML = '<div style="font-size:.75rem;color:#94a3b8;">SAM no disponible.</div>';
-            return;
-        }
-        try {
-            var _samGrupos = ['18-29','30-44','45-64','65-74','75+'];
-            var _samMuestra = { hombres: {}, mujeres: {} };
-            _samGrupos.forEach(function(g) {
-                var ga = dist.edades[g] || [];
-                _samMuestra.hombres[g] = ga.filter(function(r) { return r.sexo === 1; }).length;
-                _samMuestra.mujeres[g] = ga.filter(function(r) { return r.sexo === 2; }).length;
-            });
-            var _samPob = sam_obtenerPoblacion() || _SAM_POB_DEMO;
-            var _samN = (typeof sam_calcularNObjetivo === 'function') ? sam_calcularNObjetivo() : arr.length;
-            var _samEsDemo = !sam_obtenerPoblacion();
-            sam_renderMonitorMuestra('ibse-sam-container', _samPob, _samMuestra, _samN, _samEsDemo, arr.length);
-        } catch(e) {
-            console.warn('[IBSE→SAM] error renderizando SAM:', e);
-            var _sc2 = document.getElementById('ibse-sam-container');
-            if (_sc2) _sc2.innerHTML = '<div style="font-size:.75rem;color:#94a3b8;">Error al cargar ajuste muestral.</div>';
-        }
+    // 8. SAM embebido — render post-DOM
+    requestAnimationFrame(function() { ibse_renderSAM(dist, arr); });
+
+}
+
+// ── SAM reactivo dentro del modal IBSE — animación caso a caso ──────────────
+var _ibse_sam_animId = 0;
+
+function ibse_renderSAM(dist, arr) {
+    var el = document.getElementById('ibse-sam-container');
+    if (!el) return;
+    _ibse_sam_animId++;  // cancela animación anterior
+    if (typeof sam_renderMonitorMuestra !== 'function') {
+        el.innerHTML = '<div style="font-size:.75rem;color:#94a3b8;">SAM no disponible.</div>';
+        return;
+    }
+    if (!dist || !arr || arr.length === 0) {
+        el.innerHTML = '<div style="font-size:.75rem;color:#94a3b8;">Sin datos para ajuste muestral.</div>';
+        return;
+    }
+    try {
+        var _samPob = sam_obtenerPoblacion() || _SAM_POB_DEMO;
+        var _samN = (typeof sam_calcularNObjetivo === 'function') ? sam_calcularNObjetivo() : arr.length;
+        var _samEsDemo = !sam_obtenerPoblacion();
+        _ibse_sam_animar(el, dist, _samPob, _samN, _samEsDemo);
+    } catch(e) {
+        console.warn('[IBSE→SAM] error:', e);
+        el.innerHTML = '<div style="font-size:.75rem;color:#94a3b8;">Error al cargar ajuste muestral.</div>';
+    }
+}
+
+function _ibse_sam_animar(el, dist, samPob, samN, samEsDemo) {
+    var myId = _ibse_sam_animId;
+    var GR = ['18-29','30-44','45-64','65-74','75+'];
+
+    // 1. Lista de casos válidos, orden aleatorio
+    var casos = [];
+    GR.forEach(function(g) {
+        (dist.edades[g] || []).forEach(function(r) {
+            if (r.sexo === 1 || r.sexo === 2) casos.push({s: r.sexo, g: g});
+        });
+    });
+    for (var i = casos.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var t = casos[i]; casos[i] = casos[j]; casos[j] = t;
+    }
+    var total = casos.length;
+
+    // 2. Acumulador vacío
+    var acum = { hombres: {}, mujeres: {} };
+    GR.forEach(function(g) { acum.hombres[g] = 0; acum.mujeres[g] = 0; });
+
+    // 3. Pre-calcular escala de barras (no cambia durante animación)
+    var pob = sam_normalizarPiramide(samPob);
+    var teor = sam_generarPiramideTeorica(pob, samN);
+    var pctPob = sam_calcularPorcentajes(pob);
+    var pctIdeal = sam_calcularPorcentajes(teor);
+    var maxPct = 0.1;
+    GR.forEach(function(g) {
+        ['hombres','mujeres'].forEach(function(s) {
+            if (pctPob[s][g] > maxPct) maxPct = pctPob[s][g];
+            if (pctIdeal[s][g] > maxPct) maxPct = pctIdeal[s][g];
+        });
+    });
+    var Nref = Math.max(samN, 1);
+
+    // 4. Render inicial con n=0 (full render crea pirámide)
+    sam_renderMonitorMuestra('ibse-sam-container', samPob, acum, samN, samEsDemo, 0);
+
+    // 5. Cachear refs DOM + añadir contenedores de puntos
+    var barRef = {}, dotRef = {};
+    var progBar = el.querySelector('[data-sam-prog-bar]');
+    var progTxt = el.querySelector('[data-sam-prog-text]');
+    GR.forEach(function(g) {
+        ['h','m'].forEach(function(sx) {
+            var key = g + '-' + sx;
+            barRef[key] = el.querySelector('[data-sam-cons="' + key + '"]');
+            var side = el.querySelector('[data-sam-side="' + key + '"]');
+            if (side) {
+                var d = document.createElement('div');
+                d.setAttribute('data-sam-dots', key);
+                d.style.cssText = 'position:absolute;' + (sx === 'h' ? 'right' : 'left') +
+                    ':0;top:0;width:100%;height:100%;z-index:5;display:flex;flex-wrap:wrap;' +
+                    'align-content:center;justify-content:' + (sx === 'h' ? 'flex-end' : 'flex-start') +
+                    ';gap:1px;padding:2px;pointer-events:none;overflow:hidden;';
+                side.appendChild(d);
+                dotRef[key] = d;
+            }
+        });
     });
 
+    // 6. Animación — actualización directa de DOM (sin sam_renderMonitorMuestra)
+    var idx = 0;
+    var BATCH = Math.max(1, Math.ceil(total / 80));
+
+    (function frame() {
+        if (myId !== _ibse_sam_animId) return;
+        var end = Math.min(idx + BATCH, total);
+
+        for (var i = idx; i < end; i++) {
+            var c = casos[i];
+            var sx = c.s === 1 ? 'h' : 'm';
+            var sNom = c.s === 1 ? 'hombres' : 'mujeres';
+            var key = c.g + '-' + sx;
+            acum[sNom][c.g]++;
+
+            // Punto visual
+            if (dotRef[key]) {
+                var dot = document.createElement('span');
+                dot.style.cssText = 'display:inline-block;width:3px;height:3px;border-radius:50%;background:' +
+                    (c.s === 1 ? '#5b8dd9' : '#e8789a') + ';opacity:.8;';
+                dotRef[key].appendChild(dot);
+            }
+
+            // Barra: ancho proporcional directo
+            if (barRef[key]) {
+                var pctG = (acum[sNom][c.g] / Nref) * 100;
+                barRef[key].style.width = (pctG / maxPct * 100).toFixed(2) + '%';
+                barRef[key].style.background = '#3b82f6'; // azul progreso durante animación
+            }
+        }
+        idx = end;
+
+        // Progreso
+        if (progBar) progBar.style.width = Math.min(100, Math.round(idx / Nref * 100)) + '%';
+        if (progTxt) progTxt.textContent = idx + ' / ' + samN;
+
+        if (idx < total) {
+            requestAnimationFrame(frame);
+        } else {
+            // Frame final: sam_renderMonitorMuestra para estado correcto
+            // (colores definitivos, resumen, tabla, desviaciones)
+            // Salvar dots, render final, re-inyectar dots
+            var savedDots = {};
+            GR.forEach(function(g) {
+                ['h','m'].forEach(function(sx) {
+                    var key = g + '-' + sx;
+                    if (dotRef[key] && dotRef[key].parentNode) {
+                        savedDots[key] = dotRef[key].parentNode.removeChild(dotRef[key]);
+                    }
+                });
+            });
+            sam_renderMonitorMuestra('ibse-sam-container', samPob, acum, samN, samEsDemo, total);
+            GR.forEach(function(g) {
+                ['h','m'].forEach(function(sx) {
+                    var key = g + '-' + sx;
+                    var side = el.querySelector('[data-sam-side="' + key + '"]');
+                    if (side && savedDots[key]) side.appendChild(savedDots[key]);
+                });
+            });
+        }
+    })();
 }
 
 
@@ -58617,25 +58743,24 @@ function ibse_v2_renderJuicioMuestra(dist) {
 
     }
 
-    // Evaluación de aptitud para reponderación (cobertura sexo×edad)
+    // Soporte empírico por celda (necesario para reponderación y proxy)
     var celdasVacias = rep.filas.filter(function(f) { return f.estado !== 'nd' && f.cons === 0 && f.obj > 0; }).length;
-    var repondVeredicto, repondCol, repondTxt;
-    if (celdasVacias >= 3 || nCeldas < 4) {
-        repondVeredicto = 'NO APTA'; repondCol = '#ef4444';
-        repondTxt = 'La muestra no permite aplicar ajustes por sexo y edad: la falta de cobertura en determinadas celdas impide realizar ajustes consistentes.';
-
-    } else if (celdasVacias > 0 || desvMedia > 0.30) {
-        repondVeredicto = 'CON LIMITACIONES'; repondCol = '#d97706';
-        repondTxt = 'La muestra permite aplicar ajustes por sexo y edad, aunque los desequilibrios observados pueden afectar la estabilidad de los pesos. Los resultados reponderados deben interpretarse con cautela.';
-    } else {
-        repondVeredicto = 'VIABLE'; repondCol = '#16a34a';
-        repondTxt = 'La muestra permite aplicar ajustes por sexo y edad, y la estructura observada permite ajustes estables. Los resultados reponderados deben interpretarse como aproximación corregida.';
-    }
-
-    // Proxy de estabilidad: soporte empírico por celda
     var celdasMuyDebil = celdasEval.filter(function(f) { return f.cons > 0 && f.cons < 5; }).length;
     var celdasDebil = celdasEval.filter(function(f) { return f.cons >= 5 && f.cons < 10; }).length;
     var celdasLimitado = celdasEval.filter(function(f) { return f.cons >= 10 && f.cons < 20; }).length;
+
+    // Evaluación de aptitud para reponderación (criterio estricto)
+    var repondVeredicto, repondCol, repondTxt;
+    if (celdasVacias >= 1 || celdasMuyDebil >= 1 || desvMedia > 0.40 || (celdasDebil >= 2 && desvMedia > 0.30)) {
+        repondVeredicto = 'NO APTA'; repondCol = '#ef4444';
+        repondTxt = 'La muestra no permite aplicar ajustes fiables: la combinación de desequilibrio estructural y soporte insuficiente invalida la reponderación.';
+    } else if (celdasDebil >= 1 || desvMedia > 0.20) {
+        repondVeredicto = 'CON LIMITACIONES'; repondCol = '#d97706';
+        repondTxt = 'La muestra permite ajustes, pero con incertidumbre relevante por desequilibrios o soporte desigual.';
+    } else {
+        repondVeredicto = 'VIABLE'; repondCol = '#16a34a';
+        repondTxt = 'La muestra permite reponderación estable.';
+    }
     var soporteTxt = '';
     if (celdasMuyDebil > 0) {
         soporteTxt = celdasMuyDebil + ' celda' + (celdasMuyDebil>1?'s':'') + ' con menos de 5 casos: riesgo alto de ajustes inestables en esas celdas.';
@@ -58665,6 +58790,18 @@ function ibse_v2_renderJuicioMuestra(dist) {
     html += ' · Desv. media: ' + (desvMedia*100).toFixed(1) + '%</div>';
 
     html += '<div style="font-size:.75rem;color:#475569;line-height:1.5;margin-bottom:.6rem;">' + textoPartes.join(' ') + '</div>';
+
+    // 1b. Prioridad de captación (celdas con déficit)
+    var _deficits = rep.filas
+        .filter(function(f) { return f.estado !== 'nd' && f.obj > 0 && f.cons < f.obj; })
+        .map(function(f) { return { label: (f.sexo === 1 ? '\u2642 ' : '\u2640 ') + f.grupo, deficit: f.obj - f.cons }; })
+        .sort(function(a, b) { return b.deficit - a.deficit; });
+    if (_deficits.length > 0) {
+        html += '<div style="font-size:.75rem;color:#1e293b;font-weight:700;margin-bottom:.15rem;">Prioridad de captación:</div>';
+        html += '<div style="font-size:.72rem;color:#475569;line-height:1.5;margin-bottom:.6rem;">';
+        html += _deficits.map(function(d) { return d.label + ' (faltan ' + d.deficit + ')'; }).join(' · ');
+        html += '</div>';
+    }
 
     // 2. Susceptibilidad de reponderación (separada)
     html += '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.2rem;">Susceptibilidad de reponderación: <span style="color:' + repondCol + ';">' + repondVeredicto + '</span></div>';
