@@ -47346,13 +47346,30 @@ function abrirMonitorEscalas(escalaId) {
     var nombreEscala = mapaNombre[escalaId] || escalaId;
     var datos = null;
     _compasEscalasGet().forEach(function(e) { if (e.nombre_escala === nombreEscala) datos = e; });
-    _renderMonitorEscalasContenido(escalaId, datos);
+
+    // Duke: intentar primero datos agregados desde respuestas individuales
+    if (escalaId === 'duke') {
+        var mun = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
+        _renderMonitorEscalasContenido(escalaId, datos); // render inicial (heredado o vacío)
+        modal.style.display = 'block';
+        if (mun && typeof duke_agregarRespuestas === 'function') {
+            duke_agregarRespuestas(mun, function(agg) {
+                if (agg && agg.n > 0) {
+                    var contenido = document.getElementById('monitor-escalas-contenido');
+                    if (contenido) contenido.innerHTML = _monitorDukeEstructurado(agg);
+                }
+            });
+        }
+    } else {
+        _renderMonitorEscalasContenido(escalaId, datos);
+        modal.style.display = 'block';
+    }
+
     var btnEd = document.getElementById('monitor-escalas-btn-editar');
     if (btnEd) {
         btnEd.onclick = function() { cerrarMonitorEscalas(); abrirModalEscalasDiagnosticas(escalaId); };
         btnEd.style.display = datos ? 'inline-block' : 'none';
     }
-    modal.style.display = 'block';
 }
 
 function cerrarMonitorEscalas() {
@@ -47906,9 +47923,10 @@ function renderizarSeccionEstudios() {
             datoHtml: datoHtml,
             monitorFn: 'abrirMonitorEscalas(\'' + cfg.id + '\')',
             monitorLabel: '\ud83d\udcca Monitor',
-            accionesHtml: tieneDatos
+            accionesHtml: (cfg.id === 'duke' ? '<button onclick="duke_abrirCuestionario()" style="background:#f59e0b;color:white;border:none;border-radius:7px;padding:0.36rem 0.7rem;font-size:0.77rem;font-weight:600;cursor:pointer;">Cuestionario</button>' : '') +
+                (tieneDatos
                 ? '<button onclick="abrirModalEscalasDiagnosticas(\'' + cfg.id + '\')" style="background:white;border:1px solid #e2e8f0;color:#475569;border-radius:7px;padding:0.36rem 0.7rem;font-size:0.77rem;font-weight:600;cursor:pointer;">\u270f\ufe0f Editar</button>'
-                : '',
+                : ''),
             detalleHtml: cfg.detalleHtml
         });
     });
@@ -60214,9 +60232,20 @@ function duke_enviarRespuesta() {
         if (errEl) { errEl.style.display = 'block'; errEl.textContent = 'Por favor responde todas las preguntas (' + falta.length + ' sin contestar).'; }
         return;
     }
+    var sexoVal = document.getElementById('duke-sexo').value;
+    var edadVal = parseInt(document.getElementById('duke-edad').value);
+    if (!sexoVal || sexoVal === '') {
+        if (errEl) { errEl.style.display = 'block'; errEl.textContent = 'Indica tu sexo para poder registrar la respuesta.'; }
+        return;
+    }
+    if (!edadVal || edadVal < 14 || edadVal > 110) {
+        if (errEl) { errEl.style.display = 'block'; errEl.textContent = 'Indica una edad válida (14-110).'; }
+        return;
+    }
     if (errEl) errEl.style.display = 'none';
-    datos.sexo = parseInt(document.getElementById('duke-sexo').value) || null;
-    datos.edad = parseInt(document.getElementById('duke-edad').value) || null;
+    datos.sexo = sexoVal === '1' ? 'H' : 'M';
+    datos.sexo_num = parseInt(sexoVal);
+    datos.edad = edadVal;
     datos.timestamp = new Date().toISOString();
     datos.municipio = mun;
     // Cálculo
@@ -60244,6 +60273,113 @@ function duke_enviarRespuesta() {
     } else {
         console.warn('[Duke-UNC] Firebase no disponible. Respuesta no persistida.');
     }
+}
+
+// ── Agregación Duke desde respuestas individuales ─────────────────────
+function duke_agregarRespuestas(mun, callback) {
+    if (!mun || typeof db === 'undefined') { callback(null); return; }
+    db.ref('escalas_respuestas/duke/' + mun).once('value', function(snap) {
+        var datos = snap.val();
+        if (!datos || typeof datos !== 'object') { callback(null); return; }
+        var arr = Object.values(datos).filter(function(d) { return d.duke_total != null; });
+        if (!arr.length) { callback(null); return; }
+        var n = arr.length;
+        var sumTotal = 0, nBajo = 0;
+        var porSexo = {H: {n:0, sum:0}, M: {n:0, sum:0}};
+        var porEdad = {'18-29':{n:0,sum:0},'30-44':{n:0,sum:0},'45-64':{n:0,sum:0},'65-74':{n:0,sum:0},'75+':{n:0,sum:0}};
+        arr.forEach(function(d) {
+            var t = d.duke_total;
+            sumTotal += t;
+            if (t < 32) nBajo++;
+            var sx = d.sexo || '';
+            if (porSexo[sx]) { porSexo[sx].n++; porSexo[sx].sum += t; }
+            var e = d.edad;
+            if (e) {
+                var g = e < 30 ? '18-29' : e < 45 ? '30-44' : e < 65 ? '45-64' : e < 75 ? '65-74' : '75+';
+                if (porEdad[g]) { porEdad[g].n++; porEdad[g].sum += t; }
+            }
+        });
+        callback({
+            n: n,
+            media: Math.round(sumTotal / n * 10) / 10,
+            pctBajo: Math.round(nBajo / n * 1000) / 10,
+            nBajo: nBajo,
+            porSexo: porSexo,
+            porEdad: porEdad
+        });
+    });
+}
+
+// ── Monitor Duke enriquecido (datos estructurados si existen) ─────────
+function _monitorDukeEstructurado(agg) {
+    if (!agg) return '';
+    var meta = _compasMetaEscala('duke');
+    var col = agg.media >= 40 ? '#16a34a' : agg.media >= 32 ? '#d97706' : '#dc2626';
+    var lbl = agg.media >= 40 ? 'Apoyo adecuado' : agg.media >= 32 ? 'Apoyo moderado' : 'Apoyo bajo';
+    var barPct = Math.max(0, Math.min(100, ((agg.media - 11) / 44) * 100));
+    var cutPct = ((32 - 11) / 44) * 100;
+
+    var html = '<div style="margin-bottom:.9rem;">';
+    html += '<div style="font-size:.7rem;font-weight:600;color:#64748b;letter-spacing:.05em;text-transform:uppercase;margin-bottom:.4rem;">Apoyo social funcional (n=' + agg.n + ')</div>';
+
+    // Barra principal
+    html += '<div style="background:' + (agg.media >= 40 ? '#dcfce7' : agg.media >= 32 ? '#fef3c7' : '#fee2e2') + ';border:1px solid ' + col + '30;border-radius:8px;padding:.6rem .85rem;margin-bottom:.45rem;">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.3rem;">';
+    html += '<span style="font-size:.77rem;font-weight:600;color:#475569;">Puntuación total media</span>';
+    html += '<div style="display:flex;align-items:baseline;gap:.25rem;">';
+    html += '<span style="font-size:1.4rem;font-weight:800;color:' + col + ';">' + agg.media.toFixed(1) + '</span>';
+    html += '<span style="font-size:.68rem;color:' + col + ';opacity:.7;">/55</span>';
+    html += '<span style="font-size:.65rem;background:' + col + ';color:white;padding:.07rem .32rem;border-radius:999px;margin-left:.25rem;">' + lbl + '</span>';
+    html += '</div></div>';
+    html += '<div style="position:relative;height:6px;background:#e5e7eb;border-radius:3px;">';
+    html += '<div style="height:100%;width:' + barPct + '%;background:' + col + ';border-radius:3px;"></div>';
+    html += '<div style="position:absolute;top:-3px;left:' + cutPct + '%;width:2px;height:12px;background:#ef4444;border-radius:1px;"></div>';
+    html += '</div>';
+    html += '<div style="display:flex;justify-content:space-between;font-size:.62rem;color:#94a3b8;margin-top:.18rem;"><span>11</span><span style="color:#ef4444;">Corte: 32</span><span>55</span></div>';
+    html += '</div>';
+
+    // % bajo apoyo
+    var pctCol = agg.pctBajo > 30 ? '#dc2626' : agg.pctBajo > 15 ? '#d97706' : '#16a34a';
+    html += '<div style="display:flex;align-items:center;gap:.75rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:.5rem .85rem;margin-bottom:.45rem;">';
+    html += '<span style="font-size:1.5rem;font-weight:800;color:' + pctCol + ';">' + agg.pctBajo.toFixed(0) + '%</span>';
+    html += '<span style="font-size:.78rem;color:#475569;">con bajo apoyo social funcional (&lt;32) · n=' + agg.nBajo + '</span>';
+    html += '</div>';
+
+    // Por sexo
+    html += '<div style="font-size:.72rem;color:#64748b;margin-bottom:.3rem;margin-top:.5rem;font-weight:600;">Por sexo</div>';
+    html += '<div style="display:flex;gap:.5rem;margin-bottom:.45rem;">';
+    ['H','M'].forEach(function(sx) {
+        var d = agg.porSexo[sx];
+        if (d.n > 0) {
+            var m = Math.round(d.sum / d.n * 10) / 10;
+            html += '<div style="flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:.4rem .6rem;font-size:.75rem;">';
+            html += '<strong>' + (sx === 'H' ? 'Hombres' : 'Mujeres') + '</strong>: ' + m.toFixed(1) + '/55 (n=' + d.n + ')';
+            html += '</div>';
+        }
+    });
+    html += '</div>';
+
+    // Por edad
+    html += '<div style="font-size:.72rem;color:#64748b;margin-bottom:.3rem;font-weight:600;">Por grupo de edad</div>';
+    html += '<div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.45rem;">';
+    ['18-29','30-44','45-64','65-74','75+'].forEach(function(g) {
+        var d = agg.porEdad[g];
+        if (d.n > 0) {
+            var m = Math.round(d.sum / d.n * 10) / 10;
+            html += '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:.3rem .5rem;font-size:.7rem;">';
+            html += g + ': ' + m.toFixed(1) + ' (n=' + d.n + ')';
+            html += '</div>';
+        }
+    });
+    html += '</div>';
+
+    // Nota metodológica
+    html += '<div style="font-size:.68rem;color:#94a3b8;line-height:1.45;margin-top:.4rem;">';
+    html += (meta ? meta.referencia + ' ' : '') + 'Punto de corte &lt;32: bajo apoyo funcional percibido (Bellón et al., 1996).';
+    html += '</div>';
+
+    html += '</div>';
+    return html;
 }
 
 // ── Stub REDCap API (futuro) ──────────────────────────────────────────
