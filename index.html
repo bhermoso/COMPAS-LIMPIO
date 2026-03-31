@@ -7545,6 +7545,44 @@
 
 </div>
 
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- CUESTIONARIO DUKE-UNC-11 — Apoyo social funcional percibido  -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<div id="modal-duke-cuestionario" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:10500; overflow-y:auto; padding:2rem;">
+  <div style="background:white; max-width:700px; margin:0 auto; border-radius:16px; overflow:hidden; box-shadow:0 25px 50px -12px rgba(0,0,0,0.3);">
+    <div style="background:linear-gradient(135deg,#f59e0b,#b45309); color:white; padding:1.5rem 2rem; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <h2 style="margin:0 0 0.25rem; font-size:1.3rem;">Duke-UNC-11</h2>
+        <p style="margin:0; font-size:0.85rem; opacity:0.9;">Apoyo social funcional percibido · Broadhead (1988) · Bellón (1996)</p>
+      </div>
+      <button onclick="duke_cerrarCuestionario()" style="background:rgba(255,255,255,0.2); border:none; color:white; width:36px; height:36px; border-radius:50%; font-size:1.2rem; cursor:pointer; line-height:1;">×</button>
+    </div>
+    <div style="padding:1.5rem;">
+      <div style="background:#fffbeb; border-radius:10px; padding:1rem; margin-bottom:1.25rem; font-size:0.83rem; color:#92400e; border-left:4px solid #f59e0b;">
+        <strong>Instrucciones:</strong> Para cada afirmación, indica en qué medida recibes ese tipo de apoyo. Tus respuestas son anónimas.
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.25rem;">
+        <div>
+          <label style="display:block; font-size:0.82rem; font-weight:600; color:#374151; margin-bottom:0.35rem;">Sexo</label>
+          <select id="duke-sexo" style="width:100%; padding:0.5rem; border:1.5px solid #d1d5db; border-radius:8px; font-size:0.85rem;">
+            <option value="">— Selecciona —</option>
+            <option value="1">Hombre</option>
+            <option value="2">Mujer</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block; font-size:0.82rem; font-weight:600; color:#374151; margin-bottom:0.35rem;">Edad (años)</label>
+          <input type="number" id="duke-edad" min="14" max="110" placeholder="ej. 45" style="width:100%; padding:0.5rem; border:1.5px solid #d1d5db; border-radius:8px; font-size:0.85rem; box-sizing:border-box;">
+        </div>
+      </div>
+      <p style="font-size:0.78rem; color:#6b7280; margin:0 0 0.75rem; font-style:italic;">Escala: 1 = Mucho menos de lo que deseo · 2 = Menos de lo que deseo · 3 = Ni mucho ni poco · 4 = Casi como deseo · 5 = Tanto como deseo</p>
+      <div id="duke-items" style="display:grid; gap:0.75rem; margin-bottom:1.5rem;"></div>
+      <div id="duke-form-error" style="display:none; background:#fef2f2; color:#dc2626; padding:0.6rem 1rem; border-radius:8px; font-size:0.83rem; margin-bottom:1rem;"></div>
+      <button onclick="duke_enviarRespuesta()" style="width:100%; background:linear-gradient(135deg,#f59e0b,#b45309); color:white; border:none; padding:0.85rem; border-radius:10px; font-size:1rem; font-weight:700; cursor:pointer;">Enviar mi respuesta</button>
+      <div id="duke-exito" style="display:none; background:#dcfce7; color:#166534; padding:0.75rem 1rem; border-radius:8px; margin-top:1rem; text-align:center; font-weight:600; font-size:0.9rem;">Respuesta registrada correctamente.</div>
+    </div>
+  </div>
+</div>
 
 
 <!-- Modal Metodología COMPÁS -->
@@ -60054,7 +60092,8 @@ function COMPAS_limpiarEstudiosComplementarios() {
         db.ref(base + '/escalas').remove();
         db.ref('ibse_monitor/' + mun).remove();
         db.ref('ibse_respuestas/' + mun).remove();
-        console.info('[COMPAS] Firebase: estudios complementarios eliminados para ' + mun);
+        db.ref('escalas_respuestas/duke/' + mun).remove();
+        console.info('[COMPAS] Firebase: estudios complementarios + escalas eliminados para ' + mun);
     }
     // Re-render
     try { if (typeof renderizarPanelIBSE === 'function') renderizarPanelIBSE(); } catch(e) {}
@@ -60106,6 +60145,106 @@ function ibse_abrirMonitor() { ibse_v2_abrir(); } // redirect legacy por si algo
 // ── [ELIMINADO] ibse_renderMonitorFullscreen, ibse_cerrarMonitor, handler Escape v1 ──
 // Todo el monitor IBSE ahora usa ibse_v2_abrir() / ibse_v2_cerrar() en #modal-ibse-monitor.
 // ── FIN BLOQUE ELIMINADO ──
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CUESTIONARIO DUKE-UNC-11 — Captura por ítems + cálculo + persistencia
+// ══════════════════════════════════════════════════════════════════════════════
+
+var DUKE_ITEMS = [
+    {id:'duke_1',  texto:'Recibo visitas de mis amigos y familiares'},
+    {id:'duke_2',  texto:'Recibo ayuda en asuntos relacionados con mi casa'},
+    {id:'duke_3',  texto:'Recibo elogios y reconocimientos cuando hago bien mi trabajo'},
+    {id:'duke_4',  texto:'Cuento con personas que se preocupan de lo que me sucede'},
+    {id:'duke_5',  texto:'Recibo amor y afecto'},
+    {id:'duke_6',  texto:'Tengo la posibilidad de hablar con alguien de mis problemas en el trabajo o en la casa'},
+    {id:'duke_7',  texto:'Tengo la posibilidad de hablar con alguien de mis problemas personales y familiares'},
+    {id:'duke_8',  texto:'Tengo la posibilidad de hablar con alguien de mis problemas económicos'},
+    {id:'duke_9',  texto:'Recibo invitaciones para distraerme y salir con otras personas'},
+    {id:'duke_10', texto:'Recibo consejos útiles cuando me ocurre algún acontecimiento importante en mi vida'},
+    {id:'duke_11', texto:'Recibo ayuda cuando estoy enfermo en la cama'}
+];
+
+function _duke_renderItem(item) {
+    var labels = ['','Mucho menos\nde lo que deseo','Menos de lo\nque deseo','Ni mucho\nni poco','Casi como\ndeseo','Tanto como\ndeseo'];
+    var opts = [1,2,3,4,5].map(function(v) {
+        return '<label style="display:flex;flex-direction:column;align-items:center;gap:0.2rem;cursor:pointer;">' +
+            '<input type="radio" name="' + item.id + '" value="' + v + '" style="accent-color:#f59e0b;">' +
+            '<span style="font-size:0.62rem;color:#6b7280;text-align:center;max-width:60px;white-space:pre-line;">' + labels[v] + '</span>' +
+        '</label>';
+    }).join('');
+    return '<div style="background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:8px;padding:0.7rem;">' +
+        '<div style="font-size:0.84rem;font-weight:600;color:#1f2937;margin-bottom:0.55rem;">' + item.texto + '</div>' +
+        '<div style="display:flex;gap:0.5rem;justify-content:space-around;flex-wrap:wrap;">' + opts + '</div>' +
+    '</div>';
+}
+
+function duke_abrirCuestionario() {
+    var mun = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
+    if (!mun) { alert('Selecciona un municipio antes de abrir el cuestionario.'); return; }
+    var modal = document.getElementById('modal-duke-cuestionario');
+    if (!modal) return;
+    var cont = document.getElementById('duke-items');
+    if (cont && !cont.children.length) {
+        cont.innerHTML = DUKE_ITEMS.map(function(it) { return _duke_renderItem(it); }).join('');
+    }
+    var exito = document.getElementById('duke-exito');
+    if (exito) exito.style.display = 'none';
+    var errEl = document.getElementById('duke-form-error');
+    if (errEl) errEl.style.display = 'none';
+    modal.style.display = 'block';
+}
+
+function duke_cerrarCuestionario() {
+    var modal = document.getElementById('modal-duke-cuestionario');
+    if (modal) modal.style.display = 'none';
+}
+
+function duke_enviarRespuesta() {
+    var mun = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
+    if (!mun) return;
+    var errEl = document.getElementById('duke-form-error');
+    var datos = {};
+    var falta = [];
+    DUKE_ITEMS.forEach(function(it) {
+        var sel = document.querySelector('input[name="' + it.id + '"]:checked');
+        if (sel) datos[it.id] = parseInt(sel.value);
+        else falta.push(it.id);
+    });
+    if (falta.length) {
+        if (errEl) { errEl.style.display = 'block'; errEl.textContent = 'Por favor responde todas las preguntas (' + falta.length + ' sin contestar).'; }
+        return;
+    }
+    if (errEl) errEl.style.display = 'none';
+    datos.sexo = parseInt(document.getElementById('duke-sexo').value) || null;
+    datos.edad = parseInt(document.getElementById('duke-edad').value) || null;
+    datos.timestamp = new Date().toISOString();
+    datos.municipio = mun;
+    // Cálculo
+    var calc = compas_calcularDuke(datos);
+    if (calc) {
+        datos.duke_total = calc.duke_total;
+        datos.nivel = calc.nivel;
+    }
+    // Interpretación
+    datos.interpretacion = compas_interpretarEscala('duke', calc, null);
+    // Persistencia individual en Firebase
+    if (typeof db !== 'undefined') {
+        db.ref('escalas_respuestas/duke/' + mun).push(datos).then(function() {
+            console.info('[Duke-UNC] Respuesta guardada para ' + mun + ' (total=' + (calc ? calc.duke_total : '?') + ')');
+            var exito = document.getElementById('duke-exito');
+            if (exito) exito.style.display = 'block';
+            // Limpiar formulario
+            document.querySelectorAll('#modal-duke-cuestionario input[type="radio"]').forEach(function(r) { r.checked = false; });
+            document.getElementById('duke-edad').value = '';
+            document.getElementById('duke-sexo').value = '';
+        }).catch(function(e) {
+            console.warn('[Duke-UNC] Error Firebase:', e);
+            if (errEl) { errEl.style.display = 'block'; errEl.textContent = 'Error al guardar. Intenta de nuevo.'; }
+        });
+    } else {
+        console.warn('[Duke-UNC] Firebase no disponible. Respuesta no persistida.');
+    }
+}
 
 // ── Stub REDCap API (futuro) ──────────────────────────────────────────
 function _ibse_v1_placeholder() {} // placeholder
