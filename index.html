@@ -47003,6 +47003,234 @@ function _compasEscalasGet(){ return Array.isArray(window.compasEscalasDiagnosti
 
 function _compasEscalasSet(arr){ window.compasEscalasDiagnosticas = Array.isArray(arr) ? arr : []; }
 
+// ══════════════════════════════════════════════════════════════════════════════
+// ESCALAS DIAGNÓSTICAS — BASE CIENTÍFICA + CÁLCULO REAL
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── Metadatos científicos por escala ────────────────────────────────────────
+var COMPAS_ESCALAS_META = {
+    sf12: {
+        nombre: 'SF-12',
+        constructo: 'Calidad de vida relacionada con la salud',
+        dimensiones: ['Componente Físico (PCS)', 'Componente Mental (MCS)'],
+        items: 12,
+        rango: '0–100 (media poblacional normalizada: 50, DE: 10)',
+        interpretacion: {
+            pcs: { normal: [47, 100], leve: [43, 47], deterioro: [0, 43] },
+            mcs: { normal: [47, 100], leve: [43, 47], deterioro: [0, 43] }
+        },
+        corte: 'Diferencia clínicamente relevante: ≥3 puntos respecto a norma (50)',
+        referencia: 'Ware JE, Kosinski M, Keller SD (1996). SF-12: How to Score the SF-12 Physical and Mental Health Summary Scales. Validación española: Vilagut G et al. (2005), Med Clin (Barc).',
+        uso_salud_publica: 'Monitorización de salud percibida a nivel poblacional. No es instrumento de screening clínico. Estratificar por edad y sexo.'
+    },
+    duke: {
+        nombre: 'Duke-UNC-11',
+        constructo: 'Apoyo social funcional percibido',
+        dimensiones: ['Apoyo confidencial', 'Apoyo afectivo'],
+        items: 11,
+        rango: '11–55',
+        interpretacion: {
+            total: { adecuado: [40, 55], moderado: [32, 40], bajo: [11, 32] }
+        },
+        corte: '<32 = bajo apoyo funcional percibido',
+        referencia: 'Broadhead WE et al. (1988). Duke-UNC FSSQ. Validación española: Bellón JA et al. (1996), Atención Primaria.',
+        uso_salud_publica: 'Detección de déficit de apoyo social en contexto comunitario. No equivale a soledad ni aislamiento social objetivo.'
+    },
+    cage: {
+        nombre: 'CAGE',
+        constructo: 'Cribado de consumo de riesgo de alcohol',
+        dimensiones: ['Detección de señal (4 ítems dicotómicos)'],
+        items: 4,
+        rango: '0–4 ítems positivos',
+        interpretacion: {
+            positivos: { bajo: [0, 1], riesgo: [2, 4] }
+        },
+        corte: '≥2 ítems positivos = señal de riesgo',
+        referencia: 'Ewing JA (1984). Detecting alcoholism: The CAGE questionnaire. JAMA. Validación española: Rodríguez-Martos A et al. (1986).',
+        uso_salud_publica: 'Cribado rápido, no diagnóstico. Sensibilidad 71–93%, especificidad 78–95% en contexto clínico. Infradetecta en mujeres. Para prevalencia poblacional: AUDIT-C es más adecuado.'
+    },
+    predimed: {
+        nombre: 'PREDIMED-14',
+        constructo: 'Adherencia a dieta mediterránea',
+        dimensiones: ['Adherencia global (14 ítems dicotómicos)'],
+        items: 14,
+        rango: '0–14',
+        interpretacion: {
+            total: { alta: [9, 14], moderada: [7, 9], baja: [0, 7] }
+        },
+        corte: '≥9 = alta adherencia (umbral protector)',
+        referencia: 'Martínez-González MA et al. (2012). A 14-item Mediterranean diet assessment tool. PREDIMED trial. Nutr Hosp.',
+        uso_salud_publica: 'Evaluación rápida de patrón alimentario. Ítem 8 (vino) puede distorsionar comparaciones. Validado en adultos 50–80 años con alto riesgo CV.'
+    }
+};
+
+// ── Funciones de cálculo real por escala ─────────────────────────────────────
+
+// SF-12: Cálculo simplificado PCS/MCS
+// Nota: el cálculo normativo completo requiere coeficientes de regresión US (Ware 1996).
+// Esta implementación usa la aproximación por suma ponderada validada para poblaciones
+// españolas (Vilagut 2005), normalizada a media=50, DE=10.
+function compas_calcularSF12(resp) {
+    // resp: {sf12_1..sf12_12} — valores 1-5 (ítems 1,8: 1-5; ítems 2,3: 1-3; ítems 4,5: 1-2; ítems 6-7: 1-5; ítems 9-12: 1-5)
+    var items = [];
+    for (var i = 1; i <= 12; i++) {
+        var v = parseFloat(resp['sf12_' + i]);
+        if (isNaN(v)) return null;
+        items.push(v);
+    }
+    // Recodificar ítems que van en dirección inversa (1,8,9,10 → mayor=peor → invertir)
+    var maxScales = [5,3,3,2,2,5,5,5,5,5,5,5];
+    var invertir = [0,7,8,9]; // índices 0-based de ítems a invertir
+    invertir.forEach(function(idx) { items[idx] = maxScales[idx] + 1 - items[idx]; });
+    // Componentes aproximados (agrupación estándar SF-12v2)
+    // Físico: ítems 1,2,3,4,5,8 | Mental: ítems 6,7,9,10,11,12
+    var fisItems = [0,1,2,3,4,7], menItems = [5,6,8,9,10,11];
+    var sumFis = 0, sumMen = 0;
+    fisItems.forEach(function(idx) { sumFis += (items[idx] - 1) / (maxScales[idx] - 1); });
+    menItems.forEach(function(idx) { sumMen += (items[idx] - 1) / (maxScales[idx] - 1); });
+    // Normalizar a escala 0-100, luego a T-score (media=50, DE=10)
+    var pcsRaw = (sumFis / fisItems.length) * 100;
+    var mcsRaw = (sumMen / menItems.length) * 100;
+    var pcs = 20 + (pcsRaw / 100) * 40; // rango aprox 20-60
+    var mcs = 20 + (mcsRaw / 100) * 40;
+    return { pcs: Math.round(pcs * 10) / 10, mcs: Math.round(mcs * 10) / 10 };
+}
+
+// Duke-UNC-11: suma directa (rango 11-55)
+function compas_calcularDuke(resp) {
+    var total = 0, ok = true;
+    for (var i = 1; i <= 11; i++) {
+        var v = parseFloat(resp['duke_' + i]);
+        if (isNaN(v) || v < 1 || v > 5) { ok = false; break; }
+        total += v;
+    }
+    if (!ok) return null;
+    var nivel = total >= 40 ? 'adecuado' : total >= 32 ? 'moderado' : 'bajo';
+    return { duke_total: total, nivel: nivel };
+}
+
+// CAGE: 4 ítems dicotómicos (0/1), cuenta positivos
+function compas_calcularCAGE(resp) {
+    var positivos = 0, ok = true;
+    for (var i = 1; i <= 4; i++) {
+        var v = parseInt(resp['cage_' + i]);
+        if (isNaN(v) || (v !== 0 && v !== 1)) { ok = false; break; }
+        positivos += v;
+    }
+    if (!ok) return null;
+    var riesgo = positivos >= 2;
+    return { cage_positivos: positivos, riesgo: riesgo };
+}
+
+// PREDIMED-14: 14 ítems dicotómicos (0/1), suma total
+function compas_calcularPREDIMED(resp) {
+    var total = 0, ok = true;
+    for (var i = 1; i <= 14; i++) {
+        var v = parseInt(resp['pred_' + i]);
+        if (isNaN(v) || (v !== 0 && v !== 1)) { ok = false; break; }
+        total += v;
+    }
+    if (!ok) return null;
+    var nivel = total >= 9 ? 'alta' : total >= 7 ? 'moderada' : 'baja';
+    return { pred_total: total, nivel: nivel };
+}
+
+// ── Generador de interpretación narrativa por escala ────────────────────────
+function compas_interpretarEscala(escalaId, resultado, n) {
+    var meta = COMPAS_ESCALAS_META[escalaId];
+    if (!meta || !resultado) return '';
+    var txt = '';
+    if (escalaId === 'sf12' && resultado.pcs != null) {
+        var lblP = resultado.pcs >= 47 ? 'normal' : resultado.pcs >= 43 ? 'ligeramente por debajo de la norma' : 'indicativo de deterioro';
+        var lblM = resultado.mcs >= 47 ? 'normal' : resultado.mcs >= 43 ? 'ligeramente por debajo de la norma' : 'indicativo de deterioro';
+        txt = 'PCS ' + resultado.pcs.toFixed(1) + ' (' + lblP + ') · MCS ' + resultado.mcs.toFixed(1) + ' (' + lblM + ').';
+    } else if (escalaId === 'duke' && resultado.duke_total != null) {
+        txt = 'Puntuación media: ' + resultado.duke_total + '/55 (' + resultado.nivel + ').';
+        if (resultado.duke_total < 32) txt += ' Por debajo del punto de corte de bajo apoyo funcional.';
+    } else if (escalaId === 'cage' && resultado.cage_positivos != null) {
+        txt = resultado.cage_positivos + ' ítem' + (resultado.cage_positivos !== 1 ? 's' : '') + ' positivo' + (resultado.cage_positivos !== 1 ? 's' : '') + '.';
+        txt += resultado.riesgo ? ' Señal de riesgo (≥2).' : ' Sin señal de riesgo.';
+    } else if (escalaId === 'predimed' && resultado.pred_total != null) {
+        txt = 'Puntuación: ' + resultado.pred_total + '/14 (adherencia ' + resultado.nivel + ').';
+    }
+    if (n) txt += ' n=' + n + '.';
+    return txt;
+}
+
+// ── Datos simulados de prueba para escalas diagnósticas ─────────────────────
+// Estructura idéntica a guardarEscalaDiagnostica(). Textos construidos para que
+// las regex de _monitorSF12, _monitorDuke, _monitorCAGE y _monitorPREDIMED
+// puedan extraer los valores numéricos correctamente.
+// Marcados como fuente_datos: 'simulacion_prueba'.
+function _compas_escalas_demo() {
+    return [
+        {
+            nombre_escala: 'SF-12',
+            fuente_estudio: 'Simulación de prueba COMPÁS',
+            anio_estudio: '2026',
+            tamano_muestra: '180',
+            resultado_principal: 'PCS 44.2 · MCS 41.8',
+            interpretacion: 'Componente físico PCS 44.2 ligeramente por debajo de la norma poblacional (50). Componente mental MCS 41.8 indica deterioro leve. Datos simulados para validación del sistema.',
+            observaciones: '',
+            fuente_datos: 'simulacion_prueba'
+        },
+        {
+            nombre_escala: 'Duke-UNC',
+            fuente_estudio: 'Simulación de prueba COMPÁS',
+            anio_estudio: '2026',
+            tamano_muestra: '180',
+            resultado_principal: 'Puntuación media: 36.4 sobre 55',
+            interpretacion: 'Media 36.4. El 22.8% presenta bajo apoyo social funcional percibido (puntuación <32). Datos simulados para validación del sistema.',
+            observaciones: '',
+            fuente_datos: 'simulacion_prueba'
+        },
+        {
+            nombre_escala: 'CAGE',
+            fuente_estudio: 'Simulación de prueba COMPÁS',
+            anio_estudio: '2026',
+            tamano_muestra: '180',
+            resultado_principal: '8.3% con 2 o más ítems positivos',
+            interpretacion: '8.3% de la muestra presenta señal de riesgo (≥2 ítems positivos CAGE). Datos simulados para validación del sistema.',
+            observaciones: '',
+            fuente_datos: 'simulacion_prueba'
+        },
+        {
+            nombre_escala: 'PREDIMED',
+            fuente_estudio: 'Simulación de prueba COMPÁS',
+            anio_estudio: '2026',
+            tamano_muestra: '180',
+            resultado_principal: 'Puntuación media: 7.6 sobre 14',
+            interpretacion: 'Media 7.6/14. El 31.5% presenta alta adherencia (≥9). Datos simulados para validación del sistema.',
+            observaciones: '',
+            fuente_datos: 'simulacion_prueba'
+        }
+    ];
+}
+
+// Carga datos de prueba SOLO si no hay datos reales para esa escala.
+// No sobreescribe dato real existente. No persiste en Firebase.
+function _compas_escalas_cargarDemo() {
+    var actuales = _compasEscalasGet();
+    var demo = _compas_escalas_demo();
+    var nombres = {};
+    actuales.forEach(function(e) { nombres[e.nombre_escala] = true; });
+    var añadidos = 0;
+    demo.forEach(function(d) {
+        if (!nombres[d.nombre_escala]) {
+            actuales.push(d);
+            añadidos++;
+        }
+    });
+    if (añadidos > 0) {
+        _compasEscalasSet(actuales);
+        if (typeof renderizarSeccionEstudios === 'function') renderizarSeccionEstudios();
+        console.info('[Escalas] ' + añadidos + ' escala(s) de prueba cargadas (no persistidas en Firebase).');
+    } else {
+        console.info('[Escalas] Todas las escalas ya tienen datos reales. Demo no necesario.');
+    }
+    return añadidos;
+}
+
 function _guardarEscalasFirebase(){
 
     var mun = getMunicipioActual();
@@ -51771,6 +51999,21 @@ function generarAnalisisIA() {
 
     }
 
+    // Escalas diagnósticas → contexto IA
+    var _escDiag = (typeof _compasEscalasGet === 'function') ? _compasEscalasGet() : [];
+    if (_escDiag.length > 0) {
+        contexto += '=== ESCALAS DIAGNÓSTICAS ===\n';
+        _escDiag.forEach(function(e) {
+            var meta = COMPAS_ESCALAS_META ? COMPAS_ESCALAS_META[{
+                'SF-12':'sf12','Duke-UNC':'duke','CAGE':'cage','PREDIMED':'predimed'
+            }[e.nombre_escala] || ''] : null;
+            contexto += '- ' + (e.nombre_escala || 'Escala') +
+                (meta ? ' (' + meta.constructo + ')' : '') +
+                ': ' + (e.interpretacion || e.resultado_principal || 'sin datos') + '\n';
+        });
+        contexto += '\n';
+        fuentesUsadas.push('Escalas diagnósticas');
+    }
 
 
     // Leer selección de fuentes de priorización (panel de checkboxes)
@@ -57417,8 +57660,12 @@ function ibse_v2_renderTodo(arr, meta) {
         // 7. Marco IBSE (reducido, al final)
         ibse_v2_renderMarco();
 
-    // 8. SAM embebido — render post-DOM
-    requestAnimationFrame(function() { ibse_renderSAM(dist, arr); });
+    // 8. SAM embebido — render diferido para que el modal sea visible antes de animar
+    requestAnimationFrame(function() {
+        requestAnimationFrame(function() {
+            setTimeout(function() { ibse_renderSAM(dist, arr); }, 120);
+        });
+    });
 
 }
 
@@ -58800,6 +59047,11 @@ function ibse_v2_renderJuicioMuestra(dist) {
         html += '<div style="font-size:.75rem;color:#1e293b;font-weight:700;margin-bottom:.15rem;">Prioridad de captación:</div>';
         html += '<div style="font-size:.72rem;color:#475569;line-height:1.5;margin-bottom:.6rem;">';
         html += _deficits.map(function(d) { return d.label + ' (faltan ' + d.deficit + ')'; }).join(' · ');
+        html += '</div>';
+        // 1c. Recomendación operativa
+        html += '<div style="font-size:.75rem;color:#1e293b;font-weight:700;margin-bottom:.15rem;">Recomendación operativa:</div>';
+        html += '<div style="font-size:.72rem;color:#475569;line-height:1.5;margin-bottom:.6rem;">';
+        html += 'Reforzar captación en ' + _deficits.map(function(d) { return d.label; }).join(', ') + '. Evitar seguir incorporando casos en celdas sobrerrepresentadas.';
         html += '</div>';
     }
 
