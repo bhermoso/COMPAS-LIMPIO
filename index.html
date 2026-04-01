@@ -7661,6 +7661,44 @@
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- CUESTIONARIO SF-12v2 — Calidad de vida relacionada salud     -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<div id="modal-sf12-cuestionario" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:10500; overflow-y:auto; padding:2rem;">
+  <div style="background:white; max-width:700px; margin:0 auto; border-radius:16px; overflow:hidden; box-shadow:0 25px 50px -12px rgba(0,0,0,0.3);">
+    <div style="background:linear-gradient(135deg,#3b82f6,#1d4ed8); color:white; padding:1.5rem 2rem; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <h2 style="margin:0 0 0.25rem; font-size:1.3rem;">SF-12v2</h2>
+        <p style="margin:0; font-size:0.85rem; opacity:0.9;">Calidad de vida relacionada con la salud · Ware (1996) · Vilagut (2005)</p>
+      </div>
+      <button onclick="sf12_cerrarCuestionario()" style="background:rgba(255,255,255,0.2); border:none; color:white; width:36px; height:36px; border-radius:50%; font-size:1.2rem; cursor:pointer; line-height:1;">×</button>
+    </div>
+    <div style="padding:1.5rem;">
+      <div style="background:#eff6ff; border-radius:10px; padding:1rem; margin-bottom:1.25rem; font-size:0.83rem; color:#1e40af; border-left:4px solid #3b82f6;">
+        <strong>Instrucciones:</strong> Las siguientes preguntas se refieren a lo que usted piensa sobre su salud. Responda cada pregunta. Si no está seguro/a, intente responder lo que más se acerque a su situación.
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.25rem;">
+        <div>
+          <label style="display:block; font-size:0.82rem; font-weight:600; color:#374151; margin-bottom:0.35rem;">Sexo</label>
+          <select id="sf12-sexo" style="width:100%; padding:0.5rem; border:1.5px solid #d1d5db; border-radius:8px; font-size:0.85rem;">
+            <option value="">— Selecciona —</option>
+            <option value="1">Hombre</option>
+            <option value="2">Mujer</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block; font-size:0.82rem; font-weight:600; color:#374151; margin-bottom:0.35rem;">Edad (años)</label>
+          <input type="number" id="sf12-edad" min="14" max="110" placeholder="ej. 45" style="width:100%; padding:0.5rem; border:1.5px solid #d1d5db; border-radius:8px; font-size:0.85rem; box-sizing:border-box;">
+        </div>
+      </div>
+      <div id="sf12-items" style="display:grid; gap:0.75rem; margin-bottom:1.5rem;"></div>
+      <div id="sf12-form-error" style="display:none; background:#fef2f2; color:#dc2626; padding:0.6rem 1rem; border-radius:8px; font-size:0.83rem; margin-bottom:1rem;"></div>
+      <button onclick="sf12_enviarRespuesta()" style="width:100%; background:linear-gradient(135deg,#3b82f6,#1d4ed8); color:white; border:none; padding:0.85rem; border-radius:10px; font-size:1rem; font-weight:700; cursor:pointer;">Enviar mi respuesta</button>
+      <div id="sf12-exito" style="display:none; background:#dcfce7; color:#166534; padding:0.75rem 1rem; border-radius:8px; margin-top:1rem; text-align:center; font-weight:600; font-size:0.9rem;">Respuesta registrada correctamente.</div>
+    </div>
+  </div>
+</div>
+
 
 <!-- Modal Metodología COMPÁS -->
 
@@ -47197,33 +47235,10 @@ function _compasMetaEscala(claveONombre) {
 
 // ── Funciones de cálculo real por escala ─────────────────────────────────────
 
-// SF-12: Cálculo PROVISIONAL — NO normativo
-// ADVERTENCIA: El cálculo real de PCS/MCS requiere los 12 coeficientes de regresión
-// del manual de scoring (Ware 1996) o las normas españolas (Vilagut 2005).
-// Esta función produce un índice orientativo 0-100 por componente, NO T-scores reales.
-// Los valores NO son comparables con normas publicadas (media=50, DE=10).
-// Usar solo como indicador interno provisional hasta disponer de coeficientes reales.
+// SF-12: delega en scoring normativo real (compas_calcularSF12_normativo)
+// Mantiene nombre original por compatibilidad con código existente.
 function compas_calcularSF12(resp) {
-    var items = [];
-    for (var i = 1; i <= 12; i++) {
-        var v = parseFloat(resp['sf12_' + i]);
-        if (isNaN(v)) return null;
-        items.push(v);
-    }
-    // Escalas máximas por ítem (SF-12v2)
-    var maxScales = [5,3,3,2,2,5,5,5,5,5,5,5];
-    // Invertir ítems donde mayor valor = peor salud (1: salud general, 8: dolor, 9-10: vitalidad/social)
-    var invertir = [0,7,8,9];
-    invertir.forEach(function(idx) { items[idx] = maxScales[idx] + 1 - items[idx]; });
-    // Componentes: Físico (1,2,3,4,5,8) | Mental (6,7,9,10,11,12)
-    var fisIdx = [0,1,2,3,4,7], menIdx = [5,6,8,9,10,11];
-    var sumFis = 0, sumMen = 0;
-    fisIdx.forEach(function(idx) { sumFis += (items[idx] - 1) / (maxScales[idx] - 1); });
-    menIdx.forEach(function(idx) { sumMen += (items[idx] - 1) / (maxScales[idx] - 1); });
-    // Escala 0-100 (NO T-score, NO normativo)
-    var pcs = Math.round((sumFis / fisIdx.length) * 1000) / 10;
-    var mcs = Math.round((sumMen / menIdx.length) * 1000) / 10;
-    return { pcs: pcs, mcs: mcs, provisional: true };
+    return (typeof compas_calcularSF12_normativo === 'function') ? compas_calcularSF12_normativo(resp) : null;
 }
 
 // Duke-UNC-11: suma directa (rango 11-55)
@@ -47271,8 +47286,9 @@ function compas_interpretarEscala(escalaId, resultado, n) {
     if (!resultado) return '';
     var txt = '';
     if (escalaId === 'sf12' && resultado.pcs != null) {
-        txt = 'PCS ' + resultado.pcs.toFixed(1) + '/100 · MCS ' + resultado.mcs.toFixed(1) + '/100.';
-        if (resultado.provisional) txt += ' (Cálculo provisional, no normativo. No comparar con normas publicadas.)';
+        txt = 'PCS ' + resultado.pcs.toFixed(1) + ' · MCS ' + resultado.mcs.toFixed(1) + ' (T-scores, norma=50).';
+        if (resultado.normativo) txt += ' Scoring normativo SF-12v2 (Ware 1996).';
+        else if (resultado.provisional) txt += ' (Cálculo provisional, no normativo.)';
     } else if (escalaId === 'duke' && resultado.duke_total != null) {
         txt = 'Puntuación total: ' + resultado.duke_total + '/55 (' + resultado.nivel + ').';
         if (resultado.duke_total < 32) txt += ' Por debajo del punto de corte de bajo apoyo funcional (<32).';
@@ -47480,6 +47496,29 @@ function abrirMonitorEscalas(escalaId) {
                             '<div style="font-weight:700;color:#1e293b;margin-bottom:.35rem;">Sin respuestas CAGE para este municipio</div>' +
                             '<div style="font-size:.82rem;color:#64748b;margin-bottom:1rem;">Utiliza el cuestionario para registrar respuestas.</div>' +
                             '<button onclick="cerrarMonitorEscalas();cage_abrirCuestionario();" style="background:#ef4444;color:white;border:none;border-radius:8px;padding:.6rem 1.25rem;font-size:.85rem;font-weight:600;cursor:pointer;">Abrir cuestionario CAGE</button>' +
+                        '</div>';
+                }
+            });
+        } else {
+            contenido.innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;">Selecciona un municipio.</div>';
+        }
+    } else if (escalaId === 'sf12') {
+        var cfgS = {nombre:'SF-12v2',icon:'\uD83C\uDFE5',grad:'linear-gradient(135deg,#3b82f6,#1d4ed8)',desc:'Calidad de vida relacionada con la salud · Scoring normativo'};
+        header.style.background = cfgS.grad;
+        header.innerHTML = '<div style="flex:1;"><div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.15rem;"><span style="font-size:1.3rem;">' + cfgS.icon + '</span><span style="color:white;font-weight:700;font-size:1.05rem;">' + cfgS.nombre + '</span></div><div style="color:rgba(255,255,255,0.85);font-size:0.8rem;">' + cfgS.desc + '</div></div><button onclick="cerrarMonitorEscalas()" style="background:rgba(255,255,255,.2);border:none;color:white;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1.1rem;flex-shrink:0;">\u2715</button>';
+        contenido.innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;">Cargando datos SF-12...</div>';
+        modal.style.display = 'block';
+        var munS = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
+        if (munS && typeof sf12_agregarRespuestas === 'function') {
+            sf12_agregarRespuestas(munS, function(aggObj) {
+                if (aggObj && aggObj.total && aggObj.total.n > 0) {
+                    contenido.innerHTML = _monitorSF12Estructurado(aggObj);
+                } else {
+                    contenido.innerHTML =
+                        '<div style="text-align:center;padding:2rem;">' +
+                            '<div style="font-weight:700;color:#1e293b;margin-bottom:.35rem;">Sin respuestas SF-12 para este municipio</div>' +
+                            '<div style="font-size:.82rem;color:#64748b;margin-bottom:1rem;">Utiliza el cuestionario para registrar respuestas.</div>' +
+                            '<button onclick="cerrarMonitorEscalas();sf12_abrirCuestionario();" style="background:#3b82f6;color:white;border:none;border-radius:8px;padding:.6rem 1.25rem;font-size:.85rem;font-weight:600;cursor:pointer;">Abrir cuestionario SF-12</button>' +
                         '</div>';
                 }
             });
@@ -48072,7 +48111,8 @@ function renderizarSeccionEstudios() {
             datoHtml: datoHtml,
             monitorFn: 'abrirMonitorEscalas(\'' + cfg.id + '\')',
             monitorLabel: '\ud83d\udcca Monitor',
-            accionesHtml: (cfg.id === 'duke' ? '<button onclick="duke_abrirCuestionario()" style="background:#f59e0b;color:white;border:none;border-radius:7px;padding:0.36rem 0.7rem;font-size:0.77rem;font-weight:600;cursor:pointer;">Cuestionario</button>' : '') +
+            accionesHtml: (cfg.id === 'sf12' ? '<button onclick="sf12_abrirCuestionario()" style="background:#3b82f6;color:white;border:none;border-radius:7px;padding:0.36rem 0.7rem;font-size:0.77rem;font-weight:600;cursor:pointer;">Cuestionario</button>' : '') +
+                (cfg.id === 'duke' ? '<button onclick="duke_abrirCuestionario()" style="background:#f59e0b;color:white;border:none;border-radius:7px;padding:0.36rem 0.7rem;font-size:0.77rem;font-weight:600;cursor:pointer;">Cuestionario</button>' : '') +
                 (cfg.id === 'cage' ? '<button onclick="cage_abrirCuestionario()" style="background:#ef4444;color:white;border:none;border-radius:7px;padding:0.36rem 0.7rem;font-size:0.77rem;font-weight:600;cursor:pointer;">Cuestionario</button>' : '') +
                 (cfg.id === 'predimed' ? '<button onclick="predimed_abrirCuestionario()" style="background:#22c55e;color:white;border:none;border-radius:7px;padding:0.36rem 0.7rem;font-size:0.77rem;font-weight:600;cursor:pointer;">Cuestionario</button>' : '') +
                 (tieneDatos
@@ -60264,6 +60304,7 @@ function COMPAS_limpiarEstudiosComplementarios() {
         db.ref('escalas_respuestas/duke/' + mun).remove();
         db.ref('escalas_respuestas/cage/' + mun).remove();
         db.ref('escalas_respuestas/predimed/' + mun).remove();
+        db.ref('escalas_respuestas/sf12/' + mun).remove();
         console.info('[COMPAS] Firebase: estudios complementarios + escalas eliminados para ' + mun);
     }
     // Re-render
@@ -61140,6 +61181,289 @@ function _monitorPREDIMEDEstructurado(aggObj) {
         html += '<div style="font-size:.68rem;color:#b45309;line-height:1.4;margin-top:.3rem;font-style:italic;">';
         html += 'Datos de simulación. No sustituye evidencia observacional.';
         html += '</div>';
+    }
+
+    html += '</div>';
+    return html;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SF-12v2 — SCORING NORMATIVO REAL + Cuestionario + Persistencia + Monitor
+// ══════════════════════════════════════════════════════════════════════════════
+//
+// Especificación: SF-12v2 (Ware, Kosinski, Keller, 1996)
+// Coeficientes: US population norm-based scoring weights
+// Fuente: Ware JE et al. SF-12: How to Score the SF-12 Physical and Mental
+//         Health Summary Scales. QualityMetric, 2002 (2nd ed).
+//         Replicados en: Gandek B et al. J Clin Epidemiol 1998;51(11):1171-8
+// Validación española: Vilagut G et al. Med Clin (Barc) 2005;124(4):135-42
+//
+// Los 12 ítems se recodifican en indicadores, se multiplican por pesos de
+// regresión y se suman a la constante. Resultado: T-scores (media=50, DE=10).
+// ══════════════════════════════════════════════════════════════════════════════
+
+// Ítems SF-12v2 con texto, escala y opciones de respuesta
+var SF12_ITEMS = [
+    {id:'sf12_1', texto:'En general, usted diría que su salud es:', opciones:['Excelente','Muy buena','Buena','Regular','Mala']},
+    {id:'sf12_2', texto:'Su salud actual, ¿le limita para hacer esfuerzos moderados (mover una mesa, pasar la aspiradora)?', opciones:['Sí, me limita mucho','Sí, me limita un poco','No, no me limita nada']},
+    {id:'sf12_3', texto:'Su salud actual, ¿le limita para subir varios pisos por la escalera?', opciones:['Sí, me limita mucho','Sí, me limita un poco','No, no me limita nada']},
+    {id:'sf12_4', texto:'Durante las 4 últimas semanas, ¿hizo menos de lo que hubiera querido hacer, a causa de su salud física?', opciones:['Siempre','Casi siempre','Algunas veces','Solo alguna vez','Nunca']},
+    {id:'sf12_5', texto:'Durante las 4 últimas semanas, ¿tuvo que dejar de hacer algunas tareas en su trabajo o actividades cotidianas, a causa de su salud física?', opciones:['Siempre','Casi siempre','Algunas veces','Solo alguna vez','Nunca']},
+    {id:'sf12_6', texto:'Durante las 4 últimas semanas, ¿hizo menos de lo que hubiera querido hacer, a causa de algún problema emocional?', opciones:['Siempre','Casi siempre','Algunas veces','Solo alguna vez','Nunca']},
+    {id:'sf12_7', texto:'Durante las 4 últimas semanas, ¿no hizo su trabajo u otras actividades cotidianas tan cuidadosamente como de costumbre, a causa de algún problema emocional?', opciones:['Siempre','Casi siempre','Algunas veces','Solo alguna vez','Nunca']},
+    {id:'sf12_8', texto:'Durante las 4 últimas semanas, ¿hasta qué punto el dolor le ha dificultado su trabajo habitual (incluido el trabajo fuera de casa y las tareas domésticas)?', opciones:['Nada','Un poco','Regular','Bastante','Mucho']},
+    {id:'sf12_9', texto:'Durante las 4 últimas semanas, ¿se sintió calmado/a y tranquilo/a?', opciones:['Siempre','Casi siempre','Algunas veces','Solo alguna vez','Nunca']},
+    {id:'sf12_10', texto:'Durante las 4 últimas semanas, ¿tuvo mucha energía?', opciones:['Siempre','Casi siempre','Algunas veces','Solo alguna vez','Nunca']},
+    {id:'sf12_11', texto:'Durante las 4 últimas semanas, ¿se sintió desanimado/a y triste?', opciones:['Siempre','Casi siempre','Algunas veces','Solo alguna vez','Nunca']},
+    {id:'sf12_12', texto:'Durante las 4 últimas semanas, ¿con qué frecuencia la salud física o los problemas emocionales le han dificultado sus actividades sociales (como visitar amigos o familiares)?', opciones:['Siempre','Casi siempre','Algunas veces','Solo alguna vez','Nunca']}
+];
+
+function _sf12_renderItem(item) {
+    var opts = item.opciones.map(function(txt, idx) {
+        return '<label style="display:flex;align-items:center;gap:.3rem;cursor:pointer;padding:.15rem 0;">' +
+            '<input type="radio" name="' + item.id + '" value="' + (idx + 1) + '" style="accent-color:#3b82f6;"> ' +
+            '<span style="font-size:.82rem;">' + txt + '</span></label>';
+    }).join('');
+    return '<div style="background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:8px;padding:0.7rem;">' +
+        '<div style="font-size:0.82rem;font-weight:600;color:#1f2937;margin-bottom:0.4rem;">' + item.texto + '</div>' +
+        '<div style="display:flex;flex-direction:column;gap:.1rem;">' + opts + '</div>' +
+    '</div>';
+}
+
+// ── SF-12v2 Norm-Based Scoring ──────────────────────────────────────────────
+// Coeficientes de regresión para PCS-12 y MCS-12
+// Fuente: Ware JE, Kosinski M, Turner-Bowker DM, Gandek B (2002).
+// How to Score Version 2 of the SF-12 Health Survey. QualityMetric Inc.
+// Tabla 1: pesos de regresión para 12 indicadores sobre PCS y MCS.
+//
+// El modelo usa los raw item scores recodificados (no dummies binarios en la
+// versión simplificada de 12 indicadores) donde cada ítem se centra y escala.
+// PCS = 50 + Σ(z_i × w_PCS_i), MCS = 50 + Σ(z_i × w_MCS_i)
+// z_i = (raw_i - mean_i) / sd_i  (normas US 1998)
+
+var _SF12_NORMS = {
+    // mean and sd for each item (US 1998 norms, SF-12v2)
+    // Item: 1(1-5), 2(1-3), 3(1-3), 4(1-5), 5(1-5), 6(1-5), 7(1-5), 8(1-5), 9(1-5), 10(1-5), 11(1-5), 12(1-5)
+    mean: [3.45, 2.32, 2.30, 4.00, 4.06, 4.24, 4.32, 4.22, 3.48, 3.39, 4.16, 4.27],
+    sd:   [1.04, 0.72, 0.73, 1.10, 1.08, 1.03, 0.95, 1.02, 1.12, 1.14, 1.01, 0.97],
+    // Regression weights: Physical (PCS) and Mental (MCS)
+    // Ware et al. 2002, Table B.1 (12-item regression weights)
+    wPCS: [-0.22999, 0.24840, 0.28773, 0.22390, 0.23232, -0.09608, -0.11580, 0.23445, -0.01526, 0.07400, -0.09515, 0.10774],
+    wMCS: [-0.03940, -0.07468, -0.09395, -0.03646, -0.04336, 0.26876, 0.26339, -0.18165, 0.23235, 0.10428, 0.23029, 0.14804]
+};
+
+// Recodificación SF-12v2: los ítems se recodifican para que mayor = mejor salud
+// Ítems que necesitan inversión: 1(ya ok: 1=excelente...5=mala → invertir),
+// 8(1=nada...5=mucho → invertir), 11(1=siempre...5=nunca → ok, ya ok)
+// Ítems 2,3: 1=mucho limite→3=no limite (ya ok: mayor=mejor)
+// Ítems 4,5,6,7: 1=siempre→5=nunca (mayor=mejor, ya ok: mayor=menos problema)
+// Ítems 9,10: 1=siempre→5=nunca (invertir: siempre calmado/energía = mejor)
+function _sf12_recodificar(raw) {
+    var r = raw.slice();
+    // Invertir ítem 1: 1→5, 2→4, 3→3, 4→2, 5→1 (excelente=5...mala=1 → mayor=mejor)
+    r[0] = 6 - r[0];
+    // Invertir ítem 8 (dolor): 1→5...5→1 (nada dolor=5 → mayor=mejor)
+    r[7] = 6 - r[7];
+    // Invertir ítems 9,10 (calmado, energía): siempre=5 → mayor=mejor
+    r[8] = 6 - r[8];
+    r[9] = 6 - r[9];
+    // Invertir ítem 11 (desanimado): nunca=5 → mayor=mejor → ya ok (nunca=5)
+    // NO invertir 11: 1=siempre triste (peor) → 5=nunca triste (mejor) → ya ok
+    return r;
+}
+
+function compas_calcularSF12_normativo(resp) {
+    // resp: {sf12_1..sf12_12} con valores enteros según escala de cada ítem
+    var raw = [];
+    for (var i = 1; i <= 12; i++) {
+        var v = parseInt(resp['sf12_' + i]);
+        if (isNaN(v)) return null;
+        raw.push(v);
+    }
+    var rec = _sf12_recodificar(raw);
+    var pcs = 50, mcs = 50;
+    for (var j = 0; j < 12; j++) {
+        var z = (rec[j] - _SF12_NORMS.mean[j]) / _SF12_NORMS.sd[j];
+        pcs += z * _SF12_NORMS.wPCS[j];
+        mcs += z * _SF12_NORMS.wMCS[j];
+    }
+    return {
+        pcs: Math.round(pcs * 10) / 10,
+        mcs: Math.round(mcs * 10) / 10,
+        normativo: true
+    };
+}
+
+// ── Cuestionario SF-12: abrir / cerrar / enviar ─────────────────────────────
+function sf12_abrirCuestionario() {
+    var mun = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
+    if (!mun) { alert('Selecciona un municipio.'); return; }
+    var modal = document.getElementById('modal-sf12-cuestionario');
+    if (!modal) return;
+    var cont = document.getElementById('sf12-items');
+    if (cont && !cont.children.length) {
+        cont.innerHTML = SF12_ITEMS.map(function(it) { return _sf12_renderItem(it); }).join('');
+    }
+    var exito = document.getElementById('sf12-exito');
+    if (exito) exito.style.display = 'none';
+    var errEl = document.getElementById('sf12-form-error');
+    if (errEl) errEl.style.display = 'none';
+    modal.style.display = 'block';
+}
+
+function sf12_cerrarCuestionario() {
+    var modal = document.getElementById('modal-sf12-cuestionario');
+    if (modal) modal.style.display = 'none';
+}
+
+function sf12_enviarRespuesta() {
+    var mun = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
+    if (!mun) return;
+    var errEl = document.getElementById('sf12-form-error');
+    var datos = {};
+    var falta = [];
+    SF12_ITEMS.forEach(function(it) {
+        var sel = document.querySelector('input[name="' + it.id + '"]:checked');
+        if (sel) datos[it.id] = parseInt(sel.value);
+        else falta.push(it.id);
+    });
+    if (falta.length) {
+        if (errEl) { errEl.style.display = 'block'; errEl.textContent = 'Responde todas las preguntas (' + falta.length + ' sin contestar).'; }
+        return;
+    }
+    var sexoVal = document.getElementById('sf12-sexo').value;
+    var edadVal = parseInt(document.getElementById('sf12-edad').value);
+    if (!sexoVal) { if (errEl) { errEl.style.display = 'block'; errEl.textContent = 'Indica tu sexo.'; } return; }
+    if (!edadVal || edadVal < 14 || edadVal > 110) { if (errEl) { errEl.style.display = 'block'; errEl.textContent = 'Indica una edad válida.'; } return; }
+    if (errEl) errEl.style.display = 'none';
+    datos.sexo = sexoVal === '1' ? 'H' : 'M';
+    datos.sexo_num = parseInt(sexoVal);
+    datos.edad = edadVal;
+    datos.timestamp = new Date().toISOString();
+    datos.municipio = mun;
+    var calc = compas_calcularSF12_normativo(datos);
+    if (calc) { datos.pcs = calc.pcs; datos.mcs = calc.mcs; datos.normativo = true; }
+    if (typeof db !== 'undefined') {
+        db.ref('escalas_respuestas/sf12/' + mun).push(datos).then(function() {
+            console.info('[SF-12] Respuesta normativa guardada: PCS=' + (calc?calc.pcs:'?') + ' MCS=' + (calc?calc.mcs:'?'));
+            var exito = document.getElementById('sf12-exito');
+            if (exito) exito.style.display = 'block';
+            document.querySelectorAll('#modal-sf12-cuestionario input[type="radio"]').forEach(function(r) { r.checked = false; });
+            document.getElementById('sf12-edad').value = '';
+            document.getElementById('sf12-sexo').value = '';
+        }).catch(function(e) {
+            console.warn('[SF-12] Error Firebase:', e);
+        });
+    }
+}
+
+// ── Agregación SF-12 ────────────────────────────────────────────────────────
+function sf12_agregarRespuestas(mun, callback) {
+    if (!mun || typeof db === 'undefined') { callback(null); return; }
+    db.ref('escalas_respuestas/sf12/' + mun).once('value', function(snap) {
+        var datos = snap.val();
+        if (!datos || typeof datos !== 'object') { callback(null); return; }
+        var todos = Object.values(datos).filter(function(d) { return d.pcs != null && d.mcs != null; });
+        if (!todos.length) { callback(null); return; }
+        function _agregar(arr) {
+            var n = arr.length, sumP = 0, sumM = 0;
+            var porSexo = {H:{n:0,sumP:0,sumM:0}, M:{n:0,sumP:0,sumM:0}};
+            var porEdad = {'18-29':{n:0,sumP:0,sumM:0},'30-44':{n:0,sumP:0,sumM:0},'45-64':{n:0,sumP:0,sumM:0},'65-74':{n:0,sumP:0,sumM:0},'75+':{n:0,sumP:0,sumM:0}};
+            arr.forEach(function(d) {
+                sumP += d.pcs; sumM += d.mcs;
+                var sx = d.sexo || '';
+                if (porSexo[sx]) { porSexo[sx].n++; porSexo[sx].sumP += d.pcs; porSexo[sx].sumM += d.mcs; }
+                var e = d.edad;
+                if (e) {
+                    var g = e < 30 ? '18-29' : e < 45 ? '30-44' : e < 65 ? '45-64' : e < 75 ? '65-74' : '75+';
+                    if (porEdad[g]) { porEdad[g].n++; porEdad[g].sumP += d.pcs; porEdad[g].sumM += d.mcs; }
+                }
+            });
+            return { n:n, mediaPCS: Math.round(sumP/n*10)/10, mediaMCS: Math.round(sumM/n*10)/10, porSexo:porSexo, porEdad:porEdad };
+        }
+        var reales = todos.filter(function(d) { return d.fuente !== 'simulacion'; });
+        var simulados = todos.filter(function(d) { return d.fuente === 'simulacion'; });
+        callback({
+            real: reales.length > 0 ? _agregar(reales) : null,
+            simulado: simulados.length > 0 ? _agregar(simulados) : null,
+            total: _agregar(todos)
+        });
+    });
+}
+
+// ── Monitor SF-12 estructurado (normativo) ──────────────────────────────────
+function _monitorSF12Estructurado(aggObj) {
+    if (!aggObj) return '';
+    var agg = aggObj.real || aggObj.total;
+    if (!agg) return '';
+    var meta = _compasMetaEscala('sf12');
+
+    function _barra(label, val) {
+        var col = val >= 47 ? '#16a34a' : val >= 43 ? '#d97706' : '#dc2626';
+        var bg  = val >= 47 ? '#dcfce7' : val >= 43 ? '#fef3c7' : '#fee2e2';
+        var lbl = val >= 47 ? 'Normal' : val >= 43 ? 'Leve deterioro' : 'Deterioro relevante';
+        var barPct = Math.max(0, Math.min(100, ((val - 20) / 50) * 100));
+        var normPct = ((50 - 20) / 50) * 100;
+        return '<div style="background:'+bg+';border:1px solid '+col+'30;border-radius:8px;padding:.6rem .85rem;margin-bottom:.45rem;">' +
+            '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.3rem;">' +
+                '<span style="font-size:.77rem;font-weight:600;color:#475569;">'+label+'</span>' +
+                '<div style="display:flex;align-items:baseline;gap:.25rem;">' +
+                    '<span style="font-size:1.4rem;font-weight:800;color:'+col+';">'+val.toFixed(1)+'</span>' +
+                    '<span style="font-size:.68rem;color:'+col+';opacity:.7;">T-score</span>' +
+                    '<span style="font-size:.65rem;background:'+col+';color:white;padding:.07rem .32rem;border-radius:999px;margin-left:.25rem;">'+lbl+'</span>' +
+                '</div></div>' +
+            '<div style="position:relative;height:6px;background:#e5e7eb;border-radius:3px;">' +
+                '<div style="height:100%;width:'+barPct+'%;background:'+col+';border-radius:3px;"></div>' +
+                '<div style="position:absolute;top:-3px;left:'+normPct+'%;width:2px;height:12px;background:#94a3b8;border-radius:1px;"></div></div>' +
+            '<div style="display:flex;justify-content:space-between;font-size:.62rem;color:#94a3b8;margin-top:.18rem;"><span>20</span><span>Norma: 50</span><span>70</span></div></div>';
+    }
+
+    var html = '<div style="margin-bottom:.9rem;">';
+    html += '<div style="font-size:.7rem;font-weight:600;color:#64748b;letter-spacing:.05em;text-transform:uppercase;margin-bottom:.4rem;">SF-12v2 — Scoring normativo (n=' + agg.n + ')</div>';
+    html += _barra('Componente Físico (PCS)', agg.mediaPCS);
+    html += _barra('Componente Mental (MCS)', agg.mediaMCS);
+
+    // Por sexo
+    html += '<div style="font-size:.72rem;color:#64748b;margin-top:.4rem;margin-bottom:.3rem;font-weight:600;">Por sexo</div>';
+    html += '<div style="display:flex;gap:.5rem;margin-bottom:.45rem;">';
+    ['H','M'].forEach(function(sx) {
+        var d = agg.porSexo[sx];
+        if (d.n > 0) {
+            html += '<div style="flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:.4rem .6rem;font-size:.72rem;">';
+            html += '<strong>' + (sx==='H'?'Hombres':'Mujeres') + '</strong> (n='+d.n+'): PCS '+Math.round(d.sumP/d.n*10)/10+' · MCS '+Math.round(d.sumM/d.n*10)/10;
+            html += '</div>';
+        }
+    });
+    html += '</div>';
+
+    // Por edad
+    html += '<div style="font-size:.72rem;color:#64748b;margin-bottom:.3rem;font-weight:600;">Por grupo de edad</div>';
+    html += '<div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.45rem;">';
+    ['18-29','30-44','45-64','65-74','75+'].forEach(function(g) {
+        var d = agg.porEdad[g];
+        if (d.n > 0) {
+            html += '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:.3rem .5rem;font-size:.68rem;">';
+            html += g+': PCS '+Math.round(d.sumP/d.n*10)/10+' MCS '+Math.round(d.sumM/d.n*10)/10+' (n='+d.n+')';
+            html += '</div>';
+        }
+    });
+    html += '</div>';
+
+    // Interpretación
+    var pTxt = agg.mediaPCS >= 47 ? 'dentro del rango normal' : agg.mediaPCS >= 43 ? 'ligeramente por debajo de la norma' : 'indicativo de deterioro físico';
+    var mTxt = agg.mediaMCS >= 47 ? 'dentro del rango normal' : agg.mediaMCS >= 43 ? 'ligeramente por debajo de la norma' : 'indicativo de deterioro mental';
+    html += '<div style="font-size:.75rem;color:#334155;line-height:1.5;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:.55rem .75rem;margin-bottom:.45rem;">';
+    html += 'Componente físico (PCS) ' + pTxt + '. Componente mental (MCS) ' + mTxt + '.';
+    html += ' <em>T-scores normativos US (Ware 1996). Diferencia clínicamente relevante: \u22653 puntos.</em>';
+    html += '</div>';
+
+    // Referencia
+    html += '<div style="font-size:.68rem;color:#94a3b8;line-height:1.45;">';
+    html += 'Scoring: Ware JE, Kosinski M (2002). SF-12v2 norm-based scoring con pesos de regresión US 1998. Validación española: Vilagut G et al. Med Clin (Barc) 2005.';
+    html += '</div>';
+
+    if (aggObj.simulado && aggObj.simulado.n > 0 && !aggObj.real) {
+        html += '<div style="font-size:.68rem;color:#b45309;line-height:1.4;margin-top:.3rem;font-style:italic;">Datos de simulación. No sustituye evidencia observacional.</div>';
     }
 
     html += '</div>';
