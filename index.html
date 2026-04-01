@@ -7623,6 +7623,44 @@
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- CUESTIONARIO PREDIMED-14 — Adherencia a dieta mediterránea   -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<div id="modal-predimed-cuestionario" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:10500; overflow-y:auto; padding:2rem;">
+  <div style="background:white; max-width:700px; margin:0 auto; border-radius:16px; overflow:hidden; box-shadow:0 25px 50px -12px rgba(0,0,0,0.3);">
+    <div style="background:linear-gradient(135deg,#22c55e,#15803d); color:white; padding:1.5rem 2rem; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <h2 style="margin:0 0 0.25rem; font-size:1.3rem;">PREDIMED-14</h2>
+        <p style="margin:0; font-size:0.85rem; opacity:0.9;">Adherencia a dieta mediterránea · Martínez-González (2012)</p>
+      </div>
+      <button onclick="predimed_cerrarCuestionario()" style="background:rgba(255,255,255,0.2); border:none; color:white; width:36px; height:36px; border-radius:50%; font-size:1.2rem; cursor:pointer; line-height:1;">×</button>
+    </div>
+    <div style="padding:1.5rem;">
+      <div style="background:#f0fdf4; border-radius:10px; padding:1rem; margin-bottom:1.25rem; font-size:0.83rem; color:#166534; border-left:4px solid #22c55e;">
+        <strong>Instrucciones:</strong> Responde Sí o No a cada pregunta sobre tus hábitos alimentarios habituales. Tus respuestas son anónimas.
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.25rem;">
+        <div>
+          <label style="display:block; font-size:0.82rem; font-weight:600; color:#374151; margin-bottom:0.35rem;">Sexo</label>
+          <select id="predimed-sexo" style="width:100%; padding:0.5rem; border:1.5px solid #d1d5db; border-radius:8px; font-size:0.85rem;">
+            <option value="">— Selecciona —</option>
+            <option value="1">Hombre</option>
+            <option value="2">Mujer</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block; font-size:0.82rem; font-weight:600; color:#374151; margin-bottom:0.35rem;">Edad (años)</label>
+          <input type="number" id="predimed-edad" min="14" max="110" placeholder="ej. 45" style="width:100%; padding:0.5rem; border:1.5px solid #d1d5db; border-radius:8px; font-size:0.85rem; box-sizing:border-box;">
+        </div>
+      </div>
+      <div id="predimed-items" style="display:grid; gap:0.65rem; margin-bottom:1.5rem;"></div>
+      <div id="predimed-form-error" style="display:none; background:#fef2f2; color:#dc2626; padding:0.6rem 1rem; border-radius:8px; font-size:0.83rem; margin-bottom:1rem;"></div>
+      <button onclick="predimed_enviarRespuesta()" style="width:100%; background:linear-gradient(135deg,#22c55e,#15803d); color:white; border:none; padding:0.85rem; border-radius:10px; font-size:1rem; font-weight:700; cursor:pointer;">Enviar mi respuesta</button>
+      <div id="predimed-exito" style="display:none; background:#dcfce7; color:#166534; padding:0.75rem 1rem; border-radius:8px; margin-top:1rem; text-align:center; font-weight:600; font-size:0.9rem;">Respuesta registrada correctamente.</div>
+    </div>
+  </div>
+</div>
+
 
 <!-- Modal Metodología COMPÁS -->
 
@@ -47448,6 +47486,29 @@ function abrirMonitorEscalas(escalaId) {
         } else {
             contenido.innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;">Selecciona un municipio.</div>';
         }
+    } else if (escalaId === 'predimed') {
+        var cfgP = {nombre:'PREDIMED',icon:'\uD83E\uDD57',grad:'linear-gradient(135deg,#22c55e,#15803d)',desc:'Adherencia a dieta mediterránea'};
+        header.style.background = cfgP.grad;
+        header.innerHTML = '<div style="flex:1;"><div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.15rem;"><span style="font-size:1.3rem;">' + cfgP.icon + '</span><span style="color:white;font-weight:700;font-size:1.05rem;">' + cfgP.nombre + '</span></div><div style="color:rgba(255,255,255,0.85);font-size:0.8rem;">' + cfgP.desc + '</div></div><button onclick="cerrarMonitorEscalas()" style="background:rgba(255,255,255,.2);border:none;color:white;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1.1rem;flex-shrink:0;">\u2715</button>';
+        contenido.innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;">Cargando datos PREDIMED...</div>';
+        modal.style.display = 'block';
+        var munP = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
+        if (munP && typeof predimed_agregarRespuestas === 'function') {
+            predimed_agregarRespuestas(munP, function(aggObj) {
+                if (aggObj && aggObj.total && aggObj.total.n > 0) {
+                    contenido.innerHTML = _monitorPREDIMEDEstructurado(aggObj);
+                } else {
+                    contenido.innerHTML =
+                        '<div style="text-align:center;padding:2rem;">' +
+                            '<div style="font-weight:700;color:#1e293b;margin-bottom:.35rem;">Sin respuestas PREDIMED para este municipio</div>' +
+                            '<div style="font-size:.82rem;color:#64748b;margin-bottom:1rem;">Utiliza el cuestionario para registrar respuestas.</div>' +
+                            '<button onclick="cerrarMonitorEscalas();predimed_abrirCuestionario();" style="background:#22c55e;color:white;border:none;border-radius:8px;padding:.6rem 1.25rem;font-size:.85rem;font-weight:600;cursor:pointer;">Abrir cuestionario PREDIMED</button>' +
+                        '</div>';
+                }
+            });
+        } else {
+            contenido.innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;">Selecciona un municipio.</div>';
+        }
     } else {
         _renderMonitorEscalasContenido(escalaId, datos);
         modal.style.display = 'block';
@@ -48013,6 +48074,7 @@ function renderizarSeccionEstudios() {
             monitorLabel: '\ud83d\udcca Monitor',
             accionesHtml: (cfg.id === 'duke' ? '<button onclick="duke_abrirCuestionario()" style="background:#f59e0b;color:white;border:none;border-radius:7px;padding:0.36rem 0.7rem;font-size:0.77rem;font-weight:600;cursor:pointer;">Cuestionario</button>' : '') +
                 (cfg.id === 'cage' ? '<button onclick="cage_abrirCuestionario()" style="background:#ef4444;color:white;border:none;border-radius:7px;padding:0.36rem 0.7rem;font-size:0.77rem;font-weight:600;cursor:pointer;">Cuestionario</button>' : '') +
+                (cfg.id === 'predimed' ? '<button onclick="predimed_abrirCuestionario()" style="background:#22c55e;color:white;border:none;border-radius:7px;padding:0.36rem 0.7rem;font-size:0.77rem;font-weight:600;cursor:pointer;">Cuestionario</button>' : '') +
                 (tieneDatos
                 ? '<button onclick="abrirModalEscalasDiagnosticas(\'' + cfg.id + '\')" style="background:white;border:1px solid #e2e8f0;color:#475569;border-radius:7px;padding:0.36rem 0.7rem;font-size:0.77rem;font-weight:600;cursor:pointer;">\u270f\ufe0f Editar</button>'
                 : ''),
@@ -60201,6 +60263,7 @@ function COMPAS_limpiarEstudiosComplementarios() {
         db.ref('ibse_respuestas/' + mun).remove();
         db.ref('escalas_respuestas/duke/' + mun).remove();
         db.ref('escalas_respuestas/cage/' + mun).remove();
+        db.ref('escalas_respuestas/predimed/' + mun).remove();
         console.info('[COMPAS] Firebase: estudios complementarios + escalas eliminados para ' + mun);
     }
     // Re-render
@@ -60836,6 +60899,243 @@ function _monitorCAGEEstructurado(aggObj) {
     html += '</div>';
 
     // Simulación
+    if (aggObj.simulado && aggObj.simulado.n > 0 && !aggObj.real) {
+        html += '<div style="font-size:.68rem;color:#b45309;line-height:1.4;margin-top:.3rem;font-style:italic;">';
+        html += 'Datos de simulación. No sustituye evidencia observacional.';
+        html += '</div>';
+    }
+
+    html += '</div>';
+    return html;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CUESTIONARIO PREDIMED-14 — Captura + cálculo + persistencia + agregación + monitor
+// ══════════════════════════════════════════════════════════════════════════════
+
+var PREDIMED_ITEMS = [
+    {id:'pred_1',  texto:'¿Usa aceite de oliva como principal grasa para cocinar?'},
+    {id:'pred_2',  texto:'¿Consume 2 o más cucharadas de aceite de oliva al día?'},
+    {id:'pred_3',  texto:'¿Come 2 o más raciones de verdura u hortalizas al día?'},
+    {id:'pred_4',  texto:'¿Come 3 o más piezas de fruta al día?'},
+    {id:'pred_5',  texto:'¿Come menos de 1 ración de carne roja o embutidos al día?'},
+    {id:'pred_6',  texto:'¿Come menos de 1 ración de mantequilla o margarina al día?'},
+    {id:'pred_7',  texto:'¿Bebe menos de 1 bebida azucarada al día?'},
+    {id:'pred_8',  texto:'¿Bebe 7 o más vasos de vino a la semana?'},
+    {id:'pred_9',  texto:'¿Come 3 o más raciones de legumbres a la semana?'},
+    {id:'pred_10', texto:'¿Come 3 o más raciones de pescado o marisco a la semana?'},
+    {id:'pred_11', texto:'¿Come menos de 3 veces por semana bollería comercial?'},
+    {id:'pred_12', texto:'¿Come frutos secos 3 o más veces por semana?'},
+    {id:'pred_13', texto:'¿Consume preferentemente pollo, pavo o conejo en vez de ternera, cerdo o salchichas?'},
+    {id:'pred_14', texto:'¿Come 2 o más veces por semana sofrito (tomate, cebolla, ajo con aceite de oliva)?'}
+];
+
+function _predimed_renderItem(item) {
+    return '<div style="background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:8px;padding:0.6rem 0.7rem;">' +
+        '<div style="font-size:0.82rem;font-weight:600;color:#1f2937;margin-bottom:0.4rem;">' + item.texto + '</div>' +
+        '<div style="display:flex;gap:1rem;">' +
+            '<label style="display:flex;align-items:center;gap:.3rem;cursor:pointer;"><input type="radio" name="' + item.id + '" value="1" style="accent-color:#22c55e;"> <span style="font-size:.82rem;">Sí</span></label>' +
+            '<label style="display:flex;align-items:center;gap:.3rem;cursor:pointer;"><input type="radio" name="' + item.id + '" value="0" style="accent-color:#22c55e;"> <span style="font-size:.82rem;">No</span></label>' +
+        '</div>' +
+    '</div>';
+}
+
+function predimed_abrirCuestionario() {
+    var mun = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
+    if (!mun) { alert('Selecciona un municipio antes de abrir el cuestionario.'); return; }
+    var modal = document.getElementById('modal-predimed-cuestionario');
+    if (!modal) return;
+    var cont = document.getElementById('predimed-items');
+    if (cont && !cont.children.length) {
+        cont.innerHTML = PREDIMED_ITEMS.map(function(it) { return _predimed_renderItem(it); }).join('');
+    }
+    var exito = document.getElementById('predimed-exito');
+    if (exito) exito.style.display = 'none';
+    var errEl = document.getElementById('predimed-form-error');
+    if (errEl) errEl.style.display = 'none';
+    modal.style.display = 'block';
+}
+
+function predimed_cerrarCuestionario() {
+    var modal = document.getElementById('modal-predimed-cuestionario');
+    if (modal) modal.style.display = 'none';
+}
+
+function predimed_enviarRespuesta() {
+    var mun = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
+    if (!mun) return;
+    var errEl = document.getElementById('predimed-form-error');
+    var datos = {};
+    var falta = [];
+    PREDIMED_ITEMS.forEach(function(it) {
+        var sel = document.querySelector('input[name="' + it.id + '"]:checked');
+        if (sel) datos[it.id] = parseInt(sel.value);
+        else falta.push(it.id);
+    });
+    if (falta.length) {
+        if (errEl) { errEl.style.display = 'block'; errEl.textContent = 'Por favor responde todas las preguntas (' + falta.length + ' sin contestar).'; }
+        return;
+    }
+    var sexoVal = document.getElementById('predimed-sexo').value;
+    var edadVal = parseInt(document.getElementById('predimed-edad').value);
+    if (!sexoVal) {
+        if (errEl) { errEl.style.display = 'block'; errEl.textContent = 'Indica tu sexo.'; }
+        return;
+    }
+    if (!edadVal || edadVal < 14 || edadVal > 110) {
+        if (errEl) { errEl.style.display = 'block'; errEl.textContent = 'Indica una edad válida (14-110).'; }
+        return;
+    }
+    if (errEl) errEl.style.display = 'none';
+    datos.sexo = sexoVal === '1' ? 'H' : 'M';
+    datos.sexo_num = parseInt(sexoVal);
+    datos.edad = edadVal;
+    datos.timestamp = new Date().toISOString();
+    datos.municipio = mun;
+    var calc = compas_calcularPREDIMED(datos);
+    if (calc) {
+        datos.pred_total = calc.pred_total;
+        datos.nivel = calc.nivel;
+    }
+    datos.interpretacion = compas_interpretarEscala('predimed', calc, null);
+    if (typeof db !== 'undefined') {
+        db.ref('escalas_respuestas/predimed/' + mun).push(datos).then(function() {
+            console.info('[PREDIMED] Respuesta guardada para ' + mun + ' (total=' + (calc ? calc.pred_total : '?') + ')');
+            var exito = document.getElementById('predimed-exito');
+            if (exito) exito.style.display = 'block';
+            document.querySelectorAll('#modal-predimed-cuestionario input[type="radio"]').forEach(function(r) { r.checked = false; });
+            document.getElementById('predimed-edad').value = '';
+            document.getElementById('predimed-sexo').value = '';
+        }).catch(function(e) {
+            console.warn('[PREDIMED] Error Firebase:', e);
+            if (errEl) { errEl.style.display = 'block'; errEl.textContent = 'Error al guardar.'; }
+        });
+    }
+}
+
+// ── Agregación PREDIMED ───────────────────────────────────────────────────
+function predimed_agregarRespuestas(mun, callback) {
+    if (!mun || typeof db === 'undefined') { callback(null); return; }
+    db.ref('escalas_respuestas/predimed/' + mun).once('value', function(snap) {
+        var datos = snap.val();
+        if (!datos || typeof datos !== 'object') { callback(null); return; }
+        var todos = Object.values(datos).filter(function(d) { return d.pred_total != null; });
+        if (!todos.length) { callback(null); return; }
+
+        function _agregar(arr) {
+            var n = arr.length, sumT = 0, nBaja = 0, nMedia = 0, nAlta = 0;
+            var porSexo = {H:{n:0,sum:0}, M:{n:0,sum:0}};
+            var porEdad = {'18-29':{n:0,sum:0},'30-44':{n:0,sum:0},'45-64':{n:0,sum:0},'65-74':{n:0,sum:0},'75+':{n:0,sum:0}};
+            arr.forEach(function(d) {
+                var t = d.pred_total;
+                sumT += t;
+                if (t <= 5) nBaja++; else if (t <= 9) nMedia++; else nAlta++;
+                var sx = d.sexo || '';
+                if (porSexo[sx]) { porSexo[sx].n++; porSexo[sx].sum += t; }
+                var e = d.edad;
+                if (e) {
+                    var g = e < 30 ? '18-29' : e < 45 ? '30-44' : e < 65 ? '45-64' : e < 75 ? '65-74' : '75+';
+                    if (porEdad[g]) { porEdad[g].n++; porEdad[g].sum += t; }
+                }
+            });
+            return { n:n, media: Math.round(sumT/n*10)/10, pctBaja: Math.round(nBaja/n*1000)/10, pctMedia: Math.round(nMedia/n*1000)/10, pctAlta: Math.round(nAlta/n*1000)/10, nBaja:nBaja, nMedia:nMedia, nAlta:nAlta, porSexo:porSexo, porEdad:porEdad };
+        }
+
+        var reales = todos.filter(function(d) { return d.fuente !== 'simulacion'; });
+        var simulados = todos.filter(function(d) { return d.fuente === 'simulacion'; });
+        callback({
+            real: reales.length > 0 ? _agregar(reales) : null,
+            simulado: simulados.length > 0 ? _agregar(simulados) : null,
+            total: _agregar(todos)
+        });
+    });
+}
+
+// ── Monitor PREDIMED estructurado ─────────────────────────────────────────
+function _monitorPREDIMEDEstructurado(aggObj) {
+    if (!aggObj) return '';
+    var agg = aggObj.real || aggObj.total;
+    if (!agg) return '';
+    var meta = _compasMetaEscala('predimed');
+
+    var col = agg.media >= 10 ? '#16a34a' : agg.media >= 6 ? '#d97706' : '#dc2626';
+    var lbl = agg.media >= 10 ? 'Alta adherencia' : agg.media >= 6 ? 'Adherencia media' : 'Baja adherencia';
+
+    var html = '<div style="margin-bottom:.9rem;">';
+    html += '<div style="font-size:.7rem;font-weight:600;color:#64748b;letter-spacing:.05em;text-transform:uppercase;margin-bottom:.4rem;">Adherencia dieta mediterránea (n=' + agg.n + ')</div>';
+
+    // Score principal
+    var barPct = Math.max(0, Math.min(100, (agg.media / 14) * 100));
+    var cutPct = (10 / 14) * 100;
+    html += '<div style="background:' + (agg.media >= 10 ? '#dcfce7' : agg.media >= 6 ? '#fef3c7' : '#fee2e2') + ';border:1px solid ' + col + '30;border-radius:8px;padding:.6rem .85rem;margin-bottom:.45rem;">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.3rem;">';
+    html += '<span style="font-size:.77rem;font-weight:600;color:#475569;">Puntuación media</span>';
+    html += '<div style="display:flex;align-items:baseline;gap:.25rem;">';
+    html += '<span style="font-size:1.4rem;font-weight:800;color:' + col + ';">' + agg.media.toFixed(1) + '</span>';
+    html += '<span style="font-size:.68rem;color:' + col + ';opacity:.7;">/14</span>';
+    html += '<span style="font-size:.65rem;background:' + col + ';color:white;padding:.07rem .32rem;border-radius:999px;margin-left:.25rem;">' + lbl + '</span>';
+    html += '</div></div>';
+    html += '<div style="position:relative;height:6px;background:#e5e7eb;border-radius:3px;">';
+    html += '<div style="height:100%;width:' + barPct + '%;background:' + col + ';border-radius:3px;"></div>';
+    html += '<div style="position:absolute;top:-3px;left:' + cutPct + '%;width:2px;height:12px;background:#16a34a;border-radius:1px;"></div>';
+    html += '</div>';
+    html += '<div style="display:flex;justify-content:space-between;font-size:.62rem;color:#94a3b8;margin-top:.18rem;"><span>0</span><span style="color:#16a34a;">Alta: ≥10</span><span>14</span></div>';
+    html += '</div>';
+
+    // Distribución por niveles
+    html += '<div style="display:flex;gap:.4rem;margin-bottom:.45rem;">';
+    [{lbl:'Baja (0-5)',n:agg.nBaja,pct:agg.pctBaja,col:'#dc2626',bg:'#fee2e2'},
+     {lbl:'Media (6-9)',n:agg.nMedia,pct:agg.pctMedia,col:'#d97706',bg:'#fef3c7'},
+     {lbl:'Alta (10-14)',n:agg.nAlta,pct:agg.pctAlta,col:'#16a34a',bg:'#dcfce7'}].forEach(function(nv) {
+        html += '<div style="flex:1;background:' + nv.bg + ';border:1px solid ' + nv.col + '20;border-radius:6px;padding:.4rem .5rem;text-align:center;">';
+        html += '<div style="font-size:1.1rem;font-weight:800;color:' + nv.col + ';">' + nv.pct.toFixed(0) + '%</div>';
+        html += '<div style="font-size:.65rem;color:#64748b;">' + nv.lbl + ' (n=' + nv.n + ')</div>';
+        html += '</div>';
+    });
+    html += '</div>';
+
+    // Por sexo
+    html += '<div style="font-size:.72rem;color:#64748b;margin-bottom:.3rem;font-weight:600;">Por sexo</div>';
+    html += '<div style="display:flex;gap:.5rem;margin-bottom:.45rem;">';
+    ['H','M'].forEach(function(sx) {
+        var d = agg.porSexo[sx];
+        if (d.n > 0) {
+            var m = Math.round(d.sum / d.n * 10) / 10;
+            html += '<div style="flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:.4rem .6rem;font-size:.72rem;">';
+            html += '<strong>' + (sx === 'H' ? 'Hombres' : 'Mujeres') + '</strong>: ' + m.toFixed(1) + '/14 (n=' + d.n + ')';
+            html += '</div>';
+        }
+    });
+    html += '</div>';
+
+    // Por edad
+    html += '<div style="font-size:.72rem;color:#64748b;margin-bottom:.3rem;font-weight:600;">Por grupo de edad</div>';
+    html += '<div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.45rem;">';
+    ['18-29','30-44','45-64','65-74','75+'].forEach(function(g) {
+        var d = agg.porEdad[g];
+        if (d.n > 0) {
+            var m = Math.round(d.sum / d.n * 10) / 10;
+            html += '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:.3rem .5rem;font-size:.7rem;">';
+            html += g + ': ' + m.toFixed(1) + ' (n=' + d.n + ')';
+            html += '</div>';
+        }
+    });
+    html += '</div>';
+
+    // Interpretación automática
+    var nivelTxt = agg.media >= 10 ? 'alta' : agg.media >= 6 ? 'media' : 'baja';
+    html += '<div style="font-size:.75rem;color:#334155;line-height:1.5;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:.55rem .75rem;margin-bottom:.45rem;">';
+    html += 'Se observa una adherencia mediterránea <strong>' + nivelTxt + '</strong> (media ' + agg.media.toFixed(1) + '/14) en la muestra analizada.';
+    html += ' El ' + agg.pctAlta.toFixed(0) + '% presenta alta adherencia (≥10) y el ' + agg.pctBaja.toFixed(0) + '% baja adherencia (≤5).';
+    html += ' <em>Instrumento de valoración dietética, no diagnóstico clínico.</em>';
+    html += '</div>';
+
+    // Referencia
+    html += '<div style="font-size:.68rem;color:#94a3b8;line-height:1.45;">';
+    html += (meta ? meta.referencia + ' ' : '') + 'Martínez-González MA et al. (2012). PREDIMED 14-item questionnaire. Nutr Hosp.';
+    html += '</div>';
+
+    // Nota simulación
     if (aggObj.simulado && aggObj.simulado.n > 0 && !aggObj.real) {
         html += '<div style="font-size:.68rem;color:#b45309;line-height:1.4;margin-top:.3rem;font-style:italic;">';
         html += 'Datos de simulación. No sustituye evidencia observacional.';
