@@ -47171,9 +47171,9 @@ var COMPAS_ESCALAS_META = {
         items: 14,
         rango: '0–14',
         interpretacion: {
-            total: { alta: [9, 14], moderada: [7, 9], baja: [0, 7] }
+            total: { alta: [9, 14], media: [7, 8], baja: [0, 6] }
         },
-        corte: '≥9 = alta adherencia (umbral protector)',
+        corte: '≥9 = alta adherencia (umbral protector). 7–8 = media. ≤6 = baja.',
         referencia: 'Martínez-González MA et al. (2012). A 14-item Mediterranean diet assessment tool. PREDIMED trial. Nutr Hosp.',
         uso_salud_publica: 'Evaluación rápida de patrón alimentario. Ítem 8 (vino) puede distorsionar comparaciones. Validado en adultos 50–80 años con alto riesgo CV.'
     }
@@ -47261,7 +47261,7 @@ function compas_calcularPREDIMED(resp) {
         total += v;
     }
     if (!ok) return null;
-    var nivel = total >= 9 ? 'alta' : total >= 7 ? 'moderada' : 'baja';
+    var nivel = total >= 9 ? 'alta' : total >= 7 ? 'media' : 'baja';
     return { pred_total: total, nivel: nivel };
 }
 
@@ -60915,7 +60915,7 @@ function _monitorCAGEEstructurado(aggObj) {
 
 var PREDIMED_ITEMS = [
     {id:'pred_1',  texto:'¿Usa aceite de oliva como principal grasa para cocinar?'},
-    {id:'pred_2',  texto:'¿Consume 2 o más cucharadas de aceite de oliva al día?'},
+    {id:'pred_2',  texto:'¿Consume 4 o más cucharadas de aceite de oliva al día (incluyendo el usado para freír, ensaladas, comidas fuera de casa, etc.)?'},
     {id:'pred_3',  texto:'¿Come 2 o más raciones de verdura u hortalizas al día?'},
     {id:'pred_4',  texto:'¿Come 3 o más piezas de fruta al día?'},
     {id:'pred_5',  texto:'¿Come menos de 1 ración de carne roja o embutidos al día?'},
@@ -61029,7 +61029,7 @@ function predimed_agregarRespuestas(mun, callback) {
             arr.forEach(function(d) {
                 var t = d.pred_total;
                 sumT += t;
-                if (t <= 5) nBaja++; else if (t <= 9) nMedia++; else nAlta++;
+                if (t <= 6) nBaja++; else if (t <= 8) nMedia++; else nAlta++;
                 var sx = d.sexo || '';
                 if (porSexo[sx]) { porSexo[sx].n++; porSexo[sx].sum += t; }
                 var e = d.edad;
@@ -61058,15 +61058,15 @@ function _monitorPREDIMEDEstructurado(aggObj) {
     if (!agg) return '';
     var meta = _compasMetaEscala('predimed');
 
-    var col = agg.media >= 10 ? '#16a34a' : agg.media >= 6 ? '#d97706' : '#dc2626';
-    var lbl = agg.media >= 10 ? 'Alta adherencia' : agg.media >= 6 ? 'Adherencia media' : 'Baja adherencia';
+    var col = agg.media >= 9 ? '#16a34a' : agg.media >= 7 ? '#d97706' : '#dc2626';
+    var lbl = agg.media >= 9 ? 'Alta adherencia' : agg.media >= 7 ? 'Adherencia media' : 'Baja adherencia';
 
     var html = '<div style="margin-bottom:.9rem;">';
     html += '<div style="font-size:.7rem;font-weight:600;color:#64748b;letter-spacing:.05em;text-transform:uppercase;margin-bottom:.4rem;">Adherencia dieta mediterránea (n=' + agg.n + ')</div>';
 
     // Score principal
     var barPct = Math.max(0, Math.min(100, (agg.media / 14) * 100));
-    var cutPct = (10 / 14) * 100;
+    var cutPct = (9 / 14) * 100;
     html += '<div style="background:' + (agg.media >= 10 ? '#dcfce7' : agg.media >= 6 ? '#fef3c7' : '#fee2e2') + ';border:1px solid ' + col + '30;border-radius:8px;padding:.6rem .85rem;margin-bottom:.45rem;">';
     html += '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.3rem;">';
     html += '<span style="font-size:.77rem;font-weight:600;color:#475569;">Puntuación media</span>';
@@ -61079,14 +61079,14 @@ function _monitorPREDIMEDEstructurado(aggObj) {
     html += '<div style="height:100%;width:' + barPct + '%;background:' + col + ';border-radius:3px;"></div>';
     html += '<div style="position:absolute;top:-3px;left:' + cutPct + '%;width:2px;height:12px;background:#16a34a;border-radius:1px;"></div>';
     html += '</div>';
-    html += '<div style="display:flex;justify-content:space-between;font-size:.62rem;color:#94a3b8;margin-top:.18rem;"><span>0</span><span style="color:#16a34a;">Alta: ≥10</span><span>14</span></div>';
+    html += '<div style="display:flex;justify-content:space-between;font-size:.62rem;color:#94a3b8;margin-top:.18rem;"><span>0</span><span style="color:#16a34a;">Alta: \u22659</span><span>14</span></div>';
     html += '</div>';
 
     // Distribución por niveles
     html += '<div style="display:flex;gap:.4rem;margin-bottom:.45rem;">';
-    [{lbl:'Baja (0-5)',n:agg.nBaja,pct:agg.pctBaja,col:'#dc2626',bg:'#fee2e2'},
-     {lbl:'Media (6-9)',n:agg.nMedia,pct:agg.pctMedia,col:'#d97706',bg:'#fef3c7'},
-     {lbl:'Alta (10-14)',n:agg.nAlta,pct:agg.pctAlta,col:'#16a34a',bg:'#dcfce7'}].forEach(function(nv) {
+    [{lbl:'Baja (0-6)',n:agg.nBaja,pct:agg.pctBaja,col:'#dc2626',bg:'#fee2e2'},
+     {lbl:'Media (7-8)',n:agg.nMedia,pct:agg.pctMedia,col:'#d97706',bg:'#fef3c7'},
+     {lbl:'Alta (9-14)',n:agg.nAlta,pct:agg.pctAlta,col:'#16a34a',bg:'#dcfce7'}].forEach(function(nv) {
         html += '<div style="flex:1;background:' + nv.bg + ';border:1px solid ' + nv.col + '20;border-radius:6px;padding:.4rem .5rem;text-align:center;">';
         html += '<div style="font-size:1.1rem;font-weight:800;color:' + nv.col + ';">' + nv.pct.toFixed(0) + '%</div>';
         html += '<div style="font-size:.65rem;color:#64748b;">' + nv.lbl + ' (n=' + nv.n + ')</div>';
@@ -61123,10 +61123,10 @@ function _monitorPREDIMEDEstructurado(aggObj) {
     html += '</div>';
 
     // Interpretación automática
-    var nivelTxt = agg.media >= 10 ? 'alta' : agg.media >= 6 ? 'media' : 'baja';
+    var nivelTxt = agg.media >= 9 ? 'alta' : agg.media >= 7 ? 'media' : 'baja';
     html += '<div style="font-size:.75rem;color:#334155;line-height:1.5;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:.55rem .75rem;margin-bottom:.45rem;">';
     html += 'Se observa una adherencia mediterránea <strong>' + nivelTxt + '</strong> (media ' + agg.media.toFixed(1) + '/14) en la muestra analizada.';
-    html += ' El ' + agg.pctAlta.toFixed(0) + '% presenta alta adherencia (≥10) y el ' + agg.pctBaja.toFixed(0) + '% baja adherencia (≤5).';
+    html += ' El ' + agg.pctAlta.toFixed(0) + '% presenta alta adherencia (\u22659) y el ' + agg.pctBaja.toFixed(0) + '% baja adherencia (\u22646).';
     html += ' <em>Instrumento de valoración dietética, no diagnóstico clínico.</em>';
     html += '</div>';
 
