@@ -47347,6 +47347,9 @@ function abrirMonitorEscalas(escalaId) {
     var nombreEscala = mapaNombre[escalaId] || escalaId;
     var datos = null;
     _compasEscalasGet().forEach(function(e) { if (e.nombre_escala === nombreEscala) datos = e; });
+    var header = document.getElementById('monitor-escalas-header');
+    var contenido = document.getElementById('monitor-escalas-contenido');
+    if (!header || !contenido) return;
 
     // Duke: datos estructurados individuales, sin fallback heredado
     if (escalaId === 'duke') {
@@ -47362,11 +47365,21 @@ function abrirMonitorEscalas(escalaId) {
                 if (aggObj && aggObj.total && aggObj.total.n > 0) {
                     contenido.innerHTML = _monitorDukeEstructurado(aggObj);
                 } else {
+                    var _di = duke_obtenerInfoMuestral();
+                    var _pobTxt = _di.pobTotal ? _di.pobTotal.toLocaleString() + ' adultos' : 'no disponible';
+                    var _nTxt = _di.N || 'no calculable';
+                    var _simBtn = (_di.N && _di.pob)
+                        ? '<button onclick="duke_simularCasos(function(){ abrirMonitorEscalas(\'duke\'); })" style="background:#b45309;color:white;border:none;border-radius:8px;padding:.6rem 1.25rem;font-size:.85rem;font-weight:600;cursor:pointer;margin-right:.4rem;">Simular ' + _di.N + ' casos</button>'
+                        : '';
                     contenido.innerHTML =
                         '<div style="text-align:center;padding:2rem;">' +
                             '<div style="font-weight:700;color:#1e293b;margin-bottom:.35rem;">Sin respuestas Duke para este municipio</div>' +
-                            '<div style="font-size:.82rem;color:#64748b;margin-bottom:1rem;">Utiliza el cuestionario inline o el simulador para generar datos.</div>' +
-                            '<button onclick="cerrarMonitorEscalas();duke_abrirCuestionario();" style="background:#f59e0b;color:white;border:none;border-radius:8px;padding:.6rem 1.25rem;font-size:.85rem;font-weight:600;cursor:pointer;">Abrir cuestionario Duke</button>' +
+                            '<div style="font-size:.78rem;color:#64748b;margin-bottom:.5rem;">Población: ' + _pobTxt + ' · N mínima: ' + _nTxt + '</div>' +
+                            '<div style="font-size:.82rem;color:#64748b;margin-bottom:1rem;">Utiliza el cuestionario o el simulador para generar datos.</div>' +
+                            '<div style="display:flex;gap:.4rem;justify-content:center;flex-wrap:wrap;">' +
+                                _simBtn +
+                                '<button onclick="cerrarMonitorEscalas();duke_abrirCuestionario();" style="background:#f59e0b;color:white;border:none;border-radius:8px;padding:.6rem 1.25rem;font-size:.85rem;font-weight:600;cursor:pointer;">Cuestionario individual</button>' +
+                            '</div>' +
                         '</div>';
                 }
             });
@@ -60514,6 +60527,13 @@ function _monitorDukeEstructurado(aggObj) {
         html += '% cobertura real: ' + Math.round(nReal / info.N * 100) + '%';
     } else {
         html += '% cobertura real: no calculable';
+    }
+    // Botón simular + cuestionario (dentro de cobertura)
+    if (info.N && info.pob) {
+        html += '<div style="margin-top:.35rem;display:flex;gap:.4rem;flex-wrap:wrap;">';
+        html += '<button onclick="duke_simularCasos(function(){ var m=(typeof getMunicipioActual===\'function\')?getMunicipioActual():null; duke_agregarRespuestas(m,function(a){ var c=document.getElementById(\'monitor-escalas-contenido\'); if(c&&a&&a.total) c.innerHTML=_monitorDukeEstructurado(a); }); })" style="background:#b45309;color:white;border:none;border-radius:6px;padding:.3rem .65rem;font-size:.72rem;font-weight:600;cursor:pointer;">Simular ' + info.N + ' casos Duke</button>';
+        html += '<button onclick="cerrarMonitorEscalas();duke_abrirCuestionario();" style="background:#f59e0b;color:white;border:none;border-radius:6px;padding:.3rem .65rem;font-size:.72rem;font-weight:600;cursor:pointer;">Cuestionario individual</button>';
+        html += '</div>';
     }
     html += '</div>';
 
