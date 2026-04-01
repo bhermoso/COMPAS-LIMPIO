@@ -47348,18 +47348,30 @@ function abrirMonitorEscalas(escalaId) {
     var datos = null;
     _compasEscalasGet().forEach(function(e) { if (e.nombre_escala === nombreEscala) datos = e; });
 
-    // Duke: intentar primero datos agregados desde respuestas individuales
+    // Duke: datos estructurados individuales, sin fallback heredado
     if (escalaId === 'duke') {
         var mun = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
-        _renderMonitorEscalasContenido(escalaId, datos); // render inicial (heredado o vacío)
+        // Render cabecera primero (header gradient + nombre)
+        var cfg = {sf12:{nombre:'SF-12',icon:'\uD83C\uDFE5',grad:'linear-gradient(135deg,#3b82f6,#1d4ed8)',desc:'Calidad de vida relacionada con la salud'},duke:{nombre:'Duke-UNC',icon:'\uD83E\uDD1D',grad:'linear-gradient(135deg,#f59e0b,#b45309)',desc:'Apoyo social funcional percibido'}}['duke'];
+        header.style.background = cfg.grad;
+        header.innerHTML = '<div style="flex:1;"><div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.15rem;"><span style="font-size:1.3rem;">' + cfg.icon + '</span><span style="color:white;font-weight:700;font-size:1.05rem;">' + cfg.nombre + '</span></div><div style="color:rgba(255,255,255,0.85);font-size:0.8rem;">' + cfg.desc + '</div></div><button onclick="cerrarMonitorEscalas()" style="background:rgba(255,255,255,.2);border:none;color:white;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1.1rem;flex-shrink:0;">\u2715</button>';
+        contenido.innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;">Cargando datos Duke...</div>';
         modal.style.display = 'block';
         if (mun && typeof duke_agregarRespuestas === 'function') {
             duke_agregarRespuestas(mun, function(aggObj) {
                 if (aggObj && aggObj.total && aggObj.total.n > 0) {
-                    var contenido = document.getElementById('monitor-escalas-contenido');
-                    if (contenido) contenido.innerHTML = _monitorDukeEstructurado(aggObj);
+                    contenido.innerHTML = _monitorDukeEstructurado(aggObj);
+                } else {
+                    contenido.innerHTML =
+                        '<div style="text-align:center;padding:2rem;">' +
+                            '<div style="font-weight:700;color:#1e293b;margin-bottom:.35rem;">Sin respuestas Duke para este municipio</div>' +
+                            '<div style="font-size:.82rem;color:#64748b;margin-bottom:1rem;">Utiliza el cuestionario inline o el simulador para generar datos.</div>' +
+                            '<button onclick="cerrarMonitorEscalas();duke_abrirCuestionario();" style="background:#f59e0b;color:white;border:none;border-radius:8px;padding:.6rem 1.25rem;font-size:.85rem;font-weight:600;cursor:pointer;">Abrir cuestionario Duke</button>' +
+                        '</div>';
                 }
             });
+        } else {
+            contenido.innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;">Selecciona un municipio para ver datos Duke.</div>';
         }
     } else {
         _renderMonitorEscalasContenido(escalaId, datos);
