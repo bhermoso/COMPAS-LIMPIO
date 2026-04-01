@@ -7585,6 +7585,44 @@
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- CUESTIONARIO CAGE — Cribado consumo de riesgo de alcohol     -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<div id="modal-cage-cuestionario" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:10500; overflow-y:auto; padding:2rem;">
+  <div style="background:white; max-width:600px; margin:0 auto; border-radius:16px; overflow:hidden; box-shadow:0 25px 50px -12px rgba(0,0,0,0.3);">
+    <div style="background:linear-gradient(135deg,#ef4444,#b91c1c); color:white; padding:1.5rem 2rem; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <h2 style="margin:0 0 0.25rem; font-size:1.3rem;">CAGE</h2>
+        <p style="margin:0; font-size:0.85rem; opacity:0.9;">Cribado de consumo de riesgo de alcohol · Mayfield (1974)</p>
+      </div>
+      <button onclick="cage_cerrarCuestionario()" style="background:rgba(255,255,255,0.2); border:none; color:white; width:36px; height:36px; border-radius:50%; font-size:1.2rem; cursor:pointer; line-height:1;">×</button>
+    </div>
+    <div style="padding:1.5rem;">
+      <div style="background:#fef2f2; border-radius:10px; padding:1rem; margin-bottom:1.25rem; font-size:0.83rem; color:#991b1b; border-left:4px solid #ef4444;">
+        <strong>Instrucciones:</strong> Responde Sí o No a cada pregunta. Tus respuestas son anónimas y confidenciales.
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.25rem;">
+        <div>
+          <label style="display:block; font-size:0.82rem; font-weight:600; color:#374151; margin-bottom:0.35rem;">Sexo</label>
+          <select id="cage-sexo" style="width:100%; padding:0.5rem; border:1.5px solid #d1d5db; border-radius:8px; font-size:0.85rem;">
+            <option value="">— Selecciona —</option>
+            <option value="1">Hombre</option>
+            <option value="2">Mujer</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block; font-size:0.82rem; font-weight:600; color:#374151; margin-bottom:0.35rem;">Edad (años)</label>
+          <input type="number" id="cage-edad" min="14" max="110" placeholder="ej. 45" style="width:100%; padding:0.5rem; border:1.5px solid #d1d5db; border-radius:8px; font-size:0.85rem; box-sizing:border-box;">
+        </div>
+      </div>
+      <div id="cage-items" style="display:grid; gap:0.75rem; margin-bottom:1.5rem;"></div>
+      <div id="cage-form-error" style="display:none; background:#fef2f2; color:#dc2626; padding:0.6rem 1rem; border-radius:8px; font-size:0.83rem; margin-bottom:1rem;"></div>
+      <button onclick="cage_enviarRespuesta()" style="width:100%; background:linear-gradient(135deg,#ef4444,#b91c1c); color:white; border:none; padding:0.85rem; border-radius:10px; font-size:1rem; font-weight:700; cursor:pointer;">Enviar mi respuesta</button>
+      <div id="cage-exito" style="display:none; background:#dcfce7; color:#166534; padding:0.75rem 1rem; border-radius:8px; margin-top:1rem; text-align:center; font-weight:600; font-size:0.9rem;">Respuesta registrada correctamente.</div>
+    </div>
+  </div>
+</div>
+
 
 <!-- Modal Metodología COMPÁS -->
 
@@ -47386,6 +47424,30 @@ function abrirMonitorEscalas(escalaId) {
         } else {
             contenido.innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;">Selecciona un municipio para ver datos Duke.</div>';
         }
+    } else if (escalaId === 'cage') {
+        // CAGE: render directo sin fallback heredado
+        var cfgC = {nombre:'CAGE',icon:'\uD83C\uDF77',grad:'linear-gradient(135deg,#ef4444,#b91c1c)',desc:'Cribado de consumo de riesgo de alcohol'};
+        header.style.background = cfgC.grad;
+        header.innerHTML = '<div style="flex:1;"><div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.15rem;"><span style="font-size:1.3rem;">' + cfgC.icon + '</span><span style="color:white;font-weight:700;font-size:1.05rem;">' + cfgC.nombre + '</span></div><div style="color:rgba(255,255,255,0.85);font-size:0.8rem;">' + cfgC.desc + '</div></div><button onclick="cerrarMonitorEscalas()" style="background:rgba(255,255,255,.2);border:none;color:white;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1.1rem;flex-shrink:0;">\u2715</button>';
+        contenido.innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;">Cargando datos CAGE...</div>';
+        modal.style.display = 'block';
+        var munC = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
+        if (munC && typeof cage_agregarRespuestas === 'function') {
+            cage_agregarRespuestas(munC, function(aggObj) {
+                if (aggObj && aggObj.total && aggObj.total.n > 0) {
+                    contenido.innerHTML = _monitorCAGEEstructurado(aggObj);
+                } else {
+                    contenido.innerHTML =
+                        '<div style="text-align:center;padding:2rem;">' +
+                            '<div style="font-weight:700;color:#1e293b;margin-bottom:.35rem;">Sin respuestas CAGE para este municipio</div>' +
+                            '<div style="font-size:.82rem;color:#64748b;margin-bottom:1rem;">Utiliza el cuestionario para registrar respuestas.</div>' +
+                            '<button onclick="cerrarMonitorEscalas();cage_abrirCuestionario();" style="background:#ef4444;color:white;border:none;border-radius:8px;padding:.6rem 1.25rem;font-size:.85rem;font-weight:600;cursor:pointer;">Abrir cuestionario CAGE</button>' +
+                        '</div>';
+                }
+            });
+        } else {
+            contenido.innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;">Selecciona un municipio.</div>';
+        }
     } else {
         _renderMonitorEscalasContenido(escalaId, datos);
         modal.style.display = 'block';
@@ -47950,6 +48012,7 @@ function renderizarSeccionEstudios() {
             monitorFn: 'abrirMonitorEscalas(\'' + cfg.id + '\')',
             monitorLabel: '\ud83d\udcca Monitor',
             accionesHtml: (cfg.id === 'duke' ? '<button onclick="duke_abrirCuestionario()" style="background:#f59e0b;color:white;border:none;border-radius:7px;padding:0.36rem 0.7rem;font-size:0.77rem;font-weight:600;cursor:pointer;">Cuestionario</button>' : '') +
+                (cfg.id === 'cage' ? '<button onclick="cage_abrirCuestionario()" style="background:#ef4444;color:white;border:none;border-radius:7px;padding:0.36rem 0.7rem;font-size:0.77rem;font-weight:600;cursor:pointer;">Cuestionario</button>' : '') +
                 (tieneDatos
                 ? '<button onclick="abrirModalEscalasDiagnosticas(\'' + cfg.id + '\')" style="background:white;border:1px solid #e2e8f0;color:#475569;border-radius:7px;padding:0.36rem 0.7rem;font-size:0.77rem;font-weight:600;cursor:pointer;">\u270f\ufe0f Editar</button>'
                 : ''),
@@ -60137,6 +60200,7 @@ function COMPAS_limpiarEstudiosComplementarios() {
         db.ref('ibse_monitor/' + mun).remove();
         db.ref('ibse_respuestas/' + mun).remove();
         db.ref('escalas_respuestas/duke/' + mun).remove();
+        db.ref('escalas_respuestas/cage/' + mun).remove();
         console.info('[COMPAS] Firebase: estudios complementarios + escalas eliminados para ' + mun);
     }
     // Re-render
@@ -60554,6 +60618,227 @@ function _monitorDukeEstructurado(aggObj) {
     if (aggObj.simulado && aggObj.simulado.n > 0 && !aggObj.real) {
         html += '<div style="font-size:.68rem;color:#b45309;line-height:1.4;margin-top:.3rem;font-style:italic;">';
         html += 'Todos los datos mostrados proceden de simulación. La simulación es apoyo técnico/exploratorio. No sustituye evidencia observacional real ni debe interpretarse como dato empírico recogido.';
+        html += '</div>';
+    }
+
+    html += '</div>';
+    return html;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CUESTIONARIO CAGE — Captura + cálculo + persistencia + agregación + monitor
+// ══════════════════════════════════════════════════════════════════════════════
+
+var CAGE_ITEMS = [
+    {id:'cage_1', texto:'¿Ha sentido alguna vez que debería reducir su consumo de bebidas alcohólicas?'},
+    {id:'cage_2', texto:'¿Le han molestado las críticas que otras personas le han hecho sobre su forma de beber?'},
+    {id:'cage_3', texto:'¿Se ha sentido alguna vez mal o culpable por su forma de beber?'},
+    {id:'cage_4', texto:'¿Ha tomado alguna vez una copa o bebida alcohólica por la mañana, como primera cosa, para calmar los nervios o librarse de una resaca?'}
+];
+
+function _cage_renderItem(item) {
+    return '<div style="background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:8px;padding:0.7rem;">' +
+        '<div style="font-size:0.84rem;font-weight:600;color:#1f2937;margin-bottom:0.55rem;">' + item.texto + '</div>' +
+        '<div style="display:flex;gap:1rem;">' +
+            '<label style="display:flex;align-items:center;gap:.3rem;cursor:pointer;"><input type="radio" name="' + item.id + '" value="1" style="accent-color:#ef4444;"> <span style="font-size:.82rem;">Sí</span></label>' +
+            '<label style="display:flex;align-items:center;gap:.3rem;cursor:pointer;"><input type="radio" name="' + item.id + '" value="0" style="accent-color:#ef4444;"> <span style="font-size:.82rem;">No</span></label>' +
+        '</div>' +
+    '</div>';
+}
+
+function cage_abrirCuestionario() {
+    var mun = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
+    if (!mun) { alert('Selecciona un municipio antes de abrir el cuestionario.'); return; }
+    var modal = document.getElementById('modal-cage-cuestionario');
+    if (!modal) return;
+    var cont = document.getElementById('cage-items');
+    if (cont && !cont.children.length) {
+        cont.innerHTML = CAGE_ITEMS.map(function(it) { return _cage_renderItem(it); }).join('');
+    }
+    var exito = document.getElementById('cage-exito');
+    if (exito) exito.style.display = 'none';
+    var errEl = document.getElementById('cage-form-error');
+    if (errEl) errEl.style.display = 'none';
+    modal.style.display = 'block';
+}
+
+function cage_cerrarCuestionario() {
+    var modal = document.getElementById('modal-cage-cuestionario');
+    if (modal) modal.style.display = 'none';
+}
+
+function cage_enviarRespuesta() {
+    var mun = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
+    if (!mun) return;
+    var errEl = document.getElementById('cage-form-error');
+    var datos = {};
+    var falta = [];
+    CAGE_ITEMS.forEach(function(it) {
+        var sel = document.querySelector('input[name="' + it.id + '"]:checked');
+        if (sel) datos[it.id] = parseInt(sel.value);
+        else falta.push(it.id);
+    });
+    if (falta.length) {
+        if (errEl) { errEl.style.display = 'block'; errEl.textContent = 'Por favor responde todas las preguntas (' + falta.length + ' sin contestar).'; }
+        return;
+    }
+    var sexoVal = document.getElementById('cage-sexo').value;
+    var edadVal = parseInt(document.getElementById('cage-edad').value);
+    if (!sexoVal) {
+        if (errEl) { errEl.style.display = 'block'; errEl.textContent = 'Indica tu sexo.'; }
+        return;
+    }
+    if (!edadVal || edadVal < 14 || edadVal > 110) {
+        if (errEl) { errEl.style.display = 'block'; errEl.textContent = 'Indica una edad válida (14-110).'; }
+        return;
+    }
+    if (errEl) errEl.style.display = 'none';
+    datos.sexo = sexoVal === '1' ? 'H' : 'M';
+    datos.sexo_num = parseInt(sexoVal);
+    datos.edad = edadVal;
+    datos.timestamp = new Date().toISOString();
+    datos.municipio = mun;
+    var calc = compas_calcularCAGE(datos);
+    if (calc) {
+        datos.cage_positivos = calc.cage_positivos;
+        datos.riesgo = calc.riesgo;
+    }
+    datos.interpretacion = compas_interpretarEscala('cage', calc, null);
+    if (typeof db !== 'undefined') {
+        db.ref('escalas_respuestas/cage/' + mun).push(datos).then(function() {
+            console.info('[CAGE] Respuesta guardada para ' + mun + ' (positivos=' + (calc ? calc.cage_positivos : '?') + ')');
+            var exito = document.getElementById('cage-exito');
+            if (exito) exito.style.display = 'block';
+            document.querySelectorAll('#modal-cage-cuestionario input[type="radio"]').forEach(function(r) { r.checked = false; });
+            document.getElementById('cage-edad').value = '';
+            document.getElementById('cage-sexo').value = '';
+        }).catch(function(e) {
+            console.warn('[CAGE] Error Firebase:', e);
+            if (errEl) { errEl.style.display = 'block'; errEl.textContent = 'Error al guardar.'; }
+        });
+    }
+}
+
+// ── Agregación CAGE ───────────────────────────────────────────────────────
+function cage_agregarRespuestas(mun, callback) {
+    if (!mun || typeof db === 'undefined') { callback(null); return; }
+    db.ref('escalas_respuestas/cage/' + mun).once('value', function(snap) {
+        var datos = snap.val();
+        if (!datos || typeof datos !== 'object') { callback(null); return; }
+        var todos = Object.values(datos).filter(function(d) { return d.cage_positivos != null; });
+        if (!todos.length) { callback(null); return; }
+
+        function _agregar(arr) {
+            var n = arr.length, sumPos = 0, nRiesgo = 0, nAlta = 0;
+            var porSexo = {H:{n:0,sumPos:0,nR:0}, M:{n:0,sumPos:0,nR:0}};
+            var porEdad = {'18-29':{n:0,nR:0},'30-44':{n:0,nR:0},'45-64':{n:0,nR:0},'65-74':{n:0,nR:0},'75+':{n:0,nR:0}};
+            arr.forEach(function(d) {
+                var p = d.cage_positivos;
+                sumPos += p;
+                if (p >= 2) nRiesgo++;
+                if (p >= 3) nAlta++;
+                var sx = d.sexo || '';
+                if (porSexo[sx]) { porSexo[sx].n++; porSexo[sx].sumPos += p; if (p >= 2) porSexo[sx].nR++; }
+                var e = d.edad;
+                if (e) {
+                    var g = e < 30 ? '18-29' : e < 45 ? '30-44' : e < 65 ? '45-64' : e < 75 ? '65-74' : '75+';
+                    if (porEdad[g]) { porEdad[g].n++; if (p >= 2) porEdad[g].nR++; }
+                }
+            });
+            return { n:n, media: Math.round(sumPos/n*100)/100, pctRiesgo: Math.round(nRiesgo/n*1000)/10, pctAlta: Math.round(nAlta/n*1000)/10, nRiesgo:nRiesgo, nAlta:nAlta, porSexo:porSexo, porEdad:porEdad };
+        }
+
+        var reales = todos.filter(function(d) { return d.fuente !== 'simulacion'; });
+        var simulados = todos.filter(function(d) { return d.fuente === 'simulacion'; });
+        callback({
+            real: reales.length > 0 ? _agregar(reales) : null,
+            simulado: simulados.length > 0 ? _agregar(simulados) : null,
+            total: _agregar(todos)
+        });
+    });
+}
+
+// ── Monitor CAGE estructurado ─────────────────────────────────────────────
+function _monitorCAGEEstructurado(aggObj) {
+    if (!aggObj) return '';
+    var agg = aggObj.real || aggObj.total;
+    if (!agg) return '';
+    var meta = _compasMetaEscala('cage');
+
+    var col = agg.pctRiesgo < 5 ? '#16a34a' : agg.pctRiesgo <= 10 ? '#d97706' : '#dc2626';
+    var lbl = agg.pctRiesgo < 5 ? 'Señal baja' : agg.pctRiesgo <= 10 ? 'Señal moderada' : 'Señal elevada';
+
+    var html = '<div style="margin-bottom:.9rem;">';
+    html += '<div style="font-size:.7rem;font-weight:600;color:#64748b;letter-spacing:.05em;text-transform:uppercase;margin-bottom:.4rem;">Cribado CAGE (n=' + agg.n + ')</div>';
+
+    // Indicador principal
+    html += '<div style="background:' + (agg.pctRiesgo < 5 ? '#dcfce7' : agg.pctRiesgo <= 10 ? '#fef3c7' : '#fee2e2') + ';border:1px solid ' + col + '30;border-radius:8px;padding:.7rem .85rem;margin-bottom:.45rem;">';
+    html += '<div style="display:flex;align-items:center;gap:1rem;margin-bottom:.35rem;">';
+    html += '<span style="font-size:2.2rem;font-weight:800;color:' + col + ';line-height:1;">' + agg.pctRiesgo.toFixed(0) + '%</span>';
+    html += '<div><div style="font-size:.78rem;font-weight:600;color:' + col + ';">' + lbl + '</div>';
+    html += '<div style="font-size:.72rem;color:#64748b;">con ≥2 ítems positivos (n=' + agg.nRiesgo + ')</div></div>';
+    html += '</div>';
+    html += '<div style="height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;">';
+    html += '<div style="height:100%;width:' + Math.min(agg.pctRiesgo * 5, 100) + '%;background:' + col + ';border-radius:3px;"></div></div>';
+    html += '<div style="display:flex;justify-content:space-between;font-size:.62rem;color:#94a3b8;margin-top:.15rem;"><span>0%</span><span style="color:#d97706;">Ref. orientativa: 5–10%</span><span>20%+</span></div>';
+    html += '</div>';
+
+    // Alta sospecha
+    if (agg.pctAlta > 0) {
+        html += '<div style="display:flex;align-items:center;gap:.75rem;background:#fef2f2;border:1px solid #fecdd3;border-radius:8px;padding:.5rem .85rem;margin-bottom:.45rem;">';
+        html += '<span style="font-size:1.3rem;font-weight:800;color:#dc2626;">' + agg.pctAlta.toFixed(0) + '%</span>';
+        html += '<span style="font-size:.78rem;color:#991b1b;">con ≥3 ítems positivos (alta sospecha) · n=' + agg.nAlta + '</span>';
+        html += '</div>';
+    }
+
+    // Media
+    html += '<div style="font-size:.72rem;color:#64748b;margin-bottom:.4rem;">Puntuación media: ' + agg.media.toFixed(2) + '/4</div>';
+
+    // Por sexo
+    html += '<div style="font-size:.72rem;color:#64748b;margin-bottom:.3rem;font-weight:600;">Por sexo</div>';
+    html += '<div style="display:flex;gap:.5rem;margin-bottom:.45rem;">';
+    ['H','M'].forEach(function(sx) {
+        var d = agg.porSexo[sx];
+        if (d.n > 0) {
+            html += '<div style="flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:.4rem .6rem;font-size:.72rem;">';
+            html += '<strong>' + (sx === 'H' ? 'Hombres' : 'Mujeres') + '</strong>: ' + Math.round(d.nR/d.n*100) + '% riesgo (n=' + d.n + ')';
+            html += '</div>';
+        }
+    });
+    html += '</div>';
+
+    // Por edad
+    html += '<div style="font-size:.72rem;color:#64748b;margin-bottom:.3rem;font-weight:600;">Por grupo de edad</div>';
+    html += '<div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.45rem;">';
+    ['18-29','30-44','45-64','65-74','75+'].forEach(function(g) {
+        var d = agg.porEdad[g];
+        if (d.n > 0) {
+            html += '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:.3rem .5rem;font-size:.7rem;">';
+            html += g + ': ' + Math.round(d.nR/d.n*100) + '% (n=' + d.n + ')';
+            html += '</div>';
+        }
+    });
+    html += '</div>';
+
+    // Interpretación automática
+    html += '<div style="font-size:.75rem;color:#334155;line-height:1.5;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:.55rem .75rem;margin-bottom:.45rem;">';
+    html += 'Se observa una prevalencia de <strong>' + agg.pctRiesgo.toFixed(0) + '%</strong> de cribado positivo (CAGE≥2)';
+    if (agg.pctRiesgo > 10) html += ', lo que indica una señal elevada de consumo problemático en la muestra.';
+    else if (agg.pctRiesgo > 5) html += ', dentro del rango moderado esperable en población general.';
+    else html += ', lo que indica una señal baja en la muestra.';
+    if (agg.pctAlta > 0) html += ' Un ' + agg.pctAlta.toFixed(0) + '% presenta alta sospecha (≥3).';
+    html += ' <em>CAGE es instrumento de cribado, no de diagnóstico.</em>';
+    html += '</div>';
+
+    // Referencia
+    html += '<div style="font-size:.68rem;color:#94a3b8;line-height:1.45;">';
+    html += (meta ? meta.referencia + ' ' : '') + 'Mayfield D, McLeod G, Hall P (1974). The CAGE questionnaire. Am J Psychiatry.';
+    html += '</div>';
+
+    // Simulación
+    if (aggObj.simulado && aggObj.simulado.n > 0 && !aggObj.real) {
+        html += '<div style="font-size:.68rem;color:#b45309;line-height:1.4;margin-top:.3rem;font-style:italic;">';
+        html += 'Datos de simulación. No sustituye evidencia observacional.';
         html += '</div>';
     }
 
