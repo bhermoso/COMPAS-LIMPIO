@@ -47514,11 +47514,21 @@ function abrirMonitorEscalas(escalaId) {
                 if (aggObj && aggObj.total && aggObj.total.n > 0) {
                     contenido.innerHTML = _monitorSF12Estructurado(aggObj);
                 } else {
+                    var _si = sf12_obtenerInfoMuestral();
+                    var _siPob = _si.pobTotal ? _si.pobTotal.toLocaleString() + ' adultos' : 'no disponible';
+                    var _siN = _si.N || 'no calculable';
+                    var _siBtn = (_si.N && _si.pob)
+                        ? '<button onclick="sf12_simularCasos(function(){ abrirMonitorEscalas(\'sf12\'); })" style="background:#1d4ed8;color:white;border:none;border-radius:8px;padding:.6rem 1.25rem;font-size:.85rem;font-weight:600;cursor:pointer;margin-right:.4rem;">Simular ' + _si.N + ' casos</button>'
+                        : '';
                     contenido.innerHTML =
                         '<div style="text-align:center;padding:2rem;">' +
                             '<div style="font-weight:700;color:#1e293b;margin-bottom:.35rem;">Sin respuestas SF-12 para este municipio</div>' +
-                            '<div style="font-size:.82rem;color:#64748b;margin-bottom:1rem;">Utiliza el cuestionario para registrar respuestas.</div>' +
-                            '<button onclick="cerrarMonitorEscalas();sf12_abrirCuestionario();" style="background:#3b82f6;color:white;border:none;border-radius:8px;padding:.6rem 1.25rem;font-size:.85rem;font-weight:600;cursor:pointer;">Abrir cuestionario SF-12</button>' +
+                            '<div style="font-size:.78rem;color:#64748b;margin-bottom:.5rem;">Población: ' + _siPob + ' · N mínima: ' + _siN + '</div>' +
+                            '<div style="font-size:.82rem;color:#64748b;margin-bottom:1rem;">Utiliza el cuestionario o el simulador.</div>' +
+                            '<div style="display:flex;gap:.4rem;justify-content:center;flex-wrap:wrap;">' +
+                                _siBtn +
+                                '<button onclick="cerrarMonitorEscalas();sf12_abrirCuestionario();" style="background:#3b82f6;color:white;border:none;border-radius:8px;padding:.6rem 1.25rem;font-size:.85rem;font-weight:600;cursor:pointer;">Cuestionario individual</button>' +
+                            '</div>' +
                         '</div>';
                 }
             });
@@ -61365,6 +61375,75 @@ function sf12_enviarRespuesta() {
     }
 }
 
+// ── SF-12: simulador + info muestral ─────────────────────────────────────────
+function sf12_obtenerInfoMuestral() {
+    var mun = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
+    var pob = (typeof compas_pob_obtener === 'function') ? compas_pob_obtener(mun) : null;
+    var N = (pob && pob.total > 0 && typeof compas_pob_calcularN === 'function') ? compas_pob_calcularN(mun) : null;
+    return { mun: mun, pob: pob, N: N, pobTotal: pob ? pob.total : null };
+}
+
+function sf12_simularCasos(callback) {
+    var info = sf12_obtenerInfoMuestral();
+    var mun = info.mun;
+    if (!mun) { alert('Selecciona un municipio.'); return; }
+    if (!info.N || !info.pob) { alert('No hay datos de población. Carga el padrón.'); return; }
+    var teor = (typeof sam_generarPiramideTeorica === 'function') ? sam_generarPiramideTeorica(info.pob, info.N) : null;
+    if (!teor) { alert('No se puede generar distribución teórica.'); return; }
+    var GR = ['18-29','30-44','45-64','65-74','75+'];
+    var edadMin = {'18-29':18,'30-44':30,'45-64':45,'65-74':65,'75+':75};
+    var edadMax = {'18-29':29,'30-44':44,'45-64':64,'65-74':74,'75+':89};
+    var casos = [];
+    GR.forEach(function(g) {
+        for (var i = 0; i < (teor.hombres[g]||0); i++) casos.push({sexo:'H',sexo_num:1,edad:edadMin[g]+Math.floor(Math.random()*(edadMax[g]-edadMin[g]+1))});
+        for (var j = 0; j < (teor.mujeres[g]||0); j++) casos.push({sexo:'M',sexo_num:2,edad:edadMin[g]+Math.floor(Math.random()*(edadMax[g]-edadMin[g]+1))});
+    });
+
+    // Generar respuestas SF-12 simuladas con distribución realista
+    function _simResp() {
+        var resp = {};
+        // Ítem 1 (salud general 1-5): sesgado hacia buena
+        resp.sf12_1 = Math.random() < 0.05 ? 5 : Math.random() < 0.15 ? 4 : Math.random() < 0.50 ? 3 : Math.random() < 0.80 ? 2 : 1;
+        // Ítems 2,3 (limitaciones 1-3): sesgado hacia sin limitación
+        resp.sf12_2 = Math.random() < 0.10 ? 1 : Math.random() < 0.30 ? 2 : 3;
+        resp.sf12_3 = Math.random() < 0.12 ? 1 : Math.random() < 0.35 ? 2 : 3;
+        // Ítems 4-7 (rol, 1-5): sesgado hacia nunca problema
+        for (var i = 4; i <= 7; i++) {
+            var r = Math.random();
+            resp['sf12_'+i] = r < 0.05 ? 1 : r < 0.12 ? 2 : r < 0.30 ? 3 : r < 0.55 ? 4 : 5;
+        }
+        // Ítem 8 (dolor 1-5): sesgado hacia poco dolor
+        var rp = Math.random();
+        resp.sf12_8 = rp < 0.40 ? 1 : rp < 0.65 ? 2 : rp < 0.85 ? 3 : rp < 0.95 ? 4 : 5;
+        // Ítems 9-12 (bienestar, 1-5): distribución mixta
+        for (var k = 9; k <= 12; k++) {
+            var rm = Math.random();
+            resp['sf12_'+k] = rm < 0.15 ? 1 : rm < 0.35 ? 2 : rm < 0.60 ? 3 : rm < 0.85 ? 4 : 5;
+        }
+        return resp;
+    }
+
+    if (typeof db === 'undefined') { alert('Firebase no disponible.'); return; }
+    var ref = db.ref('escalas_respuestas/sf12/' + mun);
+    var batchObj = {};
+    var simTs = Date.now().toString(36);
+    var ts = new Date().toISOString();
+    casos.forEach(function(c, i) {
+        var resp = _simResp();
+        var calc = compas_calcularSF12_normativo(resp);
+        var datos = {};
+        Object.keys(resp).forEach(function(k) { datos[k] = resp[k]; });
+        datos.sexo = c.sexo; datos.sexo_num = c.sexo_num; datos.edad = c.edad;
+        datos.timestamp = ts; datos.municipio = mun; datos.fuente = 'simulacion';
+        if (calc) { datos.pcs = calc.pcs; datos.mcs = calc.mcs; datos.normativo = true; }
+        batchObj['sim_' + simTs + '_' + i] = datos;
+    });
+    ref.update(batchObj).then(function() {
+        console.info('[SF-12] ' + casos.length + ' respuestas simuladas guardadas para ' + mun);
+        if (typeof callback === 'function') callback(casos.length);
+    }).catch(function(e) { console.warn('[SF-12] Error simulación:', e); });
+}
+
 // ── Agregación SF-12 ────────────────────────────────────────────────────────
 function sf12_agregarRespuestas(mun, callback) {
     if (!mun || typeof db === 'undefined') { callback(null); return; }
@@ -61466,12 +61545,37 @@ function _monitorSF12Estructurado(aggObj) {
     html += '</div>';
 
     // Referencia
+    // Cobertura muestral
+    var info = sf12_obtenerInfoMuestral();
+    html += '<div style="font-size:.72rem;color:#475569;margin-top:.5rem;margin-bottom:.4rem;font-weight:600;">Cobertura muestral</div>';
+    html += '<div style="font-size:.7rem;color:#64748b;line-height:1.5;margin-bottom:.4rem;">';
+    html += 'Población: ' + (info.pobTotal ? info.pobTotal.toLocaleString() + ' adultos' : 'no disponible') + '<br>';
+    html += 'N mínima: ' + (info.N || 'no calculable') + '<br>';
+    html += 'n real: ' + (aggObj.real ? aggObj.real.n : 0) + ' · n simulada: ' + (aggObj.simulado ? aggObj.simulado.n : 0);
+    var nReal = aggObj.real ? aggObj.real.n : 0;
+    if (info.N && info.N > 0) html += ' · % cobertura real: ' + Math.round(nReal / info.N * 100) + '%';
+    if (info.N && info.pob) {
+        html += '<div style="margin-top:.35rem;display:flex;gap:.4rem;flex-wrap:wrap;">';
+        html += '<button onclick="sf12_simularCasos(function(){ var m=(typeof getMunicipioActual===\'function\')?getMunicipioActual():null; sf12_agregarRespuestas(m,function(a){ var c=document.getElementById(\'monitor-escalas-contenido\'); if(c&&a&&a.total) c.innerHTML=_monitorSF12Estructurado(a); }); })" style="background:#1d4ed8;color:white;border:none;border-radius:6px;padding:.3rem .65rem;font-size:.72rem;font-weight:600;cursor:pointer;">Simular ' + info.N + ' casos SF-12</button>';
+        html += '<button onclick="cerrarMonitorEscalas();sf12_abrirCuestionario();" style="background:#3b82f6;color:white;border:none;border-radius:6px;padding:.3rem .65rem;font-size:.72rem;font-weight:600;cursor:pointer;">Cuestionario individual</button>';
+        html += '</div>';
+    }
+    html += '</div>';
+
+    // Simulación aparte
+    if (aggObj.simulado && aggObj.simulado.n > 0 && aggObj.real) {
+        html += '<div style="background:#fefce8;border:1px solid #fde68a;border-radius:6px;padding:.5rem .7rem;font-size:.7rem;color:#92400e;margin-bottom:.4rem;">';
+        html += '<strong>Simulación (n=' + aggObj.simulado.n + '):</strong> PCS ' + aggObj.simulado.mediaPCS.toFixed(1) + ' · MCS ' + aggObj.simulado.mediaMCS.toFixed(1);
+        html += ' <em>Apoyo técnico, no evidencia observacional.</em></div>';
+    }
+
+    // Referencia
     html += '<div style="font-size:.68rem;color:#94a3b8;line-height:1.45;">';
-    html += 'Scoring: Ware JE, Kosinski M (2002). SF-12v2 norm-based scoring con pesos de regresión US 1998. Validación española: Vilagut G et al. Med Clin (Barc) 2005.';
+    html += 'Scoring: Ware JE, Kosinski M (2002). SF-12v2 modelo abreviado (12 z-scores ponderados). Validación española: Vilagut G et al. Med Clin (Barc) 2005.';
     html += '</div>';
 
     if (aggObj.simulado && aggObj.simulado.n > 0 && !aggObj.real) {
-        html += '<div style="font-size:.68rem;color:#b45309;line-height:1.4;margin-top:.3rem;font-style:italic;">Datos de simulación. No sustituye evidencia observacional.</div>';
+        html += '<div style="font-size:.68rem;color:#b45309;line-height:1.4;margin-top:.3rem;font-style:italic;">Todos los datos proceden de simulación. No sustituye evidencia observacional.</div>';
     }
 
     html += '</div>';
