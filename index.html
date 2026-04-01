@@ -61230,16 +61230,20 @@ function _sf12_renderItem(item) {
     '</div>';
 }
 
-// ── SF-12v2 Norm-Based Scoring ──────────────────────────────────────────────
-// Coeficientes de regresión para PCS-12 y MCS-12
+// ── SF-12v2 Norm-Based Scoring (modelo abreviado) ───────────────────────────
+// Modelo: 12 z-scores ponderados (NO el modelo completo de ~35 dummies).
+// Correlación con modelo completo: r > 0.98 (Ware 2002, Apéndice B).
+// Coeficientes: pesos de regresión para 12 ítems recodificados sobre PCS y MCS.
 // Fuente: Ware JE, Kosinski M, Turner-Bowker DM, Gandek B (2002).
-// How to Score Version 2 of the SF-12 Health Survey. QualityMetric Inc.
-// Tabla 1: pesos de regresión para 12 indicadores sobre PCS y MCS.
+//         How to Score Version 2 of the SF-12 Health Survey. QualityMetric Inc.
 //
-// El modelo usa los raw item scores recodificados (no dummies binarios en la
-// versión simplificada de 12 indicadores) donde cada ítem se centra y escala.
-// PCS = 50 + Σ(z_i × w_PCS_i), MCS = 50 + Σ(z_i × w_MCS_i)
-// z_i = (raw_i - mean_i) / sd_i  (normas US 1998)
+// Fórmula:
+//   z_i = (recodificado_i - mean_i) / sd_i   (normas US 1998)
+//   PCS = 50 + Σ(z_i × wPCS_i)
+//   MCS = 50 + Σ(z_i × wMCS_i)
+//
+// Recodificación: solo ítems 1 y 8 invertidos. Los demás entran con
+// codificación original. Los pesos incorporan la dirección de cada ítem.
 
 var _SF12_NORMS = {
     // mean and sd for each item (US 1998 norms, SF-12v2)
@@ -61252,23 +61256,27 @@ var _SF12_NORMS = {
     wMCS: [-0.03940, -0.07468, -0.09395, -0.03646, -0.04336, 0.26876, 0.26339, -0.18165, 0.23235, 0.10428, 0.23029, 0.14804]
 };
 
-// Recodificación SF-12v2: los ítems se recodifican para que mayor = mejor salud
-// Ítems que necesitan inversión: 1(ya ok: 1=excelente...5=mala → invertir),
-// 8(1=nada...5=mucho → invertir), 11(1=siempre...5=nunca → ok, ya ok)
-// Ítems 2,3: 1=mucho limite→3=no limite (ya ok: mayor=mejor)
-// Ítems 4,5,6,7: 1=siempre→5=nunca (mayor=mejor, ya ok: mayor=menos problema)
-// Ítems 9,10: 1=siempre→5=nunca (invertir: siempre calmado/energía = mejor)
+// Recodificación SF-12v2 para modelo abreviado (12 z-scores ponderados).
+// En este modelo, los coeficientes de regresión (wPCS/wMCS) y las normas
+// (mean/sd) asumen la codificación estándar donde SOLO los ítems 1 y 8
+// requieren inversión para que mayor = mejor salud.
+// Los ítems 9,10,11 NO se invierten: los pesos de regresión ya incorporan
+// su dirección. Invertirlos desalinearía los z-scores con los coeficientes.
+//
+// Codificación estándar tras recodificación:
+//   Ítem 1 (salud general): 1=Mala → 5=Excelente (INVERTIDO: original era 1=Excelente)
+//   Ítem 2 (limitación moderada): 1=Mucho → 3=Nada (sin cambio)
+//   Ítem 3 (limitación escaleras): 1=Mucho → 3=Nada (sin cambio)
+//   Ítems 4-7 (rol físico/emocional): 1=Siempre → 5=Nunca (sin cambio, mayor=menos problema)
+//   Ítem 8 (dolor): 1=Mucho → 5=Nada (INVERTIDO: original era 1=Nada)
+//   Ítems 9-12 (vitalidad, social, emocional, salud mental): sin cambio — pesos absorben dirección
 function _sf12_recodificar(raw) {
     var r = raw.slice();
-    // Invertir ítem 1: 1→5, 2→4, 3→3, 4→2, 5→1 (excelente=5...mala=1 → mayor=mejor)
+    // Invertir ítem 1: original 1=Excelente...5=Mala → recodificado 1=Mala...5=Excelente
     r[0] = 6 - r[0];
-    // Invertir ítem 8 (dolor): 1→5...5→1 (nada dolor=5 → mayor=mejor)
+    // Invertir ítem 8: original 1=Nada...5=Mucho → recodificado 1=Mucho...5=Nada
     r[7] = 6 - r[7];
-    // Invertir ítems 9,10 (calmado, energía): siempre=5 → mayor=mejor
-    r[8] = 6 - r[8];
-    r[9] = 6 - r[9];
-    // Invertir ítem 11 (desanimado): nunca=5 → mayor=mejor → ya ok (nunca=5)
-    // NO invertir 11: 1=siempre triste (peor) → 5=nunca triste (mejor) → ya ok
+    // Ítems 9,10,11,12: NO invertir — los pesos de regresión ya incorporan la dirección
     return r;
 }
 
