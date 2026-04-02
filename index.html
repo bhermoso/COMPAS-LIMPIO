@@ -60568,13 +60568,23 @@ function duke_simularCasos(callback) {
 function duke_resetSimulacion(mun) {
     mun = mun || ((typeof getMunicipioActual === 'function') ? getMunicipioActual() : null);
     if (!mun) { alert('Sin municipio activo.'); return; }
-    if (!confirm('¿Eliminar TODAS las respuestas Duke (reales y simuladas) de ' + mun + '?')) return;
-    if (typeof db !== 'undefined') {
-        db.ref('escalas_respuestas/duke/' + mun).remove().then(function() {
-            console.info('[Duke] Respuestas eliminadas para ' + mun);
+    if (!confirm('¿Eliminar respuestas SIMULADAS de Duke para ' + mun + '? Las respuestas reales se conservarán.')) return;
+    if (typeof db === 'undefined') return;
+    var ref = db.ref('escalas_respuestas/duke/' + mun);
+    ref.once('value', function(snap) {
+        var datos = snap.val();
+        if (!datos || typeof datos !== 'object') { abrirMonitorEscalas('duke'); return; }
+        var borrar = {};
+        Object.keys(datos).forEach(function(k) {
+            if (datos[k] && datos[k].fuente === 'simulacion') borrar[k] = null;
+        });
+        var nBorrar = Object.keys(borrar).length;
+        if (nBorrar === 0) { alert('No hay respuestas simuladas para borrar.'); return; }
+        ref.update(borrar).then(function() {
+            console.info('[Duke] ' + nBorrar + ' respuestas simuladas eliminadas para ' + mun);
             abrirMonitorEscalas('duke');
-        }).catch(function(e) { console.warn('[Duke] Error al eliminar:', e); });
-    }
+        }).catch(function(e) { console.warn('[Duke] Error al eliminar simulación:', e); });
+    });
 }
 
 // UI: info muestral + botón simular (se inserta en el cuestionario)
@@ -60722,7 +60732,7 @@ function _monitorDukeEstructurado(aggObj) {
     if (info.N && info.pob) {
         html += '<div style="margin-top:.35rem;display:flex;gap:.4rem;flex-wrap:wrap;">';
         html += '<button onclick="duke_simularCasos(function(){ var m=(typeof getMunicipioActual===\'function\')?getMunicipioActual():null; duke_agregarRespuestas(m,function(a){ var c=document.getElementById(\'monitor-escalas-contenido\'); if(c&&a&&a.total) c.innerHTML=_monitorDukeEstructurado(a); }); })" style="background:#b45309;color:white;border:none;border-radius:6px;padding:.3rem .65rem;font-size:.72rem;font-weight:600;cursor:pointer;">Simular ' + info.N + ' casos Duke</button>';
-        html += '<button onclick="duke_resetSimulacion()" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:6px;padding:.3rem .65rem;font-size:.72rem;font-weight:600;cursor:pointer;">Eliminar datos</button>';
+        html += '<button onclick="duke_resetSimulacion()" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:6px;padding:.3rem .65rem;font-size:.72rem;font-weight:600;cursor:pointer;">Eliminar simulación</button>';
         html += '<button onclick="cerrarMonitorEscalas();duke_abrirCuestionario();" style="background:#f59e0b;color:white;border:none;border-radius:6px;padding:.3rem .65rem;font-size:.72rem;font-weight:600;cursor:pointer;">Cuestionario individual</button>';
         html += '</div>';
     }
