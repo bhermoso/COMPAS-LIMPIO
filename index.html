@@ -48022,6 +48022,7 @@ function renderizarSeccionEstudios() {
                 '<div style="flex:1;">' + factBars + '</div>' +
             '</div>';
         var accionesIBSE =
+            '<button onclick="ibse_abrirCuestionario()" style="background:#667eea;color:white;border:none;border-radius:7px;padding:0.36rem 0.7rem;font-size:0.74rem;font-weight:600;cursor:pointer;">Cuestionario</button>' +
             '<label style="background:white;border:1px solid #e2e8f0;border-radius:7px;' +
             'padding:0.36rem 0.7rem;cursor:pointer;font-size:0.74rem;font-weight:600;color:#475569;">' +
             '<input type="file" accept=".csv" onchange="ibse_cargarCSV(this)" hidden>\ud83d\udcc1 Recargar CSV</label>' +
@@ -48047,7 +48048,8 @@ function renderizarSeccionEstudios() {
             estado:'Sin datos', estadoBg:'#f1f5f9', estadoFg:'#94a3b8',
             datoHtml:'',
             monitorFn:'ibseMonitor_abrir()',
-            accionesHtml:'<label style="background:white;border:1px solid #e2e8f0;border-radius:7px;' +
+            accionesHtml:'<button onclick="ibse_abrirCuestionario()" style="background:#667eea;color:white;border:none;border-radius:7px;padding:0.36rem 0.7rem;font-size:0.74rem;font-weight:600;cursor:pointer;">Cuestionario</button>' +
+                '<label style="background:white;border:1px solid #e2e8f0;border-radius:7px;' +
                 'padding:0.36rem 0.7rem;cursor:pointer;font-size:0.74rem;font-weight:600;color:#475569;">' +
                 '<input type="file" accept=".csv" onchange="ibse_cargarCSV(this)" hidden>\ud83d\udcc1 Cargar CSV REDCap</label>',
             detalleHtml:'Factores: V\u00ednculo \u00b7 Situaci\u00f3n \u00b7 Control \u00b7 Persona.<br>' +
