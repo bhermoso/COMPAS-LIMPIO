@@ -47487,6 +47487,7 @@ function abrirMonitorEscalas(escalaId) {
     } else if (escalaId === 'cage') {
         // CAGE: render directo en modal-monitor-escalas
         console.info('[Monitor CAGE] Rama CAGE alcanzada. Modal:', modal.id);
+        alert('[DEBUG] Monitor CAGE: rama alcanzada. Modal: ' + modal.id + '. Si ves este alert, el flujo es correcto.');
         var cfgC = {nombre:'CAGE',icon:'\uD83C\uDF77',grad:'linear-gradient(135deg,#ef4444,#b91c1c)',desc:'Cribado de consumo de riesgo de alcohol'};
         header.style.background = cfgC.grad;
         header.innerHTML = '<div style="flex:1;"><div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.15rem;"><span style="font-size:1.3rem;">' + cfgC.icon + '</span><span style="color:white;font-weight:700;font-size:1.05rem;">' + cfgC.nombre + '</span></div><div style="color:rgba(255,255,255,0.85);font-size:0.8rem;">' + cfgC.desc + '</div></div><button onclick="cerrarMonitorEscalas()" style="background:rgba(255,255,255,.2);border:none;color:white;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1.1rem;flex-shrink:0;">\u2715</button>';
