@@ -60683,8 +60683,25 @@ function _monitorDukeEstructurado(aggObj) {
     html += '<span style="font-size:.78rem;color:#475569;">con bajo apoyo social funcional (&lt;32) · n=' + agg.nBajo + '</span>';
     html += '</div>';
 
+    // Resumen de muestra (patrón IBSE)
+    var _nH = agg.porSexo.H.n, _nM = agg.porSexo.M.n;
+    var _nConSexo = _nH + _nM;
+    var _nConEdad = 0;
+    ['18-29','30-44','45-64','65-74','75+'].forEach(function(g) { _nConEdad += agg.porEdad[g].n; });
+    html += '<div style="font-size:.72rem;color:#64748b;margin-top:.5rem;margin-bottom:.4rem;font-weight:600;">Muestra</div>';
+    html += '<div style="font-size:.75rem;color:#475569;line-height:1.55;margin-bottom:.35rem;">';
+    html += '<strong>' + agg.n + '</strong> respuestas · con sexo: ' + _nConSexo + ' · con edad: ' + _nConEdad;
+    if (_nH > 0 && _nM > 0) {
+        var _mH = Math.round(agg.porSexo.H.sum / _nH * 10) / 10;
+        var _mM = Math.round(agg.porSexo.M.sum / _nM * 10) / 10;
+        var _brecha = Math.abs(_mH - _mM);
+        html += '<br>Hombres: ' + _mH.toFixed(1) + ' (n=' + _nH + ') · Mujeres: ' + _mM.toFixed(1) + ' (n=' + _nM + ')';
+        if (_brecha > 3) html += ' · <span style="color:#b45309;">Brecha: ' + _brecha.toFixed(1) + ' pts</span>';
+    }
+    html += '</div>';
+
     // Por sexo
-    html += '<div style="font-size:.72rem;color:#64748b;margin-bottom:.3rem;margin-top:.5rem;font-weight:600;">Por sexo</div>';
+    html += '<div style="font-size:.72rem;color:#64748b;margin-bottom:.3rem;font-weight:600;">Por sexo</div>';
     html += '<div style="display:flex;gap:.5rem;margin-bottom:.45rem;">';
     ['H','M'].forEach(function(sx) {
         var d = agg.porSexo[sx];
