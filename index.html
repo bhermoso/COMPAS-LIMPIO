@@ -47498,13 +47498,21 @@ function abrirMonitorEscalas(escalaId) {
                     contenido.innerHTML = _monitorCAGEEstructurado(aggObj);
                 } else {
                     var _metaC = _compasMetaEscala ? _compasMetaEscala('cage') : null;
+                    var _ciC = cage_obtenerInfoMuestral();
+                    var _cPob = _ciC.pobTotal ? _ciC.pobTotal.toLocaleString() + ' adultos' : 'no disponible';
+                    var _cN = _ciC.N || 'no calculable';
+                    var _cSim = (_ciC.N && _ciC.pob)
+                        ? '<button onclick="cage_simularCasos(function(){ abrirMonitorEscalas(\'cage\'); })" style="background:#b91c1c;color:white;border:none;border-radius:8px;padding:.6rem 1.25rem;font-size:.85rem;font-weight:600;cursor:pointer;">Simular ' + _ciC.N + ' casos</button>'
+                        : '';
                     contenido.innerHTML =
                         '<div style="padding:1.5rem;">' +
                             '<div style="font-size:.85rem;font-weight:700;color:#1e293b;margin-bottom:.6rem;">Monitor CAGE</div>' +
                             '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:.65rem .85rem;font-size:.78rem;color:#475569;margin-bottom:.75rem;line-height:1.55;">' +
                                 (_metaC ? _metaC.constructo + '. ' + _metaC.corte + '.<br><span style="font-size:.72rem;color:#94a3b8;">' + _metaC.referencia + '</span>' : 'Cribado de consumo de riesgo de alcohol.') +
                             '</div>' +
-                            '<div style="font-size:.82rem;color:#64748b;">Sin respuestas individuales para este municipio.</div>' +
+                            '<div style="font-size:.78rem;color:#64748b;margin-bottom:.5rem;">Población: ' + _cPob + ' · N mínima: ' + _cN + '</div>' +
+                            '<div style="font-size:.82rem;color:#64748b;margin-bottom:1rem;">Sin respuestas individuales para este municipio.</div>' +
+                            (_cSim ? '<div>' + _cSim + '</div>' : '') +
                         '</div>';
                 }
             });
@@ -47558,13 +47566,21 @@ function abrirMonitorEscalas(escalaId) {
                     contenido.innerHTML = _monitorPREDIMEDEstructurado(aggObj);
                 } else {
                     var _metaP = _compasMetaEscala ? _compasMetaEscala('predimed') : null;
+                    var _ciP = predimed_obtenerInfoMuestral();
+                    var _pPob = _ciP.pobTotal ? _ciP.pobTotal.toLocaleString() + ' adultos' : 'no disponible';
+                    var _pN = _ciP.N || 'no calculable';
+                    var _pSim = (_ciP.N && _ciP.pob)
+                        ? '<button onclick="predimed_simularCasos(function(){ abrirMonitorEscalas(\'predimed\'); })" style="background:#15803d;color:white;border:none;border-radius:8px;padding:.6rem 1.25rem;font-size:.85rem;font-weight:600;cursor:pointer;">Simular ' + _ciP.N + ' casos</button>'
+                        : '';
                     contenido.innerHTML =
                         '<div style="padding:1.5rem;">' +
                             '<div style="font-size:.85rem;font-weight:700;color:#1e293b;margin-bottom:.6rem;">Monitor PREDIMED</div>' +
                             '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:.65rem .85rem;font-size:.78rem;color:#475569;margin-bottom:.75rem;line-height:1.55;">' +
                                 (_metaP ? _metaP.constructo + '. ' + _metaP.corte + '.<br><span style="font-size:.72rem;color:#94a3b8;">' + _metaP.referencia + '</span>' : 'Adherencia a dieta mediterránea.') +
                             '</div>' +
-                            '<div style="font-size:.82rem;color:#64748b;">Sin respuestas individuales para este municipio.</div>' +
+                            '<div style="font-size:.78rem;color:#64748b;margin-bottom:.5rem;">Población: ' + _pPob + ' · N mínima: ' + _pN + '</div>' +
+                            '<div style="font-size:.82rem;color:#64748b;margin-bottom:1rem;">Sin respuestas individuales para este municipio.</div>' +
+                            (_pSim ? '<div>' + _pSim + '</div>' : '') +
                         '</div>';
                 }
             });
@@ -61584,6 +61600,120 @@ function _monitorSF12Estructurado(aggObj) {
 
     html += '</div>';
     return html;
+}
+
+// ── CAGE: info muestral + simulador + reset (patrón Duke) ─────────────
+function cage_obtenerInfoMuestral() {
+    var mun = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
+    var pob = (typeof compas_pob_obtener === 'function') ? compas_pob_obtener(mun) : null;
+    var N = (pob && pob.total > 0 && typeof compas_pob_calcularN === 'function') ? compas_pob_calcularN(mun) : null;
+    return { mun: mun, pob: pob, N: N, pobTotal: pob ? pob.total : null };
+}
+
+function cage_simularCasos(callback) {
+    var info = cage_obtenerInfoMuestral();
+    if (!info.mun) { alert('Selecciona un municipio.'); return; }
+    if (!info.N || !info.pob) { alert('No hay datos de población. Carga el padrón.'); return; }
+    var teor = (typeof sam_generarPiramideTeorica === 'function') ? sam_generarPiramideTeorica(info.pob, info.N) : null;
+    if (!teor) { alert('No se puede generar distribución teórica.'); return; }
+    var GR = ['18-29','30-44','45-64','65-74','75+'];
+    var eMin = {'18-29':18,'30-44':30,'45-64':45,'65-74':65,'75+':75};
+    var eMax = {'18-29':29,'30-44':44,'45-64':64,'65-74':74,'75+':89};
+    var casos = [];
+    GR.forEach(function(g) {
+        for (var i = 0; i < (teor.hombres[g]||0); i++) casos.push({sexo:'H',sexo_num:1,edad:eMin[g]+Math.floor(Math.random()*(eMax[g]-eMin[g]+1))});
+        for (var j = 0; j < (teor.mujeres[g]||0); j++) casos.push({sexo:'M',sexo_num:2,edad:eMin[g]+Math.floor(Math.random()*(eMax[g]-eMin[g]+1))});
+    });
+    // CAGE simulado: ~8% positivos (población general española)
+    function _sim() {
+        var r = {}; for (var i = 1; i <= 4; i++) r['cage_'+i] = Math.random() < 0.06 ? 1 : 0; return r;
+    }
+    if (typeof db === 'undefined') { alert('Firebase no disponible.'); return; }
+    var ref = db.ref('escalas_respuestas/cage/' + info.mun);
+    var batchObj = {}, simTs = Date.now().toString(36), ts = new Date().toISOString();
+    casos.forEach(function(c, i) {
+        var resp = _sim(); var calc = compas_calcularCAGE(resp);
+        var d = {}; Object.keys(resp).forEach(function(k) { d[k] = resp[k]; });
+        d.sexo = c.sexo; d.sexo_num = c.sexo_num; d.edad = c.edad;
+        d.timestamp = ts; d.municipio = info.mun; d.fuente = 'simulacion';
+        if (calc) { d.cage_positivos = calc.cage_positivos; d.riesgo = calc.riesgo; }
+        batchObj['sim_' + simTs + '_' + i] = d;
+    });
+    ref.update(batchObj).then(function() {
+        if (typeof callback === 'function') callback(casos.length);
+    }).catch(function(e) { console.warn('[CAGE] Error simulación:', e); });
+}
+
+function cage_resetSimulacion(mun) {
+    mun = mun || ((typeof getMunicipioActual === 'function') ? getMunicipioActual() : null);
+    if (!mun || typeof db === 'undefined') return;
+    if (!confirm('¿Eliminar respuestas SIMULADAS de CAGE para ' + mun + '?')) return;
+    var ref = db.ref('escalas_respuestas/cage/' + mun);
+    ref.once('value', function(snap) {
+        var datos = snap.val();
+        if (!datos) { abrirMonitorEscalas('cage'); return; }
+        var borrar = {};
+        Object.keys(datos).forEach(function(k) { if (datos[k] && datos[k].fuente === 'simulacion') borrar[k] = null; });
+        if (!Object.keys(borrar).length) { alert('No hay simuladas.'); return; }
+        ref.update(borrar).then(function() { abrirMonitorEscalas('cage'); });
+    });
+}
+
+// ── PREDIMED: info muestral + simulador + reset (patrón Duke) ─────────
+function predimed_obtenerInfoMuestral() {
+    var mun = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
+    var pob = (typeof compas_pob_obtener === 'function') ? compas_pob_obtener(mun) : null;
+    var N = (pob && pob.total > 0 && typeof compas_pob_calcularN === 'function') ? compas_pob_calcularN(mun) : null;
+    return { mun: mun, pob: pob, N: N, pobTotal: pob ? pob.total : null };
+}
+
+function predimed_simularCasos(callback) {
+    var info = predimed_obtenerInfoMuestral();
+    if (!info.mun) { alert('Selecciona un municipio.'); return; }
+    if (!info.N || !info.pob) { alert('No hay datos de población. Carga el padrón.'); return; }
+    var teor = (typeof sam_generarPiramideTeorica === 'function') ? sam_generarPiramideTeorica(info.pob, info.N) : null;
+    if (!teor) { alert('No se puede generar distribución teórica.'); return; }
+    var GR = ['18-29','30-44','45-64','65-74','75+'];
+    var eMin = {'18-29':18,'30-44':30,'45-64':45,'65-74':65,'75+':75};
+    var eMax = {'18-29':29,'30-44':44,'45-64':64,'65-74':74,'75+':89};
+    var casos = [];
+    GR.forEach(function(g) {
+        for (var i = 0; i < (teor.hombres[g]||0); i++) casos.push({sexo:'H',sexo_num:1,edad:eMin[g]+Math.floor(Math.random()*(eMax[g]-eMin[g]+1))});
+        for (var j = 0; j < (teor.mujeres[g]||0); j++) casos.push({sexo:'M',sexo_num:2,edad:eMin[g]+Math.floor(Math.random()*(eMax[g]-eMin[g]+1))});
+    });
+    // PREDIMED simulado: media ~7.5 (adherencia media población española)
+    function _sim() {
+        var r = {}; for (var i = 1; i <= 14; i++) r['pred_'+i] = Math.random() < 0.54 ? 1 : 0; return r;
+    }
+    if (typeof db === 'undefined') { alert('Firebase no disponible.'); return; }
+    var ref = db.ref('escalas_respuestas/predimed/' + info.mun);
+    var batchObj = {}, simTs = Date.now().toString(36), ts = new Date().toISOString();
+    casos.forEach(function(c, i) {
+        var resp = _sim(); var calc = compas_calcularPREDIMED(resp);
+        var d = {}; Object.keys(resp).forEach(function(k) { d[k] = resp[k]; });
+        d.sexo = c.sexo; d.sexo_num = c.sexo_num; d.edad = c.edad;
+        d.timestamp = ts; d.municipio = info.mun; d.fuente = 'simulacion';
+        if (calc) { d.pred_total = calc.pred_total; d.nivel = calc.nivel; }
+        batchObj['sim_' + simTs + '_' + i] = d;
+    });
+    ref.update(batchObj).then(function() {
+        if (typeof callback === 'function') callback(casos.length);
+    }).catch(function(e) { console.warn('[PREDIMED] Error simulación:', e); });
+}
+
+function predimed_resetSimulacion(mun) {
+    mun = mun || ((typeof getMunicipioActual === 'function') ? getMunicipioActual() : null);
+    if (!mun || typeof db === 'undefined') return;
+    if (!confirm('¿Eliminar respuestas SIMULADAS de PREDIMED para ' + mun + '?')) return;
+    var ref = db.ref('escalas_respuestas/predimed/' + mun);
+    ref.once('value', function(snap) {
+        var datos = snap.val();
+        if (!datos) { abrirMonitorEscalas('predimed'); return; }
+        var borrar = {};
+        Object.keys(datos).forEach(function(k) { if (datos[k] && datos[k].fuente === 'simulacion') borrar[k] = null; });
+        if (!Object.keys(borrar).length) { alert('No hay simuladas.'); return; }
+        ref.update(borrar).then(function() { abrirMonitorEscalas('predimed'); });
+    });
 }
 
 // ── Stub REDCap API (futuro) ──────────────────────────────────────────
