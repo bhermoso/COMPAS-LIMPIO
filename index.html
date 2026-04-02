@@ -59731,48 +59731,10 @@ function _cargarIBSEFirebase(municipio) {
 
     if (!municipio || typeof db === 'undefined') return;
 
-    db.ref('estrategias/' + estrategiaActual + '/municipios/' + municipio + '/ibseDatos')
-
-      .once('value', function(snap) {
-
-          // [GUARDIA AM] Descartar si el municipio activo cambió durante la carga.
-
-          if (getMunicipioActual() !== municipio) {
-
-              console.warn('[COMPÁS AM] _cargarIBSEFirebase: callback tardío para "' + municipio + '". Descartado.');
-
-              return;
-
-          }
-
-          var datos = snap.val();
-
-          if (datos && datos.n > 0) {
-
-              window.datosIBSE = datos;
-
-              // [AUSTERO] Sincronizacion automatica desactivada
-              // db.ref('ibse_monitor/' + municipio).once('value', function(snapMon) {
-              //     if (!snapMon.val()) db.ref('ibse_monitor/' + municipio).set(datos);
-              // });
-
-          } else {
-
-              window.datosIBSE = null;
-
-              // ibseDatos vacío: intentar reconstruir desde ibse_respuestas individuales
-
-              ibse_recalcularAgregado(municipio);
-
-              return;   // ibse_recalcularAgregado llama renderizarPanelIBSE al terminar
-
-          }
-
-          renderizarPanelIBSE();
-
-          if (typeof actualizarChecklistIA === 'function') actualizarChecklistIA();
-
-      });
+    // Siempre recalcular desde ibse_respuestas individuales para garantizar
+    // coherencia entre tarjeta, panel y monitor (todos usan la misma fuente).
+    // Antes se leía ibseDatos/{mun} (agregado potencialmente obsoleto).
+    ibse_recalcularAgregado(municipio);
 
 }
 
