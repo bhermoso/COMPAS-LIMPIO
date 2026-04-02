@@ -47990,9 +47990,9 @@ function renderizarSeccionEstudios() {
     var html = '<div style="padding:0.75rem;">';
 
     // ══ TARJETA 1 — IBSE ══════════════════════════════════════════════════
-    var ibseTieneDatos = window.datosIBSE && window.datosIBSE.ibse !== undefined;
+    var ibseTieneDatos = window.datosIBSE && (window.datosIBSE.ibse !== undefined || window.datosIBSE.media !== undefined);
     if (ibseTieneDatos) {
-        var sc  = Math.round(window.datosIBSE.ibse);
+        var sc  = Math.round(window.datosIBSE.ibse != null ? window.datosIBSE.ibse : window.datosIBSE.media);
         var n   = window.datosIBSE.n || '';
         var col = sc >= 70 ? '#16a34a' : sc >= 50 ? '#d97706' : '#dc2626';
         var bg  = sc >= 70 ? '#dcfce7' : sc >= 50 ? '#fef3c7' : '#fee2e2';
@@ -48000,7 +48000,7 @@ function renderizarSeccionEstudios() {
         var factBars = [{k:'vinculo',l:'V\u00ednculo'},{k:'situacion',l:'Situaci\u00f3n'},
                         {k:'control',l:'Control'},{k:'persona',l:'Persona'}]
             .map(function(f) {
-                var v = window.datosIBSE[f.k];
+                var v = window.datosIBSE[f.k] != null ? window.datosIBSE[f.k] : window.datosIBSE['factor' + f.k.charAt(0).toUpperCase() + f.k.slice(1)];
                 if (v == null) return '';
                 var p = Math.round(v);
                 return '<div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.1rem;">' +
