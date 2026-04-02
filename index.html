@@ -47485,31 +47485,29 @@ function abrirMonitorEscalas(escalaId) {
             contenido.innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;">Selecciona un municipio para ver datos Duke.</div>';
         }
     } else if (escalaId === 'cage') {
-        // CAGE: render directo en modal-monitor-escalas
-        console.info('[Monitor CAGE] Rama CAGE alcanzada. Modal:', modal.id);
+        // CAGE: patrón Duke — render directo, sin z-index forzado
+        var munC = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
         var cfgC = {nombre:'CAGE',icon:'\uD83C\uDF77',grad:'linear-gradient(135deg,#ef4444,#b91c1c)',desc:'Cribado de consumo de riesgo de alcohol'};
         header.style.background = cfgC.grad;
         header.innerHTML = '<div style="flex:1;"><div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.15rem;"><span style="font-size:1.3rem;">' + cfgC.icon + '</span><span style="color:white;font-weight:700;font-size:1.05rem;">' + cfgC.nombre + '</span></div><div style="color:rgba(255,255,255,0.85);font-size:0.8rem;">' + cfgC.desc + '</div></div><button onclick="cerrarMonitorEscalas()" style="background:rgba(255,255,255,.2);border:none;color:white;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1.1rem;flex-shrink:0;">\u2715</button>';
         contenido.innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;">Cargando datos CAGE...</div>';
         modal.style.display = 'block';
-        modal.style.zIndex = '100020';
-        var munC = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
         if (munC && typeof cage_agregarRespuestas === 'function') {
             cage_agregarRespuestas(munC, function(aggObj) {
                 if (aggObj && aggObj.total && aggObj.total.n > 0) {
                     contenido.innerHTML = _monitorCAGEEstructurado(aggObj);
                 } else {
-                    var _metaC = (typeof _compasMetaEscala === 'function') ? _compasMetaEscala('cage') : null;
+                    var _metaC = _compasMetaEscala ? _compasMetaEscala('cage') : null;
                     contenido.innerHTML =
                         '<div style="padding:1.5rem;">' +
-                            '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.5rem;">Monitor CAGE — Sin respuestas</div>' +
-                            '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:.65rem .85rem;font-size:.78rem;color:#475569;margin-bottom:.75rem;line-height:1.5;">' +
-                                (_metaC ? '<strong>Constructo:</strong> ' + _metaC.constructo + '<br>' : '') +
-                                (_metaC ? '<strong>Corte:</strong> ' + _metaC.corte + '<br>' : '') +
-                                (_metaC ? '<strong>Referencia:</strong> ' + _metaC.referencia : '') +
+                            '<div style="font-size:.85rem;font-weight:700;color:#1e293b;margin-bottom:.6rem;">Monitor CAGE</div>' +
+                            '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:.65rem .85rem;font-size:.78rem;color:#475569;margin-bottom:.75rem;line-height:1.55;">' +
+                                (_metaC ? _metaC.constructo + '. ' + _metaC.corte + '.<br><span style="font-size:.72rem;color:#94a3b8;">' + _metaC.referencia + '</span>' : 'Cribado de consumo de riesgo de alcohol.') +
                             '</div>' +
-                            '<div style="font-size:.82rem;color:#64748b;margin-bottom:1rem;">No hay respuestas individuales para este municipio.</div>' +
-                            '<button onclick="cage_abrirCuestionario();" style="background:white;border:1px solid #e2e8f0;color:#475569;border-radius:8px;padding:.5rem 1rem;font-size:.8rem;font-weight:600;cursor:pointer;">Abrir cuestionario CAGE</button>' +
+                            '<div style="font-size:.82rem;color:#64748b;margin-bottom:.75rem;">Sin respuestas individuales para este municipio.</div>' +
+                            '<div style="display:flex;gap:.4rem;flex-wrap:wrap;">' +
+                                '<button onclick="cage_abrirCuestionario()" style="background:white;border:1px solid #e2e8f0;color:#475569;border-radius:7px;padding:.4rem .85rem;font-size:.8rem;font-weight:600;cursor:pointer;">Registrar respuesta</button>' +
+                            '</div>' +
                         '</div>';
                 }
             });
@@ -47550,30 +47548,29 @@ function abrirMonitorEscalas(escalaId) {
             contenido.innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;">Selecciona un municipio.</div>';
         }
     } else if (escalaId === 'predimed') {
-        console.info('[Monitor PREDIMED] Rama PREDIMED alcanzada. Modal:', modal.id);
+        // PREDIMED: patrón Duke — render directo, sin z-index forzado
+        var munP = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
         var cfgP = {nombre:'PREDIMED',icon:'\uD83E\uDD57',grad:'linear-gradient(135deg,#22c55e,#15803d)',desc:'Adherencia a dieta mediterránea'};
         header.style.background = cfgP.grad;
         header.innerHTML = '<div style="flex:1;"><div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.15rem;"><span style="font-size:1.3rem;">' + cfgP.icon + '</span><span style="color:white;font-weight:700;font-size:1.05rem;">' + cfgP.nombre + '</span></div><div style="color:rgba(255,255,255,0.85);font-size:0.8rem;">' + cfgP.desc + '</div></div><button onclick="cerrarMonitorEscalas()" style="background:rgba(255,255,255,.2);border:none;color:white;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1.1rem;flex-shrink:0;">\u2715</button>';
         contenido.innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;">Cargando datos PREDIMED...</div>';
         modal.style.display = 'block';
-        modal.style.zIndex = '100020';
-        var munP = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
         if (munP && typeof predimed_agregarRespuestas === 'function') {
             predimed_agregarRespuestas(munP, function(aggObj) {
                 if (aggObj && aggObj.total && aggObj.total.n > 0) {
                     contenido.innerHTML = _monitorPREDIMEDEstructurado(aggObj);
                 } else {
-                    var _metaP = (typeof _compasMetaEscala === 'function') ? _compasMetaEscala('predimed') : null;
+                    var _metaP = _compasMetaEscala ? _compasMetaEscala('predimed') : null;
                     contenido.innerHTML =
                         '<div style="padding:1.5rem;">' +
-                            '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.5rem;">Monitor PREDIMED — Sin respuestas</div>' +
-                            '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:.65rem .85rem;font-size:.78rem;color:#475569;margin-bottom:.75rem;line-height:1.5;">' +
-                                (_metaP ? '<strong>Constructo:</strong> ' + _metaP.constructo + '<br>' : '') +
-                                (_metaP ? '<strong>Corte:</strong> ' + _metaP.corte + '<br>' : '') +
-                                (_metaP ? '<strong>Referencia:</strong> ' + _metaP.referencia : '') +
+                            '<div style="font-size:.85rem;font-weight:700;color:#1e293b;margin-bottom:.6rem;">Monitor PREDIMED</div>' +
+                            '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:.65rem .85rem;font-size:.78rem;color:#475569;margin-bottom:.75rem;line-height:1.55;">' +
+                                (_metaP ? _metaP.constructo + '. ' + _metaP.corte + '.<br><span style="font-size:.72rem;color:#94a3b8;">' + _metaP.referencia + '</span>' : 'Adherencia a dieta mediterránea.') +
                             '</div>' +
-                            '<div style="font-size:.82rem;color:#64748b;margin-bottom:1rem;">No hay respuestas individuales para este municipio. Registra respuestas con el cuestionario.</div>' +
-                            '<button onclick="cerrarMonitorEscalas();predimed_abrirCuestionario();" style="background:#22c55e;color:white;border:none;border-radius:8px;padding:.6rem 1.25rem;font-size:.85rem;font-weight:600;cursor:pointer;">Cuestionario PREDIMED</button>' +
+                            '<div style="font-size:.82rem;color:#64748b;margin-bottom:.75rem;">Sin respuestas individuales para este municipio.</div>' +
+                            '<div style="display:flex;gap:.4rem;flex-wrap:wrap;">' +
+                                '<button onclick="predimed_abrirCuestionario()" style="background:white;border:1px solid #e2e8f0;color:#475569;border-radius:7px;padding:.4rem .85rem;font-size:.8rem;font-weight:600;cursor:pointer;">Registrar respuesta</button>' +
+                            '</div>' +
                         '</div>';
                 }
             });
