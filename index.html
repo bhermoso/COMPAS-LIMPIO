@@ -47433,15 +47433,21 @@ var _monitorEscalasActualId = null;
 
 function abrirMonitorEscalas(escalaId) {
     _monitorEscalasActualId = escalaId;
+    // Cierre defensivo: ocultar todos los cuestionarios inline para evitar superposición
+    ['modal-sf12-cuestionario','modal-duke-cuestionario','modal-cage-cuestionario','modal-predimed-cuestionario','modal-escalas-diagnosticas'].forEach(function(id) {
+        var m = document.getElementById(id);
+        if (m) m.style.display = 'none';
+    });
     var modal = document.getElementById('modal-monitor-escalas');
-    if (!modal) return;
+    if (!modal) { console.error('[Monitor] modal-monitor-escalas NO encontrado en DOM'); return; }
     var mapaNombre = { sf12:'SF-12', duke:'Duke-UNC', cage:'CAGE', predimed:'PREDIMED' };
     var nombreEscala = mapaNombre[escalaId] || escalaId;
     var datos = null;
     _compasEscalasGet().forEach(function(e) { if (e.nombre_escala === nombreEscala) datos = e; });
     var header = document.getElementById('monitor-escalas-header');
     var contenido = document.getElementById('monitor-escalas-contenido');
-    if (!header || !contenido) return;
+    if (!header || !contenido) { console.error('[Monitor] header o contenido NO encontrado'); return; }
+    console.info('[Monitor] Abriendo monitor para: ' + escalaId);
 
     // Duke: datos estructurados individuales, sin fallback heredado
     if (escalaId === 'duke') {
