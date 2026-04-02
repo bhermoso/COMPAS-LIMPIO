@@ -47485,12 +47485,14 @@ function abrirMonitorEscalas(escalaId) {
             contenido.innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;">Selecciona un municipio para ver datos Duke.</div>';
         }
     } else if (escalaId === 'cage') {
-        // CAGE: render directo sin fallback heredado
+        // CAGE: render directo en modal-monitor-escalas
+        console.info('[Monitor CAGE] Rama CAGE alcanzada. Modal:', modal.id);
         var cfgC = {nombre:'CAGE',icon:'\uD83C\uDF77',grad:'linear-gradient(135deg,#ef4444,#b91c1c)',desc:'Cribado de consumo de riesgo de alcohol'};
         header.style.background = cfgC.grad;
         header.innerHTML = '<div style="flex:1;"><div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.15rem;"><span style="font-size:1.3rem;">' + cfgC.icon + '</span><span style="color:white;font-weight:700;font-size:1.05rem;">' + cfgC.nombre + '</span></div><div style="color:rgba(255,255,255,0.85);font-size:0.8rem;">' + cfgC.desc + '</div></div><button onclick="cerrarMonitorEscalas()" style="background:rgba(255,255,255,.2);border:none;color:white;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1.1rem;flex-shrink:0;">\u2715</button>';
         contenido.innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;">Cargando datos CAGE...</div>';
         modal.style.display = 'block';
+        modal.style.zIndex = '100020';
         var munC = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
         if (munC && typeof cage_agregarRespuestas === 'function') {
             cage_agregarRespuestas(munC, function(aggObj) {
@@ -47548,11 +47550,13 @@ function abrirMonitorEscalas(escalaId) {
             contenido.innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;">Selecciona un municipio.</div>';
         }
     } else if (escalaId === 'predimed') {
+        console.info('[Monitor PREDIMED] Rama PREDIMED alcanzada. Modal:', modal.id);
         var cfgP = {nombre:'PREDIMED',icon:'\uD83E\uDD57',grad:'linear-gradient(135deg,#22c55e,#15803d)',desc:'Adherencia a dieta mediterránea'};
         header.style.background = cfgP.grad;
         header.innerHTML = '<div style="flex:1;"><div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.15rem;"><span style="font-size:1.3rem;">' + cfgP.icon + '</span><span style="color:white;font-weight:700;font-size:1.05rem;">' + cfgP.nombre + '</span></div><div style="color:rgba(255,255,255,0.85);font-size:0.8rem;">' + cfgP.desc + '</div></div><button onclick="cerrarMonitorEscalas()" style="background:rgba(255,255,255,.2);border:none;color:white;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1.1rem;flex-shrink:0;">\u2715</button>';
         contenido.innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;">Cargando datos PREDIMED...</div>';
         modal.style.display = 'block';
+        modal.style.zIndex = '100020';
         var munP = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
         if (munP && typeof predimed_agregarRespuestas === 'function') {
             predimed_agregarRespuestas(munP, function(aggObj) {
@@ -47583,8 +47587,10 @@ function abrirMonitorEscalas(escalaId) {
 
     var btnEd = document.getElementById('monitor-escalas-btn-editar');
     if (btnEd) {
+        // Ocultar "Editar datos" para escalas con cuestionario real (no necesitan texto libre)
+        var _tienesCuestionarioReal = (escalaId === 'duke' || escalaId === 'cage' || escalaId === 'predimed' || escalaId === 'sf12');
+        btnEd.style.display = (!_tienesCuestionarioReal && datos) ? 'inline-block' : 'none';
         btnEd.onclick = function() { cerrarMonitorEscalas(); abrirModalEscalasDiagnosticas(escalaId); };
-        btnEd.style.display = datos ? 'inline-block' : 'none';
     }
 }
 
