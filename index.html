@@ -59642,25 +59642,25 @@ var ibseMonitor_cerrar = function(){ ibse_v2_cerrar(); };
 
 var IBSE_ITEMS_4 = [
 
-    { id: 'ibse_deprimido', texto: '¿Te has sentido deprimido/a o con el ánimo bajo?',  invertir: true  },
+    { id: 'ibse_deprimido', texto: 'Deprimido/a',  invertir: true  },
 
-    { id: 'ibse_feliz',     texto: '¿Te has sentido feliz o de buen humor?',             invertir: false },
+    { id: 'ibse_feliz',     texto: 'Feliz',             invertir: false },
 
-    { id: 'ibse_solo',      texto: '¿Te has sentido solo/a o aislado/a?',                invertir: true  },
+    { id: 'ibse_solo',      texto: 'Solo/a',                invertir: true  },
 
-    { id: 'ibse_disfrutar', texto: '¿Has podido disfrutar de las cosas que te gustan?', invertir: false }
+    { id: 'ibse_disfrutar', texto: 'Ha tenido la sensación de disfrutar de la vida', invertir: false }
 
 ];
 
 var IBSE_ITEMS_5 = [
 
-    { id: 'ibse_energia',   texto: 'Me he sentido con energía y vitalidad.',     invertir: false },
+    { id: 'ibse_energia',   texto: 'Rebosante de energía',     invertir: false },
 
-    { id: 'ibse_tranquilo', texto: 'Me he sentido tranquilo/a y relajado/a.',    invertir: false },
+    { id: 'ibse_tranquilo', texto: 'Tranquilo/a y relajado/a',    invertir: false },
 
-    { id: 'ibse_optimista', texto: 'Soy optimista respecto a mi futuro.',        invertir: true  },
+    { id: 'ibse_optimista', texto: 'Me he sentido optimista respecto a mi futuro',        invertir: true  },
 
-    { id: 'ibse_bienmismo', texto: 'En general me siento bien conmigo mismo/a.', invertir: true  }
+    { id: 'ibse_bienmismo', texto: 'Por lo general me he sentido bien conmigo mismo/a', invertir: true  }
 
 ];
 
@@ -60189,9 +60189,9 @@ function ibse_cerrarCuestionario() {
 
 function _ibse_renderItem(item, opciones) {
 
-    var labels4 = ['', 'Nunca', 'A veces', 'Frecuent.', 'Siempre'];
+    var labels4 = ['', 'En ningún momento o en casi ningún momento', 'En algún momento', 'Buena parte del tiempo', 'Todo o casi todo el tiempo'];
 
-    var labels5 = ['', 'Muy en desac.', 'En desac.', 'Ni sí ni no', 'De acuerdo', 'Muy de ac.'];
+    var labels5 = ['', 'Muy de acuerdo', 'De acuerdo', 'Ni de acuerdo ni en desacuerdo', 'En desacuerdo', 'Muy en desacuerdo'];
 
     var labels  = opciones.length === 4 ? labels4 : labels5;
 
