@@ -47462,6 +47462,22 @@ function abrirMonitorEscalas(escalaId) {
             duke_agregarRespuestas(mun, function(aggObj) {
                 if (aggObj && aggObj.total && aggObj.total.n > 0) {
                     contenido.innerHTML = _monitorDukeEstructurado(aggObj);
+                    // SAM post-render: delegar al motor común (patrón IBSE)
+                    if (typeof sam_renderMonitorMuestra === 'function' && aggObj.total.porSexoEdad) {
+                        var _dPob = (typeof sam_obtenerPoblacion === 'function') ? sam_obtenerPoblacion() : null;
+                        var _dN = (typeof compas_pob_calcularN === 'function' && _dPob) ? compas_pob_calcularN(mun) : null;
+                        if (_dPob && _dN) {
+                            var _dMuestra = {hombres:{}, mujeres:{}};
+                            ['18-29','30-44','45-64','65-74','75+'].forEach(function(g) {
+                                _dMuestra.hombres[g] = aggObj.total.porSexoEdad[g].H.n;
+                                _dMuestra.mujeres[g] = aggObj.total.porSexoEdad[g].M.n;
+                            });
+                            var _dDemo = !!(aggObj.simulado && aggObj.simulado.n > 0 && !aggObj.real);
+                            requestAnimationFrame(function() {
+                                sam_renderMonitorMuestra('duke-sam-container', _dPob, _dMuestra, _dN, _dDemo, aggObj.total.n);
+                            });
+                        }
+                    }
                 } else {
                     var _di = duke_obtenerInfoMuestral();
                     var _pobTxt = _di.pobTotal ? _di.pobTotal.toLocaleString() + ' adultos' : 'no disponible';
@@ -60657,35 +60673,27 @@ function _monitorDukeEstructurado(aggObj) {
     var agg = aggObj.real || aggObj.total; // prioriza real si existe
     if (!agg) return '';
     var meta = _compasMetaEscala('duke');
-    var col = agg.media >= 40 ? '#16a34a' : agg.media >= 32 ? '#d97706' : '#dc2626';
-    var lbl = agg.media >= 40 ? 'Apoyo adecuado' : agg.media >= 32 ? 'Apoyo moderado' : 'Apoyo bajo';
-    var barPct = Math.max(0, Math.min(100, ((agg.media - 11) / 44) * 100));
-    var cutPct = ((32 - 11) / 44) * 100;
+    var nivelCol = agg.media >= 40 ? '#166534' : agg.media >= 32 ? '#854d0e' : '#dc2626';
+    var nivel = agg.media >= 40 ? 'apoyo adecuado' : agg.media >= 32 ? 'apoyo moderado' : 'apoyo bajo';
 
     var html = '<div style="margin-bottom:.9rem;">';
+
+    // Cabecera (patrón IBSE)
     html += '<div style="margin-bottom:.8rem;font-size:.78rem;color:#64748b;">n = <strong style="color:#1e293b;">' + agg.n + '</strong> respuestas</div>';
 
-    // Barra principal
-    html += '<div style="background:' + (agg.media >= 40 ? '#dcfce7' : agg.media >= 32 ? '#fef3c7' : '#fee2e2') + ';border:1px solid ' + col + '30;border-radius:8px;padding:.6rem .85rem;margin-bottom:.45rem;">';
-    html += '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.3rem;">';
-    html += '<span style="font-size:.77rem;font-weight:600;color:#475569;">Puntuación total media</span>';
-    html += '<div style="display:flex;align-items:baseline;gap:.25rem;">';
-    html += '<span style="font-size:1.4rem;font-weight:800;color:' + col + ';">' + agg.media.toFixed(1) + '</span>';
-    html += '<span style="font-size:.68rem;color:' + col + ';opacity:.7;">/55</span>';
-    html += '<span style="font-size:.65rem;background:' + col + ';color:white;padding:.07rem .32rem;border-radius:999px;margin-left:.25rem;">' + lbl + '</span>';
-    html += '</div></div>';
-    html += '<div style="position:relative;height:6px;background:#e5e7eb;border-radius:3px;">';
-    html += '<div style="height:100%;width:' + barPct + '%;background:' + col + ';border-radius:3px;"></div>';
-    html += '<div style="position:absolute;top:-3px;left:' + cutPct + '%;width:2px;height:12px;background:#ef4444;border-radius:1px;"></div>';
+    // Resultado principal (patrón IBSE: score grande + nivel)
+    html += '<div style="margin-bottom:1.2rem;">';
+    html += '<div style="display:flex;align-items:baseline;gap:.5rem;margin-bottom:.6rem;">';
+    html += '<span style="font-size:2rem;font-weight:900;color:' + nivelCol + ';">' + agg.media.toFixed(1) + '</span>';
+    html += '<span style="font-size:.85rem;color:#64748b;">/ 55</span>';
+    html += '<span style="font-size:.8rem;font-weight:600;color:' + nivelCol + ';margin-left:.3rem;">' + nivel + '</span>';
     html += '</div>';
-    html += '<div style="display:flex;justify-content:space-between;font-size:.62rem;color:#94a3b8;margin-top:.18rem;"><span>11</span><span style="color:#ef4444;">Corte: 32</span><span>55</span></div>';
     html += '</div>';
 
     // % bajo apoyo
     var pctCol = agg.pctBajo > 30 ? '#dc2626' : agg.pctBajo > 15 ? '#d97706' : '#16a34a';
-    html += '<div style="display:flex;align-items:center;gap:.75rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:.5rem .85rem;margin-bottom:.45rem;">';
-    html += '<span style="font-size:1.5rem;font-weight:800;color:' + pctCol + ';">' + agg.pctBajo.toFixed(0) + '%</span>';
-    html += '<span style="font-size:.78rem;color:#475569;">con bajo apoyo social funcional (&lt;32) · n=' + agg.nBajo + '</span>';
+    html += '<div style="font-size:.78rem;color:#475569;margin-bottom:.45rem;">';
+    html += '<strong style="color:' + pctCol + ';">' + agg.pctBajo.toFixed(0) + '%</strong> con bajo apoyo social funcional (&lt;32) · n=' + agg.nBajo;
     html += '</div>';
 
     // Resumen de muestra (patrón IBSE)
@@ -60814,115 +60822,22 @@ function _monitorDukeEstructurado(aggObj) {
                 html += '</div>';
             }
 
-            // Ajuste muestral (SAM) — lógica comparativa estática
-            var _samTeor = (typeof sam_generarPiramideTeorica === 'function') ? sam_generarPiramideTeorica(_pobSAM, _nObjD) : null;
-            if (_samTeor) {
-                var _samInfra = [], _samSobre = [], _sumDpp = 0, _nDpp = 0, _nDentro = 0;
-                _GR.forEach(function(g) {
-                    ['H','M'].forEach(function(sx) {
-                        var s = sx === 'H' ? 'hombres' : 'mujeres';
-                        var cons = agg.porSexoEdad[g][sx].n;
-                        var teor = _samTeor[s][g] || 0;
-                        if (teor === 0) return;
-                        var dAbs = cons - teor;
-                        var dPp = ((cons - teor) / _nObjD) * 100;
-                        _sumDpp += Math.abs(dPp);
-                        _nDpp++;
-                        if (Math.abs(dPp) <= 2) _nDentro++;
-                        var sym = sx === 'H' ? '\u2642' : '\u2640';
-                        if (dAbs < -Math.max(1, teor * 0.25)) _samInfra.push(sym + ' ' + g + ' (' + dPp.toFixed(1) + ' pp)');
-                        else if (dAbs > Math.max(1, teor * 0.25)) _samSobre.push(sym + ' ' + g + ' (+' + dPp.toFixed(1) + ' pp)');
-                    });
-                });
-                var _errMedio = _nDpp > 0 ? (_sumDpp / _nDpp) : 0;
-                var _pctDentro = _nDpp > 0 ? Math.round(_nDentro / _nDpp * 100) : 0;
-                var _calSAM = _errMedio < 2 ? 'ALTA' : _errMedio < 5 ? 'MODERADA' : 'BAJA';
-                var _calCol = _errMedio < 2 ? '#16a34a' : _errMedio < 5 ? '#d97706' : '#dc2626';
-                html += '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-top:.5rem;margin-bottom:.3rem;">Ajuste muestral (SAM)</div>';
-                var _progPct = Math.min(100, Math.round(agg.n / _nObjD * 100));
-                html += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem;">';
-                html += '<div style="font-size:.68rem;color:#1e293b;font-weight:700;">Progreso</div>';
-                html += '<div style="flex:1;height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;"><div style="height:100%;width:' + _progPct + '%;background:#3b82f6;border-radius:3px;"></div></div>';
-                html += '<div style="font-size:.68rem;color:#3b82f6;font-weight:700;">' + agg.n + ' / ' + _nObjD + '</div></div>';
-                html += '<div style="font-size:.7rem;color:#475569;margin-bottom:.3rem;">Calidad <strong style="color:' + _calCol + ';">' + _calSAM + '</strong> · Error medio: ' + _errMedio.toFixed(2) + ' pp · ' + _pctDentro + '% dentro de \u00b12 pp</div>';
-                if (_samInfra.length) html += '<div style="font-size:.68rem;color:#ef4444;margin-bottom:.15rem;">\u25bc Infra: ' + _samInfra.join(', ') + '</div>';
-                if (_samSobre.length) html += '<div style="font-size:.68rem;color:#f97316;margin-bottom:.15rem;">\u25b2 Sobre: ' + _samSobre.join(', ') + '</div>';
-                html += '<div style="overflow-x:auto;margin-top:.3rem;"><table style="width:100%;border-collapse:collapse;font-size:.68rem;">';
-                html += '<thead><tr><th style="padding:.2rem .35rem;text-align:left;color:#475569;border-bottom:1px solid #e2e8f0;">Grupo</th><th style="padding:.2rem .35rem;text-align:right;color:#5b8dd9;border-bottom:1px solid #e2e8f0;">Teórico</th><th style="padding:.2rem .35rem;text-align:right;color:#10b981;border-bottom:1px solid #e2e8f0;">Cons.</th><th style="padding:.2rem .35rem;text-align:right;color:#64748b;border-bottom:1px solid #e2e8f0;">\u0394 abs</th><th style="padding:.2rem .35rem;text-align:right;color:#64748b;border-bottom:1px solid #e2e8f0;">\u0394 pp</th></tr></thead><tbody>';
-                _GR.forEach(function(g) {
-                    ['H','M'].forEach(function(sx) {
-                        var s = sx === 'H' ? 'hombres' : 'mujeres';
-                        var teor = _samTeor[s][g] || 0;
-                        var cons = agg.porSexoEdad[g][sx].n;
-                        var dAbs = cons - teor;
-                        var dPp = _nObjD > 0 ? ((cons - teor) / _nObjD * 100) : 0;
-                        var difCol = dAbs < 0 ? '#ef4444' : dAbs > 0 ? '#d97706' : '#64748b';
-                        html += '<tr style="border-bottom:1px solid #f8fafc;"><td style="padding:.18rem .35rem;">' + (sx === 'H' ? '\u2642' : '\u2640') + ' ' + g + '</td><td style="padding:.18rem .35rem;text-align:right;color:#5b8dd9;">' + teor + '</td><td style="padding:.18rem .35rem;text-align:right;color:#10b981;">' + cons + '</td><td style="padding:.18rem .35rem;text-align:right;color:' + difCol + ';font-weight:700;">' + (dAbs >= 0 ? '+' : '') + dAbs + '</td><td style="padding:.18rem .35rem;text-align:right;color:' + difCol + ';">' + dPp.toFixed(1) + ' pp</td></tr>';
-                    });
-                });
-                html += '</tbody></table></div>';
-
-                // Pirámide comparativa estática (patrón IBSE: 3 capas por fila)
-                var _maxPctP = 0.1;
-                var _pctPob = {hombres:{},mujeres:{}}, _pctTeor = {hombres:{},mujeres:{}}, _pctCons = {hombres:{},mujeres:{}};
-                _GR.forEach(function(g) {
-                    ['hombres','mujeres'].forEach(function(s) {
-                        _pctPob[s][g] = (_pobSAM[s][g] / _pobSAM.total) * 100;
-                        _pctTeor[s][g] = (_samTeor[s][g] / Math.max(_nObjD,1)) * 100;
-                        var sx = s === 'hombres' ? 'H' : 'M';
-                        _pctCons[s][g] = (agg.porSexoEdad[g][sx].n / Math.max(_nObjD,1)) * 100;
-                        if (_pctPob[s][g] > _maxPctP) _maxPctP = _pctPob[s][g];
-                        if (_pctTeor[s][g] > _maxPctP) _maxPctP = _pctTeor[s][g];
-                        if (_pctCons[s][g] > _maxPctP) _maxPctP = _pctCons[s][g];
-                    });
-                });
-                html += '<div style="margin-top:.5rem;margin-bottom:.3rem;">';
-                html += '<div style="font-size:.72rem;font-weight:600;color:#64748b;margin-bottom:.15rem;">Distribución proporcional por sexo y edad</div>';
-                html += '<div style="font-size:.6rem;color:#94a3b8;margin-bottom:.3rem;">Comparación de estructura (% relativo). No representa volumen absoluto.</div>';
-                // Leyenda
-                html += '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.35rem;font-size:.58rem;color:#475569;">';
-                html += '<span style="display:flex;align-items:center;gap:2px;"><span style="display:inline-block;width:11px;height:8px;background:#cbd5e1;opacity:.5;border-radius:1px;"></span>Pob. (' + _pobSAM.total.toLocaleString() + ')</span>';
-                html += '<span style="display:flex;align-items:center;gap:2px;"><span style="display:inline-block;width:11px;height:6px;background:#3b82f6;border-radius:1px;opacity:.7;"></span>Teórico (N=' + _nObjD + ')</span>';
-                html += '<span style="display:flex;align-items:center;gap:2px;"><span style="display:inline-block;width:11px;height:4px;background:#16a34a;border-radius:1px;"></span>Conseguido (n=' + agg.n + ')</span></div>';
-                // Header
-                html += '<div style="display:flex;gap:3px;margin-bottom:2px;">';
-                html += '<div style="flex:1;text-align:right;font-size:.56rem;color:#94a3b8;">H \u2642</div>';
-                html += '<div style="width:30px;"></div>';
-                html += '<div style="flex:1;font-size:.56rem;color:#94a3b8;">M \u2640</div></div>';
-                // Filas (de mayor a menor edad)
-                _GR.slice().reverse().forEach(function(g) {
-                    // Población: +8% bonus visual para que siempre envuelva las capas interiores
-                    var wPH = Math.min(100, Math.round(_pctPob.hombres[g] / _maxPctP * 100) + 8);
-                    var wTH = Math.round(_pctTeor.hombres[g] / _maxPctP * 100);
-                    var wCH = Math.round(_pctCons.hombres[g] / _maxPctP * 100);
-                    var wPM = Math.min(100, Math.round(_pctPob.mujeres[g] / _maxPctP * 100) + 8);
-                    var wTM = Math.round(_pctTeor.mujeres[g] / _maxPctP * 100);
-                    var wCM = Math.round(_pctCons.mujeres[g] / _maxPctP * 100);
-                    // Color dinámico por estado (patrón IBSE: ok=verde, infra=rojo, sobre=naranja)
-                    var _tH = _samTeor.hombres[g]||0, _cH = agg.porSexoEdad[g].H.n;
-                    var _tM = _samTeor.mujeres[g]||0, _cM = agg.porSexoEdad[g].M.n;
-                    var _mrgH = Math.max(1, _tH * 0.25), _mrgM = Math.max(1, _tM * 0.25);
-                    var _colH = _tH===0?'#94a3b8':(_cH-_tH)<-_mrgH?'#ef4444':(_cH-_tH)>_mrgH?'#f97316':'#16a34a';
-                    var _colM = _tM===0?'#94a3b8':(_cM-_tM)<-_mrgM?'#ef4444':(_cM-_tM)>_mrgM?'#f97316':'#16a34a';
-                    html += '<div style="display:flex;align-items:center;gap:3px;margin-bottom:5px;">';
-                    // H side — patrón IBSE _sam_barraRow (color dinámico)
-                    html += '<div style="flex:1;position:relative;height:20px;overflow:hidden;display:flex;justify-content:flex-end;">';
-                    html += '<div style="position:absolute;right:0;top:2px;height:16px;width:' + wPH + '%;background:#d1d5db;opacity:0.4;border-radius:2px 0 0 2px;z-index:1;"></div>';
-                    html += '<div style="position:absolute;right:0;top:5px;height:10px;width:' + wTH + '%;background:#3b82f6;border-radius:2px 0 0 2px;z-index:2;opacity:0.7;"></div>';
-                    html += '<div style="position:absolute;right:0;top:6px;height:8px;width:' + wCH + '%;background:' + _colH + ';border-radius:2px 0 0 2px;z-index:3;"></div>';
-                    html += '</div>';
-                    // Label
-                    html += '<div style="width:32px;text-align:center;font-size:0.59rem;color:#64748b;font-weight:700;flex-shrink:0;">' + g + '</div>';
-                    // M side — patrón IBSE _sam_barraRow (color dinámico)
-                    html += '<div style="flex:1;position:relative;height:20px;overflow:hidden;">';
-                    html += '<div style="position:absolute;left:0;top:2px;height:16px;width:' + wPM + '%;background:#e5e7eb;opacity:0.4;border-radius:0 2px 2px 0;z-index:1;"></div>';
-                    html += '<div style="position:absolute;left:0;top:5px;height:10px;width:' + wTM + '%;background:#60a5fa;border-radius:0 2px 2px 0;z-index:2;opacity:0.7;"></div>';
-                    html += '<div style="position:absolute;left:0;top:6px;height:8px;width:' + wCM + '%;background:' + _colM + ';border-radius:0 2px 2px 0;z-index:3;"></div>';
-                    html += '</div>';
-                    html += '</div>';
-                });
-                html += '</div>';
-            }
+            // Ajuste muestral (SAM) — delegado al motor SAM común (patrón IBSE)
+            var _dukeSamMuestra = {hombres:{}, mujeres:{}};
+            _GR.forEach(function(g) {
+                _dukeSamMuestra.hombres[g] = agg.porSexoEdad[g].H.n;
+                _dukeSamMuestra.mujeres[g] = agg.porSexoEdad[g].M.n;
+            });
+            var _dukeEsDemo = !!(aggObj.simulado && aggObj.simulado.n > 0 && !aggObj.real);
+            html += '<div class="acordeon-item abierto" style="margin-bottom:1rem;">' +
+                '<div class="acordeon-header" onclick="toggleAcordeon(this)" style="padding:.6rem 1rem;font-size:.85rem;">' +
+                    '<span>Ajuste muestral (SAM)</span>' +
+                    '<span class="flecha">\u25bc</span>' +
+                '</div>' +
+                '<div class="acordeon-contenido" style="padding:.85rem 1rem;">' +
+                    '<div id="duke-sam-container"><div style="font-size:.75rem;color:#94a3b8;">Cargando ajuste muestral...</div></div>' +
+                '</div>' +
+            '</div>';
         }
     }
 
@@ -60971,7 +60886,7 @@ function _monitorDukeEstructurado(aggObj) {
     // Botón simular + cuestionario (dentro de cobertura)
     if (info.N && info.pob) {
         html += '<div style="margin-top:.35rem;display:flex;gap:.4rem;flex-wrap:wrap;">';
-        html += '<button onclick="duke_simularCasos(function(){ var m=(typeof getMunicipioActual===\'function\')?getMunicipioActual():null; duke_agregarRespuestas(m,function(a){ var c=document.getElementById(\'monitor-escalas-contenido\'); if(c&&a&&a.total) c.innerHTML=_monitorDukeEstructurado(a); }); })" style="background:#b45309;color:white;border:none;border-radius:6px;padding:.3rem .65rem;font-size:.72rem;font-weight:600;cursor:pointer;">Simular ' + info.N + ' casos Duke</button>';
+        html += '<button onclick="duke_simularCasos(function(){ abrirMonitorEscalas(\'duke\'); })" style="background:#b45309;color:white;border:none;border-radius:6px;padding:.3rem .65rem;font-size:.72rem;font-weight:600;cursor:pointer;">Simular ' + info.N + ' casos Duke</button>';
         html += '<button onclick="duke_resetSimulacion()" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:6px;padding:.3rem .65rem;font-size:.72rem;font-weight:600;cursor:pointer;">Eliminar simulación</button>';
         html += '<button onclick="cerrarMonitorEscalas();duke_abrirCuestionario();" style="background:#f59e0b;color:white;border:none;border-radius:6px;padding:.3rem .65rem;font-size:.72rem;font-weight:600;cursor:pointer;">Cuestionario individual</button>';
         html += '</div>';
