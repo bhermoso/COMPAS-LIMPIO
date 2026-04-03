@@ -61179,7 +61179,7 @@ function _monitorCAGEEstructurado(aggObj) {
     var _nConSexoC = _nHC + _nMC;
     var _nConEdadC = 0;
     ['18-29','30-44','45-64','65-74','75+'].forEach(function(g) { _nConEdadC += agg.porEdad[g].n; });
-    html += '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-top:.5rem;margin-bottom:.4rem;">Muestra</div>';
+    html += '<div style="font-size:.72rem;color:#64748b;margin-top:.5rem;margin-bottom:.4rem;font-weight:600;">Muestra</div>';
     html += '<div style="font-size:.75rem;color:#475569;line-height:1.55;margin-bottom:.35rem;">';
     html += '<strong>' + agg.n + '</strong> respuestas · con sexo: ' + _nConSexoC + ' · con edad: ' + _nConEdadC;
     if (_nHC > 0 && _nMC > 0) {
@@ -61434,7 +61434,7 @@ function _monitorPREDIMEDEstructurado(aggObj) {
     var _nConSexoP = _nHP + _nMP;
     var _nConEdadP = 0;
     ['18-29','30-44','45-64','65-74','75+'].forEach(function(g) { _nConEdadP += agg.porEdad[g].n; });
-    html += '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-top:.5rem;margin-bottom:.4rem;">Muestra</div>';
+    html += '<div style="font-size:.72rem;color:#64748b;margin-top:.5rem;margin-bottom:.4rem;font-weight:600;">Muestra</div>';
     html += '<div style="font-size:.75rem;color:#475569;line-height:1.55;margin-bottom:.35rem;">';
     html += '<strong>' + agg.n + '</strong> respuestas · con sexo: ' + _nConSexoP + ' · con edad: ' + _nConEdadP;
     if (_nHP > 0 && _nMP > 0) {
@@ -61816,7 +61816,7 @@ function _monitorSF12Estructurado(aggObj) {
     var _nConSexoS = _nHS + _nMS;
     var _nConEdadS = 0;
     ['18-29','30-44','45-64','65-74','75+'].forEach(function(g) { _nConEdadS += agg.porEdad[g].n; });
-    html += '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-top:.5rem;margin-bottom:.4rem;">Muestra</div>';
+    html += '<div style="font-size:.72rem;color:#64748b;margin-top:.5rem;margin-bottom:.4rem;font-weight:600;">Muestra</div>';
     html += '<div style="font-size:.75rem;color:#475569;line-height:1.55;margin-bottom:.35rem;">';
     html += '<strong>' + agg.n + '</strong> respuestas · con sexo: ' + _nConSexoS + ' · con edad: ' + _nConEdadS;
     if (_nHS > 0 && _nMS > 0) {
@@ -61871,7 +61871,7 @@ function _monitorSF12Estructurado(aggObj) {
     // Referencia
     // Cobertura muestral
     var info = sf12_obtenerInfoMuestral();
-    html += '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-top:.5rem;margin-bottom:.4rem;">Cobertura muestral</div>';
+    html += '<div style="font-size:.72rem;color:#475569;margin-top:.5rem;margin-bottom:.4rem;font-weight:600;">Cobertura muestral</div>';
     html += '<div style="font-size:.7rem;color:#64748b;line-height:1.5;margin-bottom:.4rem;">';
     html += 'Población: ' + (info.pobTotal ? info.pobTotal.toLocaleString() + ' adultos' : 'no disponible') + '<br>';
     html += 'N mínima: ' + (info.N || 'no calculable') + '<br>';
