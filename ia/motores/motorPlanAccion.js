@@ -354,6 +354,25 @@ function _normalizarPropuesta(resultado, contextoIA, fuentesUsadas, aa) {
         return { sinDatos: true, mensaje: 'La propuesta está vacía. Puede que falten datos o la estructura EPVSA no esté disponible.' };
     }
 
+    // Capturar IDs de la propuesta upstream real (síntesis) antes de cualquier transformación de plan
+    const _propuestaUpstream =
+        (typeof window !== 'undefined' &&
+         window.__ultimaSalidaMotorSintesis &&
+         window.__ultimaSalidaMotorSintesis.datos &&
+         Array.isArray(window.__ultimaSalidaMotorSintesis.datos.propuestaEPVSA) &&
+         window.__ultimaSalidaMotorSintesis.datos.propuestaEPVSA.length > 0)
+            ? window.__ultimaSalidaMotorSintesis.datos.propuestaEPVSA
+        : (contextoIA && contextoIA.analisisPrevio &&
+           Array.isArray(contextoIA.analisisPrevio.propuestaEPVSA) &&
+           contextoIA.analisisPrevio.propuestaEPVSA.length > 0)
+            ? contextoIA.analisisPrevio.propuestaEPVSA
+        : (contextoIA &&
+           Array.isArray(contextoIA.propuestaEPVSA) &&
+           contextoIA.propuestaEPVSA.length > 0)
+            ? contextoIA.propuestaEPVSA
+        : propuestaEPVSA;
+    const _lineaIdsEntrada = _propuestaUpstream.map(p => p.lineaId);
+
     // ── Enriquecimiento salutogénico ───────────────────────────────────────
     propuestaEPVSA = _enriquecerPropuestaSalutogenica(propuestaEPVSA, aa);
 
@@ -385,18 +404,25 @@ function _normalizarPropuesta(resultado, contextoIA, fuentesUsadas, aa) {
         aa
     );
 
+    // ── Restricción estricta: salida acotada exactamente a IDs de entrada ────
+    // Ninguna transformación interna puede añadir líneas no presentes en entrada.
+    const _mapaFinal = {};
+    propuestaEPVSA.forEach(p => { _mapaFinal[p.lineaId] = p; });
+    const _lineasAcotadas = _lineaIdsEntrada.map(id => _mapaFinal[id]).filter(Boolean);
+
     // ── Acciones sugeridas ─────────────────────────────────────────────────
-    const accionesSugeridas = _extraerAccionesSugeridas(propuestaEPVSA);
+    const accionesSugeridas = _extraerAccionesSugeridas(_lineasAcotadas);
 
     return {
-        lineasPropuestas:    propuestaEPVSA,
+        lineasPropuestas:    _lineasAcotadas,
         seleccionNormalizada,
         lineasActivas,
-        nLineas:             lineasActivas.length,
+        nLineas:             _lineasAcotadas.length,
         justificacionGlobal,
         fuentesUsadas,
         accionesSugeridas,
         nAccionesSugeridas:  accionesSugeridas.length,
+        lineaIdsEntrada:     _lineaIdsEntrada,
         analisisBase:        contextoIA.analisisPrevio || null,
         // Referencia al objeto salutogénico usado
         analisisAccionableResumen: aa ? {

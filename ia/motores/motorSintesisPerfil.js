@@ -74,15 +74,18 @@ import { calcularScoreSFA } from '../modeloSFA.js';
  * @returns {object} Analisis plano o { sinDatos: true, razon: string }
  */
 function _calcularAnalisisModular(contextoIA) {
-    const cmi  = contextoIA.cuadroMandos;
-    const f    = contextoIA.fuentes || {};
-    const nDet = Object.keys(contextoIA.determinantes || {}).length;
+    const cmi            = contextoIA.cuadroMandos;
+    const f              = contextoIA.fuentes || {};
+    const nDet           = Object.keys(contextoIA.determinantes || {}).length;
+    const nEst           = (contextoIA.estudiosComplementarios || []).length;
+    const hayInforme     = !!(contextoIA.informe);
+    const hayParticipacion = !!(contextoIA.participacion);
 
-    // Guard: necesitamos al menos CMI o determinantes para producir algo útil
-    if (!cmi && nDet === 0) {
+    // Guard: sin ninguna fuente sustantiva → fallback al motor heredado
+    if (!cmi && nDet === 0 && !hayInforme && !hayParticipacion && nEst === 0) {
         return {
             sinDatos: true,
-            razon: 'Sin Cuadro de Mandos Integral ni determinantes EAS. Activando fallback al motor heredado.',
+            razon: 'Sin ninguna fuente sustantiva (CMI, determinantes EAS, informe, participación ni estudios complementarios). Activando fallback al motor heredado.',
         };
     }
 
@@ -131,6 +134,30 @@ function _calcularAnalisisModular(contextoIA) {
             });
     }
 
+    // ── Oportunidades desde estudios complementarios ──────────────────────
+    if (nEst > 0) {
+        oportunidades.push({
+            id: 'estudios_complementarios',
+            texto: `Se dispone de ${nEst} estudio(s) complementario(s) que identifican áreas de intervención específicas en el municipio.`,
+            fuente_tipo: 'estudios',
+            especifica: false,
+        });
+    }
+
+    // ── Oportunidades desde participación ciudadana ───────────────────────
+    if (hayParticipacion && contextoIA.participacion.temasFreq) {
+        const top = contextoIA.participacion.temasFreq.slice(0, 3);
+
+        top.forEach((t, i) => {
+            oportunidades.push({
+                id: `participacion_${i}`,
+                texto: `Prioridad ciudadana: ${t.label || t.k} (${t.v} menciones). Área de intervención comunitaria.`,
+                fuente_tipo: 'participacion',
+                especifica: true,
+            });
+        });
+    }
+
     // ── Priorización (por categoría CMI, enriquecida con SFA) ──────────────
     //    Cada categoría del CMI es un área de priorización.
     //    Score = proporción de indicadores con tendencia desfavorable.
@@ -160,6 +187,36 @@ function _calcularAnalisisModular(contextoIA) {
                         : `${area.nConDatos} indicadores analizados. Sin tendencias desfavorables destacadas.`,
                 });
             });
+    }
+
+    // ── Fallback: priorización desde decisión persistida (si CMI no produjo datos) ──
+    if (priorizacion.length === 0) {
+        const dec = (typeof window !== 'undefined') && (
+            window.decisionPriorizacionActual ||
+            (contextoIA.decisionPriorizacion)
+        );
+        if (dec && Array.isArray(dec.areasResultantes) && dec.areasResultantes.length > 0) {
+            dec.areasResultantes.forEach(function(areaKey, idx) {
+                const _label = areaKey;
+                const _area = (function(t) {
+                    if (/Duke|apoyo/i.test(t))                              return 'apoyoSocial';
+                    if (/PREDIMED|alimentaci[oó]n/i.test(t))                return 'alimentacionSaludable';
+                    return t;
+                })(areaKey);
+                priorizacion.push({
+                    area:         _area,
+                    label:        _label,
+                    score:        parseFloat((1 - idx / dec.areasResultantes.length).toFixed(3)),
+                    nAMejorar:    0,
+                    nFavorables:  0,
+                    nConDatos:    0,
+                    fuente:       'decisionPersistida',
+                    areaKey:      areaKey,
+                    orden:        idx + 1,
+                    justificacion: 'Área resultante de la decisión de priorización guardada.',
+                });
+            });
+        }
     }
 
     // ── Alertas de inequidad (desde SFA D4 o CMI determinantes) ───────────
@@ -308,6 +365,47 @@ function _calcularAnalisisModular(contextoIA) {
         totalIndicadores:      cmi ? cmi.conDatos : 0,
     };
 
+    // ── propuestaEPVSA desde COMPAS_MAPEO_AREA_LE ─────────────────────────
+    const propuestaEPVSA = (function() {
+        const mapeoLE = (typeof window !== 'undefined') && window.COMPAS_MAPEO_AREA_LE;
+        if (!mapeoLE || !priorizacion.length) return [];
+
+        const lineasMap = {};
+        priorizacion.forEach(function(item) {
+            const mapeo = mapeoLE[item.area];
+            if (!mapeo || !mapeo.le) return;
+            mapeo.le.forEach(function(leNum) {
+                if (!lineasMap[leNum]) {
+                    lineasMap[leNum] = { lineaId: leNum, relevancia: 0, areas: [], objetivos: new Set() };
+                }
+                lineasMap[leNum].relevancia += Math.round((item.score || 0) * 100);
+                lineasMap[leNum].areas.push(item.label || item.area);
+                (mapeo.obj || []).forEach(function(o) { lineasMap[leNum].objetivos.add(o); });
+            });
+        });
+
+        const vals = Object.values(lineasMap);
+        const maxRel = vals.reduce(function(m, l) { return Math.max(m, l.relevancia); }, 1);
+        const etiquetaFuentes = [
+            hayParticipacion ? '🗳️ Prioridad ciudadana'   : null,
+            hayInforme       ? '📄 Informe de situación'   : null,
+            nEst > 0         ? 'Estudios complementarios' : null,
+        ].filter(Boolean).join(' · ') || 'Análisis CMI';
+
+        return vals.map(function(l) {
+            return {
+                lineaId:         l.lineaId,
+                relevancia:      Math.round((l.relevancia / maxRel) * 100),
+                objetivos:       [...l.objetivos],
+                programas:       [],
+                justificacion:   'Áreas relacionadas: ' + l.areas.join(', '),
+                origenCiudadano: hayParticipacion,
+                fuentes:         etiquetaFuentes,
+                conclusion_ids:  ['marco_salutogenico'],
+            };
+        }).sort(function(a, b) { return b.relevancia - a.relevancia; });
+    })();
+
     return {
         // ── Campos de compatibilidad con window.analisisActual ─────────────
         municipio,
@@ -320,7 +418,7 @@ function _calcularAnalisisModular(contextoIA) {
         recomendaciones,
         priorizacion,
         priorizacion_experta:  [],   // sin ANALYTIC_CONFIG en ruta modular
-        propuestaEPVSA:        [],   // sin MAPEO_EPVSA/ESTRUCTURA_EPVSA en ruta modular
+        propuestaEPVSA,
         alertasInequidad,
         narrativa:             {},   // sin PLANTILLAS_SAL en ruta modular
         perfilSOC:             null, // sin lógica SOC en ruta modular
