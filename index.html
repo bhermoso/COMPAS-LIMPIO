@@ -7893,6 +7893,257 @@ var datosMunicipioActual = null;
 
 // ==========================================
 
+// ── ÁRBOL DE TRAZABILIDAD PARCIAL — esquema mínimo, sin render ──────────────
+// Fuente de verdad: window.COMPAS_arbolTrazabilidad
+// Construcción: COMPAS_construirArbolTrazabilidad() — llamar tras generarAnalisisIA()
+// Render: pendiente (no implementado aún)
+
+function COMPAS_construirArbolTrazabilidad() {
+    var mun = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
+    var dm  = window.datosMunicipioActual || null;
+    var an  = window.analisisActual || null;
+    var dec = window.decisionPriorizacionActual || null;
+    var fus = window.datosFusionPriorizacion || null;
+    var esc = (typeof _compasEscalasGet === 'function') ? _compasEscalasGet() : [];
+    var est = window.estudiosComplementarios || [];
+    var dpc = window.datosParticipacionCiudadana || null;
+    var tep = window.COMPAS && window.COMPAS.prioridades && window.COMPAS.prioridades.tematicas || null;
+    var sep = window.COMPAS && window.COMPAS.prioridades && window.COMPAS.prioridades.epvsa || null;
+    var sel = window.COMPAS && window.COMPAS.state && window.COMPAS.state.seleccionEPVSA || null;
+    var pla = window.propuestaActual || null;
+    var traz = window.__trazabilidadEjecucionPlan || null;
+
+    // ── helpers de estado+motivo por nodo ─────────────────────────────────────
+    var _estado_municipio = mun ? 'disponible' : 'no_disponible';
+    var _motivo_municipio = mun
+        ? 'Municipio activo: ' + mun
+        : 'getMunicipioActual() devuelve null — ningún municipio seleccionado';
+
+    var _estado_determinantes = (an && an.areasPriorizadas && an.areasPriorizadas.length)
+        ? 'disponible'
+        : (an ? 'parcial' : 'no_disponible');
+    var _motivo_determinantes = !an
+        ? 'window.analisisActual es null — generarAnalisisIA() no ejecutado; variables EAS (Encuesta Andaluza de Salud) no procesadas aún'
+        : (!an.areasPriorizadas || !an.areasPriorizadas.length)
+            ? 'analisisActual existe pero areasPriorizadas vacío — sin variables EAS con datos para este municipio; referencias provinciales/autonómicas son estimadas'
+            : an.areasPriorizadas.length + ' variables EAS priorizadas (algunas pueden solaparse con escalas o estudios complementarios cargados); referencias estimadas hasta integrar microdatos';
+
+    var _hayActivos = !!(window.activosComunitarios && window.activosComunitarios.length);
+    var _estado_activos = _hayActivos ? 'disponible' : 'no_disponible';
+    var _motivo_activos = _hayActivos
+        ? window.activosComunitarios.length + ' activos registrados'
+        : 'window.activosComunitarios no existe — store de activos no implementado';
+
+    var _estado_escalas = (esc.length || est.length) ? 'disponible' : (window.datosIBSE && window.datosIBSE.n ? 'parcial' : 'no_disponible');
+    var _motivo_escalas = (esc.length || est.length || (window.datosIBSE && window.datosIBSE.n))
+        ? (esc.length ? esc.length + ' escala(s)' : '') +
+          (est.length ? (esc.length ? ', ' : '') + est.length + ' estudio(s)' : '') +
+          (window.datosIBSE && window.datosIBSE.n ? ' + IBSE' : '') + ' disponibles'
+        : 'compasEscalasDiagnosticas y estudiosComplementarios vacíos — ninguna escala sincronizada ni estudio añadido';
+
+    var _estado_prio_est = dec ? 'disponible' : (sep ? 'parcial' : 'no_disponible');
+    var _motivo_prio_est = dec
+        ? 'Decisión de priorización guardada — método: ' + (dec.metodo || 'desconocido') + ', ' + (dec.areasResultantes ? dec.areasResultantes.length : 0) + ' área(s)'
+        : sep
+            ? 'CSV EPVSA importado en sesión (prioridades.epvsa) pero sin decisión consolidada en Firebase'
+            : 'decisionPriorizacionActual es null — Firebase aún no respondió o no hay decisión guardada';
+
+    var _estado_prio_tem = dpc ? 'disponible' : (tep ? 'parcial' : 'no_disponible');
+    var _motivo_prio_tem = dpc
+        ? 'datosParticipacionCiudadana disponible — n=' + (dpc.n || '?') + ', fuente: ' + (dpc.fuente || 'desconocida')
+        : tep
+            ? 'CSV temático en prioridades.tematicas pero datosParticipacionCiudadana no asignado — sin pasar por vrelas_importarCSV o incorporarAlPlan'
+            : 'datosParticipacionCiudadana es null — no se ha importado CSV temático ni confirmado participación en esta sesión';
+
+    var _estado_prio_mix = fus ? 'disponible' : ((dec && dpc) ? 'parcial' : 'no_disponible');
+    var _motivo_prio_mix = fus
+        ? 'Fusión completada — método: ' + (dec && dec.metodo || 'desconocido') + ', ' + (fus.rankingCompleto ? fus.rankingCompleto.length : 0) + ' área(s) en ranking'
+        : (dec && dpc)
+            ? 'Hay decisión y datos ciudadanos pero datosFusionPriorizacion es null — fusión no ejecutada aún'
+            : 'datosFusionPriorizacion es null — requiere completar flujo de priorización mixta';
+
+    var _estado_concl = (an && an._v3_recomendaciones && an._v3_recomendaciones.length)
+        ? 'disponible'
+        : (an && an._v3_conclusiones && an._v3_conclusiones.length)
+            ? 'parcial'
+            : (an && an.priorizacion && an.priorizacion.length)
+                ? 'parcial'
+                : 'no_disponible';
+    var _motivo_concl = !an
+        ? 'analisisActual es null — motor no ejecutado'
+        : (an._v3_recomendaciones && an._v3_recomendaciones.length)
+            ? an._v3_recomendaciones.length + ' recomendaciones v3 disponibles'
+            : (an._v3_conclusiones && an._v3_conclusiones.length)
+                ? 'Conclusiones v3 presentes pero _v3_recomendaciones vacío — COMPAS_ejecutarMotorV3() no completó'
+                : (an.priorizacion && an.priorizacion.length)
+                    ? 'Análisis completado (' + an.priorizacion.length + ' área(s) priorizadas) — COMPAS_ejecutarMotorV3() aún pendiente (asíncrono +900ms)'
+                    : 'analisisActual existe pero sin campos _v3_* — COMPAS_ejecutarMotorV3() no fue llamado';
+
+    var _tieneLineas = (sel && sel.length) || (Array.isArray(pla) && pla.length) || (pla && pla.lineasPropuestas && pla.lineasPropuestas.length);
+    var _planComp = (typeof planLocalSalud !== 'undefined') && planLocalSalud.planAccion && planLocalSalud.planAccion.completado;
+    var _estado_plan = _tieneLineas ? 'disponible' : (_planComp ? 'parcial' : 'no_disponible');
+    var _motivo_plan = _tieneLineas
+        ? (sel && sel.length ? sel.length + ' línea(s) seleccionadas en sesión' : '') +
+          (Array.isArray(pla) && pla.length ? (sel && sel.length ? ' + ' : '') + pla.length + ' línea(s) en propuestaActual' : '') +
+          (pla && pla.lineasPropuestas && pla.lineasPropuestas.length ? ' + ' + pla.lineasPropuestas.length + ' en propuestaActual.lineasPropuestas' : '')
+        : _planComp
+            ? 'planLocalSalud.planAccion.completado=true pero seleccionEPVSA y propuestaActual vacíos en memoria — plan guardado pero no recargado'
+            : 'seleccionEPVSA y propuestaActual vacíos — Fase 3 no alcanzada o sin líneas seleccionadas';
+    // ─────────────────────────────────────────────────────────────────────────
+
+    var arbol = {
+
+        // ── 1. Municipio ───────────────────────────────────────────────────────
+        municipio: {
+            nivel: 1,
+            estado: _estado_municipio,
+            motivo: _motivo_municipio,
+            fuente: 'getMunicipioActual() + window.datosMunicipioActual',
+            campos: {
+                id:          mun,
+                nombre:      dm && dm.nombre || null,
+                estrategia:  (typeof estrategiaActual !== 'undefined') ? estrategiaActual : null,
+                pobTotal:    dm && dm.poblacion || null
+            },
+            hijos: ['determinantes', 'activos_comunitarios', 'estudios_escalas',
+                    'priorizacion_estrategica', 'priorizacion_tematica']
+        },
+
+        // ── 2. Determinantes ───────────────────────────────────────────────────
+        // Denominación interna histórica de COMPÁS. Representa variables seleccionadas
+        // de la Encuesta Andaluza de Salud (EAS) procesadas por analizarDatosMunicipio().
+        // Algunas variables se solapan con escalas o estudios complementarios cargados.
+        // Las referencias provinciales/autonómicas son parciales o estimadas hasta
+        // disponer de microdatos EAS desagregados a nivel municipal.
+        determinantes: {
+            nivel: 2,
+            padre: 'municipio',
+            estado: _estado_determinantes,
+            motivo: _motivo_determinantes,
+            fuente: 'window.analisisActual (analizarDatosMunicipio) — variables EAS seleccionadas; referencias provinciales/autonómicas parciales o estimadas hasta integrar microdatos',
+            campos: {
+                areas:          an && an.areasPriorizadas || [],
+                prioridades_v3: an && an._v3_prioridades  || [],
+                inequidades:    an && an.alertasInequidad  || []
+            },
+            hijos: ['priorizacion_estrategica', 'conclusiones_recomendaciones']
+        },
+
+        // ── 3. Activos comunitarios ────────────────────────────────────────────
+        activos_comunitarios: {
+            nivel: 3,
+            padre: 'municipio',
+            estado: _estado_activos,
+            motivo: _motivo_activos,
+            fuente: 'window.activosComunitarios (no implementado — nivel estructural reconocido)',
+            campos: {
+                n:    window.activosComunitarios ? window.activosComunitarios.length : 0,
+                items: window.activosComunitarios || []
+            },
+            hijos: ['conclusiones_recomendaciones']
+        },
+
+        // ── 4. Estudios y escalas ──────────────────────────────────────────────
+        estudios_escalas: {
+            nivel: 4,
+            padre: 'municipio',
+            estado: _estado_escalas,
+            motivo: _motivo_escalas,
+            fuente: '_compasEscalasGet() + window.estudiosComplementarios + window.datosIBSE',
+            campos: {
+                escalas:   esc.map(function(e){ return { nombre: e.nombre_escala, n: e.tamano_muestra, fuente: e.fuente_datos }; }),
+                estudios:  est.map(function(e){ return { nombre: e.nombre, fuente: e.fuente }; }),
+                ibse:      !!(window.datosIBSE && window.datosIBSE.n)
+            },
+            hijos: ['determinantes', 'conclusiones_recomendaciones']
+        },
+
+        // ── 5. Priorización estratégica (EPVSA / LE) ──────────────────────────
+        priorizacion_estrategica: {
+            nivel: 5,
+            padre: 'municipio',
+            estado: _estado_prio_est,
+            motivo: _motivo_prio_est,
+            fuente: 'window.decisionPriorizacionActual + window.COMPAS.prioridades.epvsa',
+            campos: {
+                areas_resultantes: dec && dec.areasResultantes || [],
+                metodo:            dec && dec.metodo          || null,
+                fecha:             dec && dec.fecha           || null,
+                epvsa_csv_n:       sep && sep.n               || null
+            },
+            hijos: ['priorizacion_mixta', 'conclusiones_recomendaciones']
+        },
+
+        // ── 6. Priorización temática (VRELAS) ─────────────────────────────────
+        priorizacion_tematica: {
+            nivel: 6,
+            padre: 'municipio',
+            estado: _estado_prio_tem,
+            motivo: _motivo_prio_tem,
+            fuente: 'window.datosParticipacionCiudadana + window.COMPAS.prioridades.tematicas',
+            campos: {
+                n:          dpc && dpc.n          || null,
+                temasFreq:  dpc && dpc.temasFreq  || null,
+                fuente:     dpc && dpc.fuente     || null,
+                top3:       tep && tep.top3       || []
+            },
+            hijos: ['priorizacion_mixta', 'conclusiones_recomendaciones']
+        },
+
+        // ── 7. Priorización mixta (fusión) ────────────────────────────────────
+        priorizacion_mixta: {
+            nivel: 7,
+            padre: 'priorizacion_estrategica + priorizacion_tematica',
+            estado: _estado_prio_mix,
+            motivo: _motivo_prio_mix,
+            fuente: 'window.datosFusionPriorizacion',
+            campos: {
+                ranking:      fus && fus.rankingCompleto        || [],
+                conflictos:   fus && fus.conflictos             || [],
+                salvaguardas: fus && fus.salvaguardasAplicadas  || [],
+                metodo:       dec && dec.metodo                 || null
+            },
+            hijos: ['conclusiones_recomendaciones']
+        },
+
+        // ── 8. Conclusiones / recomendaciones ─────────────────────────────────
+        conclusiones_recomendaciones: {
+            nivel: 8,
+            padre: 'determinantes + estudios_escalas + activos_comunitarios + priorizacion_mixta',
+            estado: _estado_concl,
+            motivo: _motivo_concl,
+            fuente: 'window.analisisActual._v3_conclusiones + _v3_recomendaciones',
+            campos: {
+                conclusiones:    an && an._v3_conclusiones    || [],
+                recomendaciones: an && an._v3_recomendaciones || [],
+                divergencias:    an && an._v3_divergencias    || []
+            },
+            hijos: ['plan_accion']
+        },
+
+        // ── 9. Plan de acción ──────────────────────────────────────────────────
+        plan_accion: {
+            nivel: 9,
+            padre: 'conclusiones_recomendaciones',
+            estado: _estado_plan,
+            motivo: _motivo_plan,
+            fuente: 'window.COMPAS.state.seleccionEPVSA + window.propuestaActual + planLocalSalud.planAccion',
+            campos: {
+                lineas_seleccionadas: sel || [],
+                lineas_propuestas:    pla && pla.lineasPropuestas || [],
+                completado:           !!(typeof planLocalSalud !== 'undefined' && planLocalSalud.planAccion && planLocalSalud.planAccion.completado),
+                trazabilidad:         traz ? { motorId: traz.motorEjecutado && traz.motorEjecutado.id, coincide: traz.coincideEntradaSalida } : null
+            },
+            hijos: []
+        }
+
+    };
+
+    window.COMPAS_arbolTrazabilidad = arbol;
+    return arbol;
+}
+// ── Fin árbol de trazabilidad ────────────────────────────────────────────────
+
 // OBJETO GLOBAL PARA EL COMPILADOR DE PLAN LOCAL DE SALUD
 
 // ==========================================
@@ -15373,19 +15624,21 @@ async function verificarYGenerarAnalisisAutomatico() {
 
     
 
-    // Verificar datos base: necesitamos al menos determinantes O indicadores
+    // Verificar datos base: necesitamos al menos determinantes O indicadores O informe
+    // [FIX 2026-04-11] COMPAS_analizarV3() puede operar con informe solo (no requiere determinantes).
+    // La condición anterior excluía municipios con solo informe, impidiendo que v3 se materializara.
 
     const tieneDeterminantes = _contarDeterminantesValidos(datos.determinantes) > 0;
 
     const tieneIndicadores = _contarIndicadoresValidos(datos.indicadores) > 0;
 
-    
+    const tieneInforme = !!(datos.informe && datos.informe.htmlCompleto);
 
-    // Si no hay datos base, no podemos generar análisis
+    // Si no hay ninguna base posible, no podemos generar análisis
 
-    if (!tieneDeterminantes && !tieneIndicadores) {
+    if (!tieneDeterminantes && !tieneIndicadores && !tieneInforme) {
 
-        console.log('📊 Sin datos base para análisis automático');
+        console.log('📊 Sin datos base para análisis automático (sin determinantes, indicadores ni informe)');
 
         return;
 
@@ -18172,7 +18425,7 @@ function _fase3_activarModo() {
 
     var _tieneHistorial = (_selPrev && _selPrev.length > 0) || !!_planFB || !!_planLocal;
 
-    cambiarModoPlan(_tieneHistorial ? 'manual' : 'auto');
+    cambiarModoPlan(_tieneHistorial ? 'auto' : 'manual');
 }
 
 
@@ -18262,6 +18515,9 @@ function cambiarModoPlan(modo) {
     
 
     if (modo === 'manual') {
+
+        if (window.COMPAS && window.COMPAS.state) window.COMPAS.state.seleccionEPVSA = [];
+        if (typeof window.seleccionAceptada !== 'undefined') window.seleccionAceptada = [];
 
         setTimeout(renderPlanAccion, 100);
 
@@ -44161,7 +44417,7 @@ function vrelas_buildForm(nombreMunicipio) {
 
         '<div style="display:flex;flex-wrap:wrap;gap:.4rem;">' +
 
-        pillsGrupo('vrelas-edad', ['Menor de 18','18-29','30-44','45-59','60-74','75 o más'], '#0074c8') +
+        pillsGrupo('vrelas-edad', ['Menor de 16','16-29','30-44','45-59','60-74','75 o más'], '#0074c8') +
 
         '</div></div>' +
 
@@ -44570,18 +44826,31 @@ function vrelas_importarCSV(evt) {
     var file = evt.target.files[0];
     if (!file) return;
     Papa.parse(file, {
-        header: true, skipEmptyLines: true, delimiter: ';',
+        header: true, skipEmptyLines: true, delimitersToGuess: [',',';','\t','|'],
         complete: function(r) {
             var rows = r.data;
             if (!rows || !rows.length) { alert('CSV vacio o formato incorrecto.'); return; }
             var temasFreq = {};
             for (var i = 1; i <= 10; i++) temasFreq[i] = 0;
             var n = 0;
+            console.log('VRELAS CSV HEADERS', Object.keys(rows[0] || {}));
+            console.log('VRELAS CSV FIRST ROW', rows[0] || null);
             rows.forEach(function(row) {
-                var tStr = row.temas || row.Temas || '';
-                if (!tStr) return;
-                var temas = tStr.split('|').map(function(t){return parseInt(t.trim());}).filter(function(t){return t>=1&&t<=10;});
-                if (temas.length) { n++; temas.forEach(function(k){temasFreq[k]=(temasFreq[k]||0)+1;}); }
+                // Formato REDCap: temas___1…temas___10 con valor '1'/'0'
+                // Criterio principal: papeleta_pri_tematica_complete == 2 (completa)
+                // Fallback: al menos un temas___N == 1 (sin campo complete)
+                var tieneComplete = typeof row.papeleta_pri_tematica_complete !== 'undefined';
+                if (tieneComplete && String(row.papeleta_pri_tematica_complete).trim() !== '2') return;
+                var temasRedcap = [];
+                for (var i = 1; i <= 10; i++) {
+                    if (String(row['temas___' + i]).trim() === '1') temasRedcap.push(i);
+                }
+                // Fallback formato antiguo (columna 'temas' con pipe)
+                if (!temasRedcap.length && !tieneComplete) {
+                    var tStr = row.temas || row.Temas || '';
+                    if (tStr) temasRedcap = tStr.split('|').map(function(t){return parseInt(t.trim());}).filter(function(t){return t>=1&&t<=10;});
+                }
+                if (temasRedcap.length) { n++; temasRedcap.forEach(function(k){temasFreq[k]=(temasFreq[k]||0)+1;}); }
             });
             if (n === 0) { alert('No se encontraron votos validos en el CSV.'); return; }
             var ranking = Object.entries(temasFreq).filter(function(e){return e[1]>0;})
@@ -44597,6 +44866,14 @@ function vrelas_importarCSV(evt) {
                 };
                 COMPAS_actualizarTrazabilidad('tematica', { fuente:'csv_importado', n:n, confirmado:false, origenRuta:'vrelas_importarCSV' });
             }
+            window.datosParticipacionCiudadana = {
+                fuente: 'votacion_relas',
+                tipo_fuente_datos: 'csv',
+                n: n,
+                temasFreq: temasFreq,
+                votos: ranking.map(function(r){ return { nombre: r.nombre, votos: r.votos }; })
+            };
+            window.datosParticipacionCiudadanaMunicipio = getMunicipioActual();
             try { if (typeof renderizarSeccionPriorizacion === 'function') renderizarSeccionPriorizacion(); } catch(e) {}
             alert('CSV tematico importado: ' + n + ' votos, ' + ranking.filter(function(r){return r.votos>0;}).length + ' temas.');
             evt.target.value = '';
@@ -48352,7 +48629,7 @@ function irASubtabPriorizacion(tab) {
 //   4. Ajustar sam_registrarVoto: filtro edad < 16 en vez de < 18.
 //
 // ───────────────────────────────────────────────────────────────────────
-var _SAM_GRUPOS = ['18-29', '30-44', '45-64', '65-74', '75+'];
+var _SAM_GRUPOS = ['16-29', '30-44', '45-59', '60-74', '75+'];
 
 // Mapping clave interna COMPAS -> codigo INE de 5 digitos.
 // Fuente: INE, Relacion de municipios y codigos por provincias, Granada (18).
@@ -48520,10 +48797,11 @@ var _sam_conseguida = null;
 
 // Mapea edad entera al grupo SAM (universo 18+)
 function sam_edadAGrupo(edad) {
-    if (edad < 30) return '18-29';
+    if (edad < 16) return null;
+    if (edad < 30) return '16-29';
     if (edad < 45) return '30-44';
-    if (edad < 65) return '45-64';
-    if (edad < 75) return '65-74';
+    if (edad < 60) return '45-59';
+    if (edad < 75) return '60-74';
     return '75+';
 }
 
@@ -48922,16 +49200,83 @@ function compas_pob_cargarDesdeFirebase(mun, anyo) {
         // Traducir grupos_sam → formato interno {grupos:{g:{h,m}}, total, fuente}
         var entry = { grupos: {}, total: 0, fuente: 'INE_padron_oficial_Firebase' };
         var ok = true;
-        _SAM_GRUPOS.forEach(function(g) {
+        function _grupoSeguro(g) {
             var gData = gs[g] || null;
             if (!gData || typeof gData.h !== 'number' || typeof gData.m !== 'number') {
-                console.warn('[compas_pob_cargarDesdeFirebase] Grupo ' + g + ' inválido o ausente en Firebase.');
-                ok = false;
-                return;
+                return { h: 0, m: 0 };
             }
-            entry.grupos[g] = { h: gData.h, m: gData.m };
-            entry.total += gData.h + gData.m;
-        });
+            return gData;
+        }
+
+        var tieneQuinquenales =
+            gs['15-19'] && gs['20-24'] && gs['25-29'] &&
+            gs['30-34'] && gs['35-39'] && gs['40-44'] &&
+            gs['45-49'] && gs['50-54'] && gs['55-59'] && gs['60-64'] &&
+            gs['65-69'] && gs['70-74'];
+
+        if (tieneQuinquenales) {
+            // [FIX 2026-04-12] Grupos normalizados al nuevo catálogo 16-29/45-59/60-74.
+            // 60-64 pasa de '45-59' a '60-74'; límite inferior baja de 18 a 16 (proxy 4/5 de 15-19).
+            var g1519 = _grupoSeguro('15-19');
+            var h1619 = Math.round(g1519.h * 4 / 5);
+            var m1619 = Math.round(g1519.m * 4 / 5);
+
+            entry.grupos['16-29'] = {
+                h: h1619 + _grupoSeguro('20-24').h + _grupoSeguro('25-29').h,
+                m: m1619 + _grupoSeguro('20-24').m + _grupoSeguro('25-29').m
+            };
+            entry.grupos['30-44'] = {
+                h: _grupoSeguro('30-34').h + _grupoSeguro('35-39').h + _grupoSeguro('40-44').h,
+                m: _grupoSeguro('30-34').m + _grupoSeguro('35-39').m + _grupoSeguro('40-44').m
+            };
+            entry.grupos['45-59'] = {
+                h: _grupoSeguro('45-49').h + _grupoSeguro('50-54').h + _grupoSeguro('55-59').h,
+                m: _grupoSeguro('45-49').m + _grupoSeguro('50-54').m + _grupoSeguro('55-59').m
+            };
+            entry.grupos['60-74'] = {
+                h: _grupoSeguro('60-64').h + _grupoSeguro('65-69').h + _grupoSeguro('70-74').h,
+                m: _grupoSeguro('60-64').m + _grupoSeguro('65-69').m + _grupoSeguro('70-74').m
+            };
+            entry.grupos['75+'] = {
+                h:
+                    _grupoSeguro('75-79').h +
+                    _grupoSeguro('80-84').h +
+                    _grupoSeguro('85-89').h +
+                    _grupoSeguro('90-94').h +
+                    _grupoSeguro('95-99').h +
+                    _grupoSeguro('100 y más').h +
+                    _grupoSeguro('100+').h +
+                    _grupoSeguro('90+').h,
+                m:
+                    _grupoSeguro('75-79').m +
+                    _grupoSeguro('80-84').m +
+                    _grupoSeguro('85-89').m +
+                    _grupoSeguro('90-94').m +
+                    _grupoSeguro('95-99').m +
+                    _grupoSeguro('100 y más').m +
+                    _grupoSeguro('100+').m +
+                    _grupoSeguro('90+').m
+            };
+
+            Object.keys(entry.grupos).forEach(function(g) {
+                entry.total += (entry.grupos[g].h || 0) + (entry.grupos[g].m || 0);
+            });
+        } else {
+            // [FIX 2026-04-12] Fallback a claves legadas cuando Firebase tiene estructura antigua.
+            // Prioriza siempre la clave nueva; si no existe, usa la equivalente antigua.
+            var _legadoMap = { '16-29': '18-29', '45-59': '45-64', '60-74': '65-74' };
+            _SAM_GRUPOS.forEach(function(g) {
+                var gData = gs[g] || gs[_legadoMap[g]] || null;
+                if (!gData || typeof gData.h !== 'number' || typeof gData.m !== 'number') {
+                    console.warn('[compas_pob_cargarDesdeFirebase] Grupo ' + g + ' inválido o ausente en Firebase.');
+                    ok = false;
+                    return;
+                }
+                entry.grupos[g] = { h: gData.h, m: gData.m };
+                entry.total += gData.h + gData.m;
+            });
+        }
+
         if (!ok || entry.total === 0) {
             console.warn('[compas_pob_cargarDesdeFirebase] Datos incompletos o suma=0. Ignorado.');
             return;
@@ -49205,11 +49550,14 @@ function COMPAS_limpiarPriorizacionEPVSA() {
 function COMPAS_limpiarPriorizacionTematica() {
     var mun = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
     try { if (typeof vrelas_votosActo !== 'undefined' && vrelas_votosActo) vrelas_votosActo.length = 0; } catch(e) {}
+    // relas_globalData: limpiar para que vrelas_obtenerVotosCombinados() no devuelva records HPC residuales
+    try { if (typeof relas_globalData !== 'undefined') relas_globalData = null; } catch(e) {}
     if (window.COMPAS && window.COMPAS.prioridades) window.COMPAS.prioridades.tematicas = null;
     if (typeof COMPAS_resetTrazabilidad === 'function') COMPAS_resetTrazabilidad('tematica');
     if (window._acordeonCarga) window._acordeonCarga.tem = null;
-    // datosParticipacionCiudadana: limpiar si es VRELAS (con temasFreq)
-    if (window.datosParticipacionCiudadana && window.datosParticipacionCiudadana.temasFreq) window.datosParticipacionCiudadana = null;
+    // datosParticipacionCiudadana: limpiar incondicionalmente (cualquier formato temático)
+    window.datosParticipacionCiudadana = null;
+    window.datosParticipacionCiudadanaMunicipio = null;
     window.__compas_vrelas_simulado = false;
     try { localStorage.removeItem('vrelas_session'); } catch(e) {}
     try {
@@ -49222,6 +49570,8 @@ function COMPAS_limpiarPriorizacionTematica() {
     } catch(e) {}
     if (mun) { if (!window.__compas_carriles_borrados[mun]) window.__compas_carriles_borrados[mun] = {}; window.__compas_carriles_borrados[mun].tematica = true; }
     try { if (typeof renderizarSeccionPriorizacion === 'function') renderizarSeccionPriorizacion(); } catch(e) {}
+    try { if (typeof vrelas_actualizarResultados === 'function') vrelas_actualizarResultados(); } catch(e) {}
+    try { if (typeof ac_actualizar === 'function') ac_actualizar(); } catch(e) {}
     console.info('[COMPAS] Priorizacion Tematica limpiada.');
 }
 
@@ -51674,7 +52024,16 @@ function analizarDatosMunicipio() {
 
     // Bonus del informe: las líneas que aparecen en el texto del informe reciben +15 pts
 
-    if (tieneInforme && analisis.informeTopicos.length) {
+    
+    // ── Fallback: informe sin keywords detectadas → generar líneas base ──
+    if (tieneInforme && (!analisis.informeTopicos || !analisis.informeTopicos.length)) {
+        analisis.informeTopicos = [
+            { topico: 'estructura poblacional', linea: 2, obj: 0, progs: [0] },
+            { topico: 'dinámica demográfica', linea: 1, obj: 0, progs: [0] }
+        ];
+    }
+
+if (tieneInforme && analisis.informeTopicos.length) {
 
         analisis.informeTopicos.forEach(function(kw) {
 
@@ -54152,7 +54511,15 @@ function generarPropuestaIA() {
 
     if (window.estudiosComplementarios && window.estudiosComplementarios.length) fuentesUsadas.push('Estudios complementarios');
 
+    // [FIX 2026-04-12] Fallback a COMPAS.prioridades.epvsa cuando no hay datosParticipacionCiudadana usables.
+    // Replica el patrón ya existente en generarAnalisisIA (l.52817–52824).
     var pop = normalizarParticipacion(window.datosParticipacionCiudadana);
+    if (!pop) {
+        var _eCanProp = window.COMPAS && window.COMPAS.prioridades && window.COMPAS.prioridades.epvsa;
+        if (_eCanProp && (_eCanProp.n > 0 || (_eCanProp.rankingObjetivos && _eCanProp.rankingObjetivos.length))) {
+            pop = _eCanProp;
+        }
+    }
 
     if (pop) fuentesUsadas.push('Priorización ciudadana (' + _compas_etiquetaParticipacion(pop.n) + ')');
 
@@ -54160,7 +54527,7 @@ function generarPropuestaIA() {
 
     // Si no hay análisis previo del 07, ejecutar el motor salutogénico ahora
 
-    if (!analisis || !analisis.priorizacion) {
+    if (!analisis || !analisis.priorizacion || !analisis.priorizacion.length) {
 
         try { analisis = analizarDatosMunicipio(); window.analisisActual = analisis; } catch(e) { analisis = null; }
 
@@ -54198,7 +54565,7 @@ function generarPropuestaIA() {
     var _util_participacionCiudadana = !!(pop && (pop.temasFreq || pop.rankingObjetivos));
     // estudiosComplementarios e informeSituacionSalud no determinan combinación: false provisional
     var _util_estudiosCompl          = false;
-    var _util_informeSalud           = false;
+    var _util_informeSalud           = _disp_informeSalud;
 
     // — Causas de no-utilizabilidad: mapa por campo —
     var _causasNoUtil = {};
@@ -54207,21 +54574,28 @@ function generarPropuestaIA() {
     }
 
     // — Combinación de priorización —
+    var _util_analisis = !!(analisis && analisis.priorizacion && analisis.priorizacion.length);
     var _combinCodigo;
     if      (_util_determinantesEAS && _util_participacionCiudadana) _combinCodigo = 'estrategica+tematica';
     else if (_util_determinantesEAS)                                  _combinCodigo = 'estrategica';
     else if (_util_participacionCiudadana)                            _combinCodigo = 'tematica';
+    else if (_util_analisis)                                          _combinCodigo = 'analisis';
+    else if (_util_informeSalud)                                      _combinCodigo = 'informe';
     else                                                              _combinCodigo = 'ninguna';
 
     var _componentes = [];
-    if (_util_determinantesEAS)       _componentes.push('estrategica');
-    if (_util_participacionCiudadana) _componentes.push('tematica');
+    if (_util_determinantesEAS)        _componentes.push('estrategica');
+    if (_util_participacionCiudadana)  _componentes.push('tematica');
+    if (_combinCodigo === 'analisis')  _componentes.push('analisis');
+    if (_combinCodigo === 'informe')   _componentes.push('informe');
 
     var _fuentePorComponente = {};
-    if (_util_determinantesEAS)       _fuentePorComponente.estrategica = 'datos.determinantes';
-    if (_util_participacionCiudadana) _fuentePorComponente.tematica    = pop.temasFreq
-                                                                            ? 'pop.temasFreq'
-                                                                            : 'pop.rankingObjetivos';
+    if (_util_determinantesEAS)        _fuentePorComponente.estrategica = 'datos.determinantes';
+    if (_util_participacionCiudadana)  _fuentePorComponente.tematica    = pop.temasFreq
+                                                                             ? 'pop.temasFreq'
+                                                                             : 'pop.rankingObjetivos';
+    if (_combinCodigo === 'analisis')  _fuentePorComponente.analisis    = 'analisis.priorizacion';
+    if (_combinCodigo === 'informe')   _fuentePorComponente.informe     = 'datos.informe.htmlCompleto';
 
     // — Estado del contrato —
     var _estadoContrato = _combinCodigo === 'ninguna'              ? 'bloqueado'
@@ -54273,6 +54647,41 @@ function generarPropuestaIA() {
         alert('⚠️ Sin determinantes ni priorización ciudadana utilizables. No se puede generar la propuesta automática.');
         console.warn('[COMPÁS decisionGeneracionPlan] bloqueado', decisionGeneracionPlan);
         return;
+    }
+
+    // ── MODO INFORME: fallback directo sin motor modular ──
+    if (_combinCodigo === 'informe') {
+        console.warn('[COMPÁS] Modo informe: usando generador local');
+        try {
+            // [FIX 2026-04-11] Restaura compatibilidad entre rama local y salida UI
+            // cuando existe _v3_propuestaEPVSA. Tres correcciones:
+            // 1) _analisisParaLocal construido para pasar como 4º arg (evita re-run v2 vacío).
+            // 2) Si v3 ya generó propuesta y v2 no tiene la suya, bridgear _v3→propuestaEPVSA
+            //    para que _generarPropuestaLocal la encuentre en propFromMotor.
+            // 3) window.propuestaActual ← array de selección (propuesta._seleccion),
+            //    no el objeto completo retornado por _generarPropuestaLocal.
+            var _analisisParaLocal = window.analisisActual || {};
+            if (!(_analisisParaLocal.propuestaEPVSA && _analisisParaLocal.propuestaEPVSA.length)
+                    && _analisisParaLocal._v3_propuestaEPVSA && _analisisParaLocal._v3_propuestaEPVSA.length) {
+                _analisisParaLocal = Object.assign({}, _analisisParaLocal, {
+                    propuestaEPVSA: _analisisParaLocal._v3_propuestaEPVSA
+                });
+            }
+            var propuesta = _generarPropuestaLocal(municipio, datos, pop, _analisisParaLocal);
+            window.propuestaActual = propuesta._seleccion || propuesta.propuestaEPVSA || [];
+
+            if (typeof renderizarPropuestaIA === 'function') {
+                renderizarPropuestaIA(propuesta, municipio, ['Informe de Situación']);
+            }
+
+            document.getElementById('auto-ia-estado-inicial').style.display = 'none';
+            document.getElementById('auto-ia-progreso').style.display = 'none';
+            document.getElementById('propuesta-automatica-container').style.display = 'block';
+
+            return;
+        } catch(e) {
+            console.error('[COMPÁS] Error en modo informe:', e);
+        }
     }
 
     console.log('[COMPÁS decisionGeneracionPlan]', _estadoContrato, '·', _combinCodigo, decisionGeneracionPlan);
@@ -55081,6 +55490,23 @@ function _generarPropuestaLocal(municipio, datos, pop, analisis) {
 
 
 
+function renderizarArbolTrazabilidadResumen() {
+    var el = document.getElementById('propuesta-resumen');
+    if (!el) return;
+    var arbol;
+    try { arbol = COMPAS_construirArbolTrazabilidad(); } catch(e) { return; }
+    if (!arbol) return;
+    var orden = ['municipio','determinantes','activos_comunitarios','estudios_escalas',
+                 'priorizacion_estrategica','priorizacion_tematica','priorizacion_mixta',
+                 'conclusiones_recomendaciones','plan_accion'];
+    el.innerHTML = '';
+    var txt = orden.map(function(k) {
+        var n = arbol[k]; if (!n) return '';
+        return k + '\nEstado: ' + n.estado + '\nMotivo: ' + n.motivo;
+    }).join('\n\n');
+    el.textContent = txt;
+}
+
 function renderizarPropuestaIA(r, municipio, fuentes) {
 
     document.getElementById('auto-ia-progreso').style.display = 'none';
@@ -55407,6 +55833,8 @@ function renderizarPropuestaIA(r, municipio, fuentes) {
 
 
     document.getElementById('propuesta-automatica-container').style.display = 'block';
+
+    renderizarArbolTrazabilidadResumen();
 
     document.getElementById('propuesta-automatica-container').scrollIntoView({ behavior:'smooth', block:'start' });
 
@@ -57037,6 +57465,30 @@ window.COMPAS_analizarV3 = function(){
 
         justificacion:'Mandato EPVSA 2024-2030.'});
 
+    // ── Condición estructural: activos comunitarios no disponibles ──────────
+    var _hayActivos = !!(
+        (typeof window !== 'undefined') &&
+        window.activosComunitarios && Array.isArray(window.activosComunitarios) && window.activosComunitarios.length > 0
+    );
+    if (!_hayActivos) {
+        av3.recomendaciones_v3.push({
+            id: 'rec_activos_comunitarios',
+            area: 'activos_comunitarios',
+            problema: 'Activos comunitarios no mapeados',
+            prioridad: 99,
+            urgencia: 'media',
+            tipoActuacion: 'salutogenica',
+            lineasEPVSA: 'LE2',
+            fuentes: [],
+            contribucionEquidad: false,
+            horizonteTemporal: 'medio plazo',
+            textoOperativo: 'Desarrollar mapeo y activación de activos comunitarios para la salud en el territorio.',
+            justificacion: 'No se ha registrado ningún activo comunitario en el sistema.',
+            origen: 'condicion_estructural_activos_no_disponibles'
+        });
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     av3.recomendaciones_v3.sort(function(a,b){return a.prioridad-b.prioridad;});
 
     return (function(o){
@@ -57796,19 +58248,51 @@ function ibse_v2_calcularIBSE(d) {
 
     var bm  = _ibseParseNumeroSeguro(d.ibse_bienmismo);
 
-    if ([dep,fel,sol,dis,ene,tra,opt,bm].some(function(v){ return v === null || isNaN(v); })) return null;
+    // [FIX 2026-04-12] Umbral de inclusión: ≥6 de 8 ítems válidos (antes: 8/8 obligatorio).
+    // Casos con <6 ítems válidos siguen devolviendo null (excluidos).
+    var _items = [dep, fel, sol, dis, ene, tra, opt, bm];
+    var _nVal  = _items.filter(function(v){ return v !== null && !isNaN(v); }).length;
+    if (_nVal < 6) return null;
 
-    var fV = (((5-dep)+(5-sol))/2-1)*25;
+    // Cada factor se calcula con los ítems disponibles del par.
+    // Par completo: media de ambos transforms. Par parcial: transform del ítem único.
+    // Par sin datos: null. Total = media de factores disponibles (rescalado proporcional).
+    var fV = (dep !== null && sol !== null) ? (((5-dep)+(5-sol))/2-1)*25
+           : (dep !== null)                 ? ((5-dep)-1)*25
+           : (sol !== null)                 ? ((5-sol)-1)*25
+           : null;
 
-    var fS = (((fel+1)+(dis+1))/2-1)*25;
+    var fS = (fel !== null && dis !== null) ? (((fel+1)+(dis+1))/2-1)*25
+           : (fel !== null)                 ? ((fel+1)-1)*25
+           : (dis !== null)                 ? ((dis+1)-1)*25
+           : null;
 
-    var fC = (((ene+1)+(tra+1))/2-1)*25;
+    var fC = (ene !== null && tra !== null) ? (((ene+1)+(tra+1))/2-1)*25
+           : (ene !== null)                 ? ((ene+1)-1)*25
+           : (tra !== null)                 ? ((tra+1)-1)*25
+           : null;
 
-    var fP = (((6-opt)+(6-bm))/2-1)*25;
+    var fP = (opt !== null && bm  !== null) ? (((6-opt)+(6-bm))/2-1)*25
+           : (opt !== null)                 ? ((6-opt)-1)*25
+           : (bm  !== null)                 ? ((6-bm)-1)*25
+           : null;
+
+    // [FIX 2026-04-12 v2] Total por peso uniforme por ítem válido.
+    // Algebraicamente idéntico al original con 8/8: sum_t/8*25-25 = (fV+fS+fC+fP)/4.
+    // Elimina double-weighting del ítem superviviente en pares incompletos.
+    var _st = 0, _nt = 0;
+    if (dep !== null) { _st += (5-dep); _nt++; }
+    if (sol !== null) { _st += (5-sol); _nt++; }
+    if (fel !== null) { _st += (fel+1); _nt++; }
+    if (dis !== null) { _st += (dis+1); _nt++; }
+    if (ene !== null) { _st += (ene+1); _nt++; }
+    if (tra !== null) { _st += (tra+1); _nt++; }
+    if (opt !== null) { _st += (6-opt); _nt++; }
+    if (bm  !== null) { _st += (6-bm);  _nt++; }
 
     return { factor_vinculo:fV, factor_situacion:fS, factor_control:fC, factor_persona:fP,
 
-             ibse_total:(fV+fS+fC+fP)/4 };
+             ibse_total: _st / _nt * 25 - 25 };
 
 }
 
@@ -57842,7 +58326,7 @@ function ibse_v2_calcularDistribuciones(arr) {
 
     var sexos = {1:[],2:[]};
 
-    var edades = {'18-29':[],'30-44':[],'45-64':[],'65-74':[],'75+':[]};
+    var edades = {'16-29':[],'30-44':[],'45-59':[],'60-74':[],'75+':[]};
 
     arr.forEach(function(r){
 
@@ -57854,13 +58338,13 @@ function ibse_v2_calcularDistribuciones(arr) {
 
         if (e!==null){
 
-            if (e<30) edades['18-29'].push(r);
+            if (e<30) edades['16-29'].push(r);
 
             else if (e<45) edades['30-44'].push(r);
 
-            else if (e<65) edades['45-64'].push(r);
+            else if (e<60) edades['45-59'].push(r);
 
-            else if (e<75) edades['65-74'].push(r);
+            else if (e<75) edades['60-74'].push(r);
 
             else edades['75+'].push(r);
 
@@ -58032,8 +58516,11 @@ function ibse_v2_renderTodo(arr, meta) {
 
     cont.innerHTML =
 
-        // 1. Cabecera + IBSE global + factores
+        // 1. Cabecera + contexto externo (arriba) + IBSE global + factores
         ibse_v2_renderCabecera(agg, meta, arr.length) +
+
+        // [FIX 2026-04-12] Contexto externo movido al inicio, antes del valor local.
+        ibse_v2_renderContextoExterno(agg) +
 
         ibse_v2_renderResultados(agg) +
 
@@ -58041,6 +58528,8 @@ function ibse_v2_renderTodo(arr, meta) {
         ibse_v2_renderMuestra(arr, dist) +
 
         ibse_v2_renderRepresentatividad(dist) +
+
+        ibse_v2_renderComparacionEncuestas(dist) +
 
         ibse_v2_renderJuicioMuestra(dist) +
 
@@ -58054,9 +58543,6 @@ function ibse_v2_renderTodo(arr, meta) {
             '<div id="ibse-sam-container"><div style="font-size:.75rem;color:#94a3b8;">Cargando ajuste muestral...</div></div>' +
           '</div>' +
         '</div>' +
-
-        // 3. Contextualización externa
-        ibse_v2_renderContextoExterno(agg) +
 
         // 4. Resultados por sexo, edad, cruce
         ibse_v2_renderPiramide(dist) +
@@ -58111,7 +58597,7 @@ function ibse_renderSAM(dist, arr) {
 
 function _ibse_sam_animar(el, dist, samPob, samN, samEsDemo) {
     var myId = _ibse_sam_animId;
-    var GR = ['18-29','30-44','45-64','65-74','75+'];
+    var GR = ['16-29','30-44','45-59','60-74','75+'];
 
     // 1. Lista de casos válidos, orden aleatorio
     var casos = [];
@@ -58256,21 +58742,46 @@ function _ibse_sam_animar(el, dist, samPob, samN, samEsDemo) {
 
 function ibse_v2_renderContextoExterno(agg) {
     if (!agg || !agg.ibse_total) return '';
-    var local = agg.ibse_total.toFixed(1);
-    var refAnd = 62.4, refGra = 60.8;
-    var difA = (agg.ibse_total - refAnd).toFixed(1);
-    var difG = (agg.ibse_total - refGra).toFixed(1);
 
-    return '<div style="margin-bottom:1.2rem;">' +
-        '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.4rem;">Contexto externo</div>' +
-        '<p style="font-size:.78rem;color:#475569;line-height:1.55;margin:0 0 .4rem;">' +
-            'Municipio: <strong>'+local+'</strong> · ' +
-            'Andalucía (EAS 2023): <strong>'+refAnd.toFixed(1)+'</strong> ('+( difA>=0?'+':'')+difA+') · ' +
-            'Granada: <strong>'+refGra.toFixed(1)+'</strong> ('+(difG>=0?'+':'')+difG+')' +
-        '</p>' +
+    var IBSE_AND = 62.4;
+    var IBSE_GR  = 60.8;
+    var local    = agg.ibse_total;
+
+    var dAnd = local - IBSE_AND;
+    var dGr  = local - IBSE_GR;
+
+    function interpretar(d) {
+        var a = Math.abs(d);
+        if (a < 3) return 'posición similar';
+        if (a < 7) return 'diferencia moderada';
+        return 'diferencia relevante';
+    }
+
+    function _signo(d) { return d >= 0 ? 'por encima' : 'por debajo'; }
+    function _fmt(d)   { return Math.abs(d).toFixed(1); }
+
+    var interpAnd = interpretar(dAnd);
+    var interpGr  = interpretar(dGr);
+    var interpFinal = (interpAnd === interpGr)
+        ? interpAnd
+        : interpAnd + ' respecto a Andalucía y ' + interpGr + ' respecto a Granada';
+
+    var frase = 'El valor local se sitúa ' +
+        _fmt(dAnd) + ' puntos ' + _signo(dAnd) + ' de Andalucía' +
+        ' y ' + _fmt(dGr) + ' puntos ' + _signo(dGr) + ' de Granada' +
+        ' (' + interpFinal + ').';
+
+    return '<div style="margin-bottom:1.4rem;padding:.85rem 1rem;background:#f8fafc;border:1px solid #e2e8f0;border-left:3px solid #0074c8;border-radius:6px;">' +
+        '<div style="font-size:.82rem;font-weight:700;color:#1e293b;margin-bottom:.55rem;letter-spacing:.01em;">Contexto externo</div>' +
+        '<div style="display:grid;gap:.25rem;margin-bottom:.6rem;">' +
+            '<div style="font-size:.85rem;color:#1e293b;">Municipio <span style="color:#64748b;font-size:.75rem;">(muestra local)</span>: <strong style="font-size:1rem;color:#0074c8;">' + local.toFixed(1) + '</strong></div>' +
+            '<div style="font-size:.85rem;color:#475569;">Andalucía <span style="color:#94a3b8;font-size:.75rem;">(EAS 2023)</span>: <strong>' + IBSE_AND.toFixed(1) + '</strong></div>' +
+            '<div style="font-size:.85rem;color:#475569;">Provincia de Granada <span style="color:#94a3b8;font-size:.75rem;">(EAS 2023)</span>: <strong>' + IBSE_GR.toFixed(1) + '</strong></div>' +
+        '</div>' +
+        '<p style="font-size:.8rem;color:#374151;line-height:1.55;margin:0 0 .35rem;">' + frase + '</p>' +
         '<p style="font-size:.7rem;color:#94a3b8;line-height:1.45;margin:0;">' +
-            'Referencia: VI Encuesta Andaluza de Salud (2023), encuesta poblacional probabilística. ' +
-            'Los datos del municipio son de recogida no probabilística. Comparación orientativa.' +
+            'Fuente: Encuesta Andaluza de Salud 2023 (muestra probabilística). ' +
+            'Datos locales: muestra no probabilística (COMPÁS).' +
         '</p>' +
     '</div>';
 }
@@ -58419,30 +58930,90 @@ function ibse_v2_renderResultados(agg) {
         {lbl:'Persona',   val:agg.factor_persona,    col:'#475569'}
     ];
 
+    var _IBSE_AND = 62.4, _IBSE_GR = 60.8;  // EAS 2023
+
     var html = '<div style="margin-bottom:1.2rem;">';
 
-    // IBSE global — texto directo
-    html += '<div style="display:flex;align-items:baseline;gap:.5rem;margin-bottom:.6rem;">';
+    // Número grande: conservado
+    html += '<div style="display:flex;align-items:baseline;gap:.5rem;margin-bottom:.8rem;">';
     html += '<span style="font-size:2rem;font-weight:900;color:'+nivelCol+';">'+media.toFixed(1)+'</span>';
     html += '<span style="font-size:.85rem;color:#64748b;">/ 100</span>';
     html += '<span style="font-size:.8rem;font-weight:600;color:'+nivelCol+';margin-left:.3rem;">'+nivel+'</span>';
     html += '</div>';
 
-    // Factores — barras discretas sin fondo
-    html += '<div style="display:grid;gap:.35rem;max-width:360px;">';
-    factores.forEach(function(f) {
-        var v = (f.val!=null&&!isNaN(f.val)) ? f.val : 0;
-        var pct = Math.max(0,Math.min(100,v));
-        var vTxt = (f.val!=null&&!isNaN(f.val)) ? f.val.toFixed(1) : '\u2014';
-        html += '<div style="display:flex;align-items:center;gap:.4rem;">';
-        html += '<div style="font-size:.75rem;color:#64748b;width:62px;text-align:right;">'+f.lbl+'</div>';
-        html += '<div style="flex:1;height:4px;background:#e5e7eb;border-radius:2px;overflow:hidden;">';
-        html += '<div style="width:'+pct+'%;height:100%;background:#94a3b8;border-radius:2px;"></div></div>';
-        html += '<div style="font-size:.75rem;font-weight:700;color:#1e293b;width:32px;">'+vTxt+'</div>';
-        html += '</div>';
-    });
+    // ── Banda horizontal full-width: IBSE global + referencias ──────────────
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;width:100%;';
+    html += 'padding:.65rem .9rem;background:#dbeafe;border:1.5px solid #93c5fd;border-radius:6px;';
+    html += 'margin-bottom:.5rem;box-sizing:border-box;">';
+
+    // Bloque izquierdo: label IBSE global
+    html += '<div style="display:flex;flex-direction:column;align-items:center;gap:.15rem;flex:1;">';
+    html += '<span style="font-size:.68rem;font-weight:700;color:#1e3a5f;letter-spacing:.04em;text-transform:uppercase;">IBSE global</span>';
+    html += '<span style="font-size:1.35rem;font-weight:900;color:'+nivelCol+';line-height:1;">'+media.toFixed(1)+'</span>';
+    html += '<span style="font-size:.62rem;color:#64748b;">/ 100 &nbsp;<em>'+nivel+'</em></span>';
     html += '</div>';
 
+    // Separador
+    html += '<div style="width:1px;height:2.5rem;background:#93c5fd;opacity:.5;flex-shrink:0;"></div>';
+
+    // Bloque LOCAL
+    html += '<div style="display:flex;flex-direction:column;align-items:center;gap:.1rem;flex:1;">';
+    html += '<span style="font-size:.65rem;font-weight:700;color:#1e40af;letter-spacing:.04em;text-transform:uppercase;">Local</span>';
+    html += '<span style="font-size:1.35rem;font-weight:900;color:'+nivelCol+';line-height:1;">'+media.toFixed(1)+'</span>';
+    html += '<span style="font-size:.6rem;color:#64748b;">muestra propia</span>';
+    html += '</div>';
+
+    // Separador
+    html += '<div style="width:1px;height:2.5rem;background:#93c5fd;opacity:.5;flex-shrink:0;"></div>';
+
+    // Bloque GRANADA
+    html += '<div style="display:flex;flex-direction:column;align-items:center;gap:.1rem;flex:1;">';
+    html += '<span style="font-size:.65rem;font-weight:700;color:#334155;letter-spacing:.04em;text-transform:uppercase;">Granada</span>';
+    html += '<span style="font-size:1.35rem;font-weight:700;color:#334155;line-height:1;">'+_IBSE_GR.toFixed(1)+'</span>';
+    html += '<span style="font-size:.6rem;color:#94a3b8;">EAS 2023</span>';
+    html += '</div>';
+
+    // Separador
+    html += '<div style="width:1px;height:2.5rem;background:#93c5fd;opacity:.5;flex-shrink:0;"></div>';
+
+    // Bloque ANDALUCÍA
+    html += '<div style="display:flex;flex-direction:column;align-items:center;gap:.1rem;flex:1;">';
+    html += '<span style="font-size:.65rem;font-weight:700;color:#334155;letter-spacing:.04em;text-transform:uppercase;">Andaluc\u00eda</span>';
+    html += '<span style="font-size:1.35rem;font-weight:700;color:#334155;line-height:1;">'+_IBSE_AND.toFixed(1)+'</span>';
+    html += '<span style="font-size:.6rem;color:#94a3b8;">EAS 2023</span>';
+    html += '</div>';
+
+    html += '</div>';  // cierre banda
+
+    // ── Factores: grid full-width, sin max-width ─────────────────────────────
+    var _cols = '1fr 52px 52px 52px';
+    html += '<div style="width:100%;margin-bottom:.2rem;">';
+
+    // Cabecera factores
+    html += '<div style="display:grid;grid-template-columns:'+_cols+';gap:.2rem;padding:0 .3rem;margin-bottom:.2rem;">';
+    html += '<div style="font-size:.65rem;font-weight:700;color:#94a3b8;">Factor</div>';
+    html += '<div style="font-size:.65rem;font-weight:700;color:#64748b;text-align:center;">Local</div>';
+    html += '<div style="font-size:.65rem;font-weight:700;color:#64748b;text-align:center;">GR</div>';
+    html += '<div style="font-size:.65rem;font-weight:700;color:#64748b;text-align:center;">AND</div>';
+    html += '</div>';
+
+    factores.forEach(function(f) {
+        var v   = (f.val!=null&&!isNaN(f.val)) ? f.val : 0;
+        var pct = Math.max(0,Math.min(100,v));
+        var vTxt = (f.val!=null&&!isNaN(f.val)) ? f.val.toFixed(1) : '\u2014';
+        html += '<div style="display:grid;grid-template-columns:'+_cols+';gap:.2rem;align-items:center;padding:.28rem .3rem;border-bottom:1px solid #e2e8f0;">';
+        html += '<div style="display:flex;align-items:center;gap:.4rem;">';
+        html += '<span style="font-size:.76rem;color:#475569;">'+f.lbl+'</span>';
+        html += '<div style="flex:1;height:3px;background:#e5e7eb;border-radius:2px;overflow:hidden;">';
+        html += '<div style="width:'+pct+'%;height:100%;background:#93c5fd;border-radius:2px;"></div></div>';
+        html += '</div>';
+        html += '<div style="font-size:.78rem;font-weight:700;color:#1e293b;text-align:center;">'+vTxt+'</div>';
+        html += '<div style="font-size:.75rem;font-weight:600;color:#94a3b8;text-align:center;">\u2014</div>';
+        html += '<div style="font-size:.75rem;font-weight:600;color:#94a3b8;text-align:center;">\u2014</div>';
+        html += '</div>';
+    });
+
+    html += '</div>';  // cierre factores
     html += '</div>';
     return html;
 
@@ -58484,7 +59055,7 @@ function ibse_v2_renderMuestra(arr, dist) {
 
 function ibse_v2_renderPiramide(dist) {
 
-    var grupos=['18-29','30-44','45-64','65-74','75+'];
+    var grupos=['16-29','30-44','45-59','60-74','75+'];
 
     if (!grupos.some(function(g){return dist.edades[g].length>0;})) return '';
 
@@ -58530,7 +59101,7 @@ function ibse_v2_renderPiramide(dist) {
 
 function ibse_v2_renderDesagregados(dist) {
 
-    var grupos=['18-29','30-44','45-64','65-74','75+'];
+    var grupos=['16-29','30-44','45-59','60-74','75+'];
 
     if (!grupos.some(function(g){return dist.edades[g].length>0;})) return '';
 
@@ -58603,14 +59174,15 @@ function monitorIBSE_analizarPorEdad() {
         {id:'ibse_optimista',  label:'Optimista',           escala:5, invertir:true},
         {id:'ibse_bienmismo',  label:'Bien conmigo mismo/a',escala:5, invertir:true}
     ];
-    var GRUPOS = ['16-29','30-44','45-64','65+'];
+    var GRUPOS = ['16-29','30-44','45-59','60-74','75+'];
 
     function grupoEdad(e) {
         if (e==null||isNaN(e)) return null;
         if (e<30) return '16-29';
         if (e<45) return '30-44';
-        if (e<65) return '45-64';
-        return '65+';
+        if (e<60) return '45-59';
+        if (e<75) return '60-74';
+        return '75+';
     }
 
     // % favorable:
@@ -58664,7 +59236,7 @@ function monitorIBSE_analizarPorEdad() {
         }
 
         return {
-            id: item.id, label: item.label,
+            id: item.id, label: item.label, invertir: item.invertir,
             porGrupo: porGrupo, pcts: pcts,
             brecha: brecha, patron: patron, peorGrupo: peorGrupo
         };
@@ -58710,6 +59282,7 @@ function ibse_v2_renderAnalisisPorEdad() {
         grupos.forEach(function(g) {
             var pg = p.porGrupo[g];
             var pct = p.pcts[g];
+            // Alto % = favorable para todos los ítems (pcts ya normalizados a % favorable).
             var col = pct === null ? '#94a3b8' : pct >= 70 ? '#166534' : pct >= 50 ? '#854d0e' : '#dc2626';
             var txt = pct !== null ? pct+'%' : '\u2014';
             var n = pg.n > 0 ? '<div style="font-size:.6rem;color:#94a3b8;">n='+pg.n+'</div>' : '';
@@ -58776,7 +59349,7 @@ function ibse_v2_renderInterpretacion(agg, arr, dist) {
     }
 
     // 4. Edad (solo grupos con n >= 5)
-    var grupos = ['18-29','30-44','45-64','65-74','75+'];
+    var grupos = ['16-29','30-44','45-59','60-74','75+'];
 
     var edadTextos = [];
 
@@ -58803,6 +59376,48 @@ function ibse_v2_renderInterpretacion(agg, arr, dist) {
     if (n < 100) {
         parrafos.push('<em>Nota metodológica: con n=' + n + ', los resultados desagregados tienen precisión limitada. Se recomienda ampliar la muestra antes de extraer conclusiones definitivas por subgrupo.</em>');
     }
+
+    // 6. Comparación con referencias externas EAS 2023
+    var IBSE_AND = 62.4;
+    var IBSE_GR  = 60.8;
+    var dAnd = media - IBSE_AND;
+    var dGr  = media - IBSE_GR;
+    function _interpExt(d) {
+        var a = Math.abs(d);
+        if (a < 3) return 'posición similar';
+        if (a < 7) return 'diferencia moderada';
+        return 'diferencia relevante';
+    }
+    function _signoExt(d) { return d >= 0 ? 'por encima' : 'por debajo'; }
+    parrafos.push(
+        'Respecto a las referencias poblacionales de la EAS 2023 (muestra probabilística), ' +
+        'el valor local (' + media.toFixed(1) + ') se sitúa ' +
+        Math.abs(dAnd).toFixed(1) + ' puntos ' + _signoExt(dAnd) + ' de Andalucía (' + IBSE_AND.toFixed(1) + ', ' + _interpExt(dAnd) + ')' +
+        ' y ' + Math.abs(dGr).toFixed(1) + ' puntos ' + _signoExt(dGr) + ' de la provincia de Granada (' + IBSE_GR.toFixed(1) + ', ' + _interpExt(dGr) + ').' +
+        ' <em>Los datos locales proceden de una muestra no probabilística (COMPÁS); la comparación es orientativa.</em>'
+    );
+
+    // 7. Cautela por desequilibrio de composición etaria (criterio max/min > 2)
+    var _gruposExt = ['16-29','30-44','45-59','60-74','75+'];
+    var _sizes = [];
+    _gruposExt.forEach(function(g) {
+        var ga = dist.edades[g];
+        if (ga && ga.length > 0) _sizes.push(ga.length);
+    });
+    if (_sizes.length >= 2) {
+        var _max = Math.max.apply(null, _sizes);
+        var _min = Math.min.apply(null, _sizes);
+        if (_min > 0 && (_max / _min) > 2) {
+            parrafos.push(
+                '<em>La muestra presenta desequilibrios relevantes en su composición por edad. Este factor puede influir en el valor global del IBSE, por lo que la comparación con referencias poblacionales debe interpretarse con cautela.</em>'
+            );
+        }
+    }
+
+    // 8. Cierre orientativo
+    parrafos.push(
+        '<em>Los resultados reflejan la situación de la población participante y deben interpretarse como una aproximación orientativa, no como una estimación poblacional.</em>'
+    );
 
     // Render
     var html = '<div style="margin-bottom:1rem;">';
@@ -58891,13 +59506,13 @@ function ibse_v2_renderAlertas(agg, arr, dist) {
 
 //   window._ibse_v2_pob[municipioId] = {
 
-//     '18-29': { h: 1200, m: 1150 },
+//     '16-29': { h: 1200, m: 1150 },
 
 //     '30-44': { h: 2100, m: 2000 },
 
-//     '45-64': { h: 2800, m: 2900 },
+//     '45-59': { h: 2800, m: 2900 },
 
-//     '65-74': { h: 1100, m: 1300 },
+//     '60-74': { h: 1100, m: 1300 },
 
 //     '75+':   { h:  600, m:  900 }
 
@@ -58933,9 +59548,9 @@ function ibse_v2_obtenerPoblacion(mun) {
 
     //    Estructura esperada en Firebase (estrategias/{e}/municipios/{mun}/ibse_config/poblacion_edad_sexo):
 
-    //    { '18-29': {h: N, m: N}, '30-44': {h: N, m: N}, '45-64': {h: N, m: N},
+    //    { '16-29': {h: N, m: N}, '30-44': {h: N, m: N}, '45-59': {h: N, m: N},
 
-    //      '65-74': {h: N, m: N}, '75+': {h: N, m: N} }
+    //      '60-74': {h: N, m: N}, '75+': {h: N, m: N} }
 
     if (typeof datosMunicipioActual !== 'undefined' && datosMunicipioActual &&
 
@@ -58950,7 +59565,7 @@ function ibse_v2_obtenerPoblacion(mun) {
     var _pobOficial = (window._COMPAS_POB_OFICIAL && window._COMPAS_POB_OFICIAL[mun]) ||
                       (window._COMPAS_POB_AGREGADOS && window._COMPAS_POB_AGREGADOS[mun]) || null;
     if (_pobOficial && _pobOficial.grupos) {
-        var _grupos = ['18-29','30-44','45-64','65-74','75+'];
+        var _grupos = ['16-29','30-44','45-59','60-74','75+'];
         var _r = {};
         var _ok = false;
         _grupos.forEach(function(g) {
@@ -58996,7 +59611,7 @@ function ibse_v2_obtenerNObjetivo(mun) {
 
 function ibse_v2_calcularRepresentatividad(dist, pob, nObj) {
 
-    var grupos = ['18-29','30-44','45-64','65-74','75+'];
+    var grupos = ['16-29','30-44','45-59','60-74','75+'];
 
     var pobTotal = 0;
 
@@ -59040,6 +59655,131 @@ function ibse_v2_calcularRepresentatividad(dist, pob, nObj) {
 
 
 
+// [FIX 2026-04-13] Comparación de magnitud muestral con encuestas de referencia.
+function ibse_v2_renderComparacionEncuestas(dist) {
+    var mun = getMunicipioActual();
+    var pob = ibse_v2_obtenerPoblacion(mun);
+
+    // Población de referencia local (mismo origen que ibse_v2_renderRepresentatividad)
+    var pobLocal = 0;
+    if (pob) {
+        var _grp = ['16-29','30-44','45-59','60-74','75+'];
+        _grp.forEach(function(g) { pobLocal += pob[g] ? ((pob[g].h||0)+(pob[g].m||0)) : 0; });
+    }
+
+    // n local con edad y sexo válidos (mismo denominador que representatividad)
+    var nLocal = Object.values(dist.edades).reduce(function(s,a){return s+a.length;}, 0);
+
+    // Constantes de referencia (orientativas, nombradas para trazabilidad)
+    var _POB_AND = 8500000;   // Andalucía ~8,5M (INE 2023)
+    var _POB_ESP = 47400000;  // España ~47,4M (INE 2023)
+    var _N_EAS   = 7000;      // EAS 2023 — muestra aprox.
+    var _N_ENS   = 23000;     // ENS 2020 — muestra publicada
+    var _N_ESS   = 1500;      // ESS España (Wave 11)
+
+    function _miles(n) {
+        return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+    function _pct(n, total) {
+        if (!total || !n) return '\u2014';
+        var p = n / total * 100;
+        var dec = p >= 1 ? 2 : p >= 0.1 ? 3 : 4;
+        return p.toFixed(dec) + '\u202f%';
+    }
+
+    var filas = [
+        {
+            nombre: 'COMP\u00C1S <span style="font-weight:400;font-size:.7rem;color:#64748b;">(municipio actual)</span>',
+            tipo: 'No probabil\u00edstica, captaci\u00f3n directa',
+            pobRef: pobLocal > 0 ? _miles(pobLocal) : '\u2014',
+            n: _miles(nLocal),
+            pct: pobLocal > 0 ? _pct(nLocal, pobLocal) : '\u2014',
+            hl: true
+        },
+        {
+            nombre: 'EAS 2023',
+            tipo: 'Probabil\u00edstica, poblacional',
+            pobRef: _miles(_POB_AND) + ' <span style="font-size:.68rem;color:#94a3b8;">(Andaluc\u00eda)</span>',
+            n: _miles(_N_EAS),
+            pct: _pct(_N_EAS, _POB_AND)
+        },
+        {
+            nombre: 'ENS 2020',
+            tipo: 'Probabil\u00edstica, poblacional',
+            pobRef: _miles(_POB_ESP) + ' <span style="font-size:.68rem;color:#94a3b8;">(Espa\u00f1a)</span>',
+            n: _miles(_N_ENS),
+            pct: _pct(_N_ENS, _POB_ESP)
+        },
+        {
+            nombre: 'ESS (Espa\u00f1a)',
+            tipo: 'Probabil\u00edstica, aleatoria',
+            pobRef: _miles(_POB_ESP) + ' <span style="font-size:.68rem;color:#94a3b8;">(Espa\u00f1a)</span>',
+            n: _miles(_N_ESS),
+            pct: _pct(_N_ESS, _POB_ESP)
+        }
+    ];
+
+    // Frase de síntesis dinámica
+    var _pctLocalRaw = (pobLocal > 0 && nLocal > 0) ? (nLocal / pobLocal * 100) : 0;
+    var _pctLocalStr = _pctLocalRaw > 0 ? _pct(nLocal, pobLocal) : '\u2014';
+    var _fraseContraste = '';
+    if (pobLocal > 0 && nLocal > 0) {
+        var _easFrac = _N_EAS / _POB_AND * 100;
+        if (_pctLocalRaw > _easFrac) {
+            _fraseContraste = 'una fracci\u00f3n muy superior a la habitual en grandes encuestas poblacionales';
+        } else if (_pctLocalRaw > _easFrac * 0.5) {
+            _fraseContraste = 'una fracci\u00f3n comparable a la de grandes encuestas poblacionales';
+        } else {
+            _fraseContraste = 'una fracci\u00f3n inferior a la de grandes encuestas poblacionales';
+        }
+    }
+    var _fraseSintesis = pobLocal > 0
+        ? 'La muestra local analizada (n\u202f=\u202f' + _miles(nLocal) + ') representa el ' + _pctLocalStr +
+          ' de la poblaci\u00f3n adulta de referencia del municipio, ' + _fraseContraste + '.'
+        : 'La muestra local analizada (n\u202f=\u202f' + _miles(nLocal) + ') se compara a continuaci\u00f3n con las principales encuestas de salud de referencia.';
+
+    var html = '<div style="margin-bottom:1.4rem;">';
+    html += '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.45rem;letter-spacing:.01em;">Comparaci\u00f3n con encuestas de referencia</div>';
+    html += '<p style="font-size:.8rem;color:#374151;line-height:1.55;margin:0 0 .75rem;">' + _fraseSintesis + '</p>';
+
+    // Grid de tarjetas
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:.5rem;margin-bottom:.65rem;">';
+    filas.forEach(function(f) {
+        var bg      = f.hl ? '#eff6ff'  : '#f8fafc';
+        var border  = f.hl ? '1.5px solid #93c5fd' : '1px solid #e2e8f0';
+        var nColor  = f.hl ? '#1d4ed8'  : '#1e293b';
+        var nSize   = f.hl ? '.95rem'   : '.82rem';
+        var pctColor = f.hl ? '#2563eb' : '#475569';
+        html += '<div style="background:' + bg + ';border:' + border + ';border-radius:7px;padding:.55rem .65rem;">';
+        // Nombre encuesta
+        html += '<div style="font-size:.72rem;font-weight:700;color:#1e293b;margin-bottom:.2rem;line-height:1.3;">' + f.nombre + '</div>';
+        // Tipo muestreo
+        html += '<div style="font-size:.65rem;color:#64748b;margin-bottom:.4rem;line-height:1.3;">' + f.tipo + '</div>';
+        // n — más prominente en COMPÁS
+        html += '<div style="display:flex;align-items:baseline;gap:.3rem;margin-bottom:.15rem;">';
+        html += '<span style="font-size:.65rem;color:#94a3b8;">n\u202f=</span>';
+        html += '<span style="font-size:' + nSize + ';font-weight:900;color:' + nColor + ';">' + f.n + '</span>';
+        html += '</div>';
+        // % pob. ref.
+        html += '<div style="display:flex;align-items:baseline;gap:.25rem;">';
+        html += '<span style="font-size:.65rem;color:#94a3b8;">% pob.</span>';
+        html += '<span style="font-size:.75rem;font-weight:700;color:' + pctColor + ';">' + f.pct + '</span>';
+        html += '</div>';
+        // Pob. referencia en pequeño
+        html += '<div style="font-size:.62rem;color:#94a3b8;margin-top:.3rem;line-height:1.3;">' + f.pobRef + '</div>';
+        html += '</div>';
+    });
+    html += '</div>';
+
+    html += '<p style="font-size:.7rem;color:#94a3b8;line-height:1.45;margin:0;">' +
+        'Esta comparaci\u00f3n contextualiza la magnitud muestral. No implica equivalencia metodol\u00f3gica ni sustituye la representatividad de un muestreo probabil\u00edstico.' +
+    '</p>';
+    html += '</div>';
+    return html;
+}
+
+
+
 function ibse_v2_renderRepresentatividad(dist) {
 
     var mun  = getMunicipioActual();
@@ -59066,7 +59806,7 @@ function ibse_v2_renderRepresentatividad(dist) {
 
         html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.5rem;margin-bottom:.65rem;">';
 
-        var grupos2 = ['18-29','30-44','45-64','65-74','75+'];
+        var grupos2 = ['16-29','30-44','45-59','60-74','75+'];
 
         // Mini tabla conseguido por sexo × edad
 
@@ -59152,7 +59892,7 @@ function ibse_v2_renderRepresentatividad(dist) {
 
     html += '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.3rem;">Representatividad muestral</div>';
 
-    html += '<div style="font-size:.75rem;color:#64748b;margin-bottom:.5rem;">Población: '+rep.pobTotal.toLocaleString()+(nObj?' · Objetivo: '+nObj:'')+' · Conseguido: '+rep.nCons+'</div>';
+    html += '<div style="font-size:.75rem;color:#64748b;margin-bottom:.5rem;">Población: '+rep.pobTotal.toLocaleString()+(nObj?' · Objetivo: '+nObj:'')+' · Con edad válida: '+rep.nCons+'</div>';
 
 
 
@@ -59392,7 +60132,21 @@ function ibse_v2_renderJuicioMuestra(dist) {
 
     }
 
-
+    // ── Separación semántica: calidad muestral vs. recomendación de uso ──
+    var calidadLabel, calidadCol, usoLabel, usoCol;
+    if (veredicto === 'APTA') {
+        calidadLabel = 'alta';        calidadCol = '#16a34a';
+        usoLabel     = 'recomendable'; usoCol    = '#16a34a';
+    } else if (veredicto === 'APTA CON CAUTELAS') {
+        calidadLabel = 'media';       calidadCol = '#d97706';
+        usoLabel     = 'con cautela'; usoCol     = '#d97706';
+    } else if (veredicto === 'DEBIL') {
+        calidadLabel = 'media';       calidadCol = '#d97706';
+        usoLabel     = 'con cautela'; usoCol     = '#d97706';
+    } else {
+        calidadLabel = 'baja';              calidadCol = '#ef4444';
+        usoLabel     = 'no recomendable';   usoCol     = '#ef4444';
+    }
 
     // Texto interpretativo
 
@@ -59459,8 +60213,9 @@ function ibse_v2_renderJuicioMuestra(dist) {
 
     var html = '<div style="margin-bottom:1rem;">';
 
-    // 1. Calidad muestral directa
-    html += '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.3rem;">Calidad muestral directa: <span style="color:' + vCol + ';">' + veredicto + '</span></div>';
+    // 1. Calidad muestral + recomendación de uso (conceptos separados)
+    html += '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.1rem;">Calidad muestral: <span style="color:' + calidadCol + ';">' + calidadLabel + '</span></div>';
+    html += '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.3rem;">Uso para interpretaci\u00f3n directa: <span style="color:' + usoCol + ';">' + usoLabel + '</span></div>';
 
     html += '<div style="font-size:.75rem;color:#64748b;margin-bottom:.3rem;">';
 
@@ -59519,13 +60274,13 @@ function ibse_v2_renderJuicioMuestra(dist) {
 
 //     poblacion_edad_sexo: {
 
-//       '18-29': { h: 800, m: 820 },
+//       '16-29': { h: 800, m: 820 },
 
 //       '30-44': { h: 1200, m: 1150 },
 
-//       '45-64': { h: 1500, m: 1600 },
+//       '45-59': { h: 1500, m: 1600 },
 
-//       '65-74': { h: 600,  m: 750  },
+//       '60-74': { h: 600,  m: 750  },
 
 //       '75+':   { h: 300,  m: 500  }
 
@@ -59545,7 +60300,7 @@ function ibse_v2_renderJuicioMuestra(dist) {
 
 function ibse_config_guardar(config) {
 
-    var GRUPOS = ['18-29','30-44','45-64','65-74','75+'];
+    var GRUPOS = ['16-29','30-44','45-59','60-74','75+'];
 
     var mun = getMunicipioActual();
 
@@ -59831,36 +60586,60 @@ var IBSE_ITEMS_5 = [
 
 function calcularIBSE(d) {
 
-    var dep  = parseInt(d.ibse_deprimido);
-    var fel  = parseInt(d.ibse_feliz);
-    var sol  = parseInt(d.ibse_solo);
-    var dis  = parseInt(d.ibse_disfrutar);
-    var ene  = parseInt(d.ibse_energia);
-    var tra  = parseInt(d.ibse_tranquilo);
-    var opt  = parseInt(d.ibse_optimista);
-    var bie  = parseInt(d.ibse_bienmismo);
+    // [FIX 2026-04-12] Usa _ibseParseNumeroSeguro para consistencia con el filtro
+    // de ibse_cargarCSV. Umbral de inclusión: ≥6 de 8 ítems válidos.
+    var dep  = _ibseParseNumeroSeguro(d.ibse_deprimido);
+    var fel  = _ibseParseNumeroSeguro(d.ibse_feliz);
+    var sol  = _ibseParseNumeroSeguro(d.ibse_solo);
+    var dis  = _ibseParseNumeroSeguro(d.ibse_disfrutar);
+    var ene  = _ibseParseNumeroSeguro(d.ibse_energia);
+    var tra  = _ibseParseNumeroSeguro(d.ibse_tranquilo);
+    var opt  = _ibseParseNumeroSeguro(d.ibse_optimista);
+    var bie  = _ibseParseNumeroSeguro(d.ibse_bienmismo);
 
-    if ([dep,fel,sol,dis,ene,tra,opt,bie].some(isNaN)) {
+    var _items = [dep, fel, sol, dis, ene, tra, opt, bie];
+    var _nVal  = _items.filter(function(v){ return v !== null; }).length;
+    if (_nVal < 6) {
         return { factorVinculo: null, factorSituacion: null, factorControl: null, factorPersona: null, total: null };
     }
 
-    // Factor VÍNCULO: deprimido (inv) + solo (inv) · escala 1-4 → 0-100
+    // Factor VÍNCULO: deprimido (inv) + solo (inv) · escala 1-4
+    var fVinculo = (dep !== null && sol !== null) ? (((5-dep)+(5-sol))/2-1)*25
+                 : (dep !== null)                  ? ((5-dep)-1)*25
+                 : (sol !== null)                  ? ((5-sol)-1)*25
+                 : null;
 
-    var fVinculo   = (((5 - dep) + (5 - sol)) / 2 - 1) * 25;
+    // Factor SITUACIÓN: feliz + disfrutar · escala 1-4
+    var fSituacion = (fel !== null && dis !== null) ? (((fel+1)+(dis+1))/2-1)*25
+                   : (fel !== null)                  ? ((fel+1)-1)*25
+                   : (dis !== null)                  ? ((dis+1)-1)*25
+                   : null;
 
-    // Factor SITUACIÓN: feliz + disfrutar · escala 1-4 → 0-100
+    // Factor CONTROL: energía + tranquilo · escala 1-4
+    var fControl = (ene !== null && tra !== null) ? (((ene+1)+(tra+1))/2-1)*25
+                 : (ene !== null)                  ? ((ene+1)-1)*25
+                 : (tra !== null)                  ? ((tra+1)-1)*25
+                 : null;
 
-    var fSituacion = (((fel + 1) + (dis + 1)) / 2 - 1) * 25;
+    // Factor PERSONA: optimista (inv) + bienmismo (inv) · escala 1-5
+    var fPersona = (opt !== null && bie !== null) ? (((6-opt)+(6-bie))/2-1)*25
+                 : (opt !== null)                  ? ((6-opt)-1)*25
+                 : (bie !== null)                  ? ((6-bie)-1)*25
+                 : null;
 
-    // Factor CONTROL: energía + tranquilo · escala 1-4 → 0-100
-
-    var fControl   = (((ene + 1) + (tra + 1)) / 2 - 1) * 25;
-
-    // Factor PERSONA: optimista (inv) + bienmismo (inv) · escala 1-5 → 0-100
-
-    var fPersona   = (((6 - opt) + (6 - bie)) / 2 - 1) * 25;
-
-    var total      = (fVinculo + fSituacion + fControl + fPersona) / 4;
+    // [FIX 2026-04-12 v2] Total por peso uniforme por ítem válido.
+    // Algebraicamente idéntico al original con 8/8: sum_t/8*25-25 = (fV+fS+fC+fP)/4.
+    // Elimina double-weighting del ítem superviviente en pares incompletos.
+    var _st = 0, _nt = 0;
+    if (dep !== null) { _st += (5-dep); _nt++; }
+    if (sol !== null) { _st += (5-sol); _nt++; }
+    if (fel !== null) { _st += (fel+1); _nt++; }
+    if (dis !== null) { _st += (dis+1); _nt++; }
+    if (ene !== null) { _st += (ene+1); _nt++; }
+    if (tra !== null) { _st += (tra+1); _nt++; }
+    if (opt !== null) { _st += (6-opt); _nt++; }
+    if (bie !== null) { _st += (6-bie); _nt++; }
+    var total = _st / _nt * 25 - 25;
 
     return { factorVinculo: fVinculo, factorSituacion: fSituacion, factorControl: fControl, factorPersona: fPersona, total: total };
 
@@ -60026,9 +60805,11 @@ function ibse_cargarCSV(input) {
                 nFilasConContenido++;
 
                 var faltantes = campos.filter(function(c) { return _ibseParseNumeroSeguro(row[c]) === null; });
+                var nItemsValidos = campos.length - faltantes.length;
 
-                if (faltantes.length) {
-                    excluidos.push({ record_id: row.record_id || '?', motivo: faltantes.join(', ') });
+                // [FIX 2026-04-12] Umbral ≥6/8: antes se excluía con cualquier faltante.
+                if (nItemsValidos < 6) {
+                    excluidos.push({ record_id: row.record_id || '?', motivo: 'ítems válidos: ' + nItemsValidos + '/8 (mín. 6) — faltantes: ' + faltantes.join(', ') });
                     return;
                 }
 
@@ -60042,21 +60823,23 @@ function ibse_cargarCSV(input) {
 
                     sexo:           parseInt(row.sexo)  || null,
 
-                    ibse_deprimido: parseInt(row.ibse_deprimido),
+                    // [FIX 2026-04-12] parseInt produce NaN para ítems faltantes en casos ≥6/8.
+                    // _ibseParseNumeroSeguro devuelve número o null, nunca NaN.
+                    ibse_deprimido: _ibseParseNumeroSeguro(row.ibse_deprimido),
 
-                    ibse_feliz:     parseInt(row.ibse_feliz),
+                    ibse_feliz:     _ibseParseNumeroSeguro(row.ibse_feliz),
 
-                    ibse_solo:      parseInt(row.ibse_solo),
+                    ibse_solo:      _ibseParseNumeroSeguro(row.ibse_solo),
 
-                    ibse_disfrutar: parseInt(row.ibse_disfrutar),
+                    ibse_disfrutar: _ibseParseNumeroSeguro(row.ibse_disfrutar),
 
-                    ibse_energia:   parseInt(row.ibse_energia),
+                    ibse_energia:   _ibseParseNumeroSeguro(row.ibse_energia),
 
-                    ibse_tranquilo: parseInt(row.ibse_tranquilo),
+                    ibse_tranquilo: _ibseParseNumeroSeguro(row.ibse_tranquilo),
 
-                    ibse_optimista: parseInt(row.ibse_optimista),
+                    ibse_optimista: _ibseParseNumeroSeguro(row.ibse_optimista),
 
-                    ibse_bienmismo: parseInt(row.ibse_bienmismo),
+                    ibse_bienmismo: _ibseParseNumeroSeguro(row.ibse_bienmismo),
 
                     factorVinculo:   calc.factorVinculo,
 
@@ -60080,7 +60863,7 @@ function ibse_cargarCSV(input) {
 
             if (!validos.length) {
 
-                alert('No se encontraron filas válidas con los 8 ítems IBSE en el CSV.\n' +
+                alert('No se encontraron filas válidas para IBSE en el CSV (m\u00ednimo 6 de 8 \u00edtems v\u00e1lidos).\n' +
                       'Total CSV: ' + nTotalBruto + ' · Con contenido: ' + nFilasConContenido + ' · Excluidos: ' + excluidos.length + '\n' +
                       'Verifica que las columnas sean: ibse_deprimido, ibse_feliz, ibse_solo, ibse_disfrutar, ibse_energia, ibse_tranquilo, ibse_optimista, ibse_bienmismo');
 
@@ -60091,11 +60874,16 @@ function ibse_cargarCSV(input) {
             // Guardar respuestas individuales
 
             var refResp = db.ref('ibse_respuestas/' + municipio);
+            var payloadResp = {};
+            validos.forEach(function(v) {
+                payloadResp[refResp.push().key] = v;
+            });
 
             refResp.remove().then(function() {
-
-                validos.forEach(function(v) { refResp.push(v); });
-
+                return refResp.set(payloadResp);
+            }).catch(function(err) {
+                console.error('[ibse_cargarCSV] Error guardando respuestas individuales:', err);
+                alert('Error guardando respuestas IBSE en Firebase.');
             });
 
             // Calcular agregado
@@ -60147,7 +60935,7 @@ function ibse_cargarCSV(input) {
                 '· Con contenido: ' + nFilasConContenido +
                 ' · Excluidos: ' + excluidos.length +
                 ' · Total CSV: ' + nTotalBruto +
-                (excluidos.length ? ' · Motivo: ítems IBSE vacíos o no numéricos' : '') +
+                (excluidos.length ? ' · Motivo: menos de 6 \u00edtems IBSE v\u00e1lidos o valores no num\u00e9ricos' : '') +
                 '</span>';
 
         },
@@ -60206,48 +60994,49 @@ function renderizarPanelIBSE() {
 
     }
 
+    // [FIX 2026-04-12] Referencias EAS 2023 para comparación local/Granada/Andalucía.
+    var _IBSE_AND = 62.4, _IBSE_GR = 60.8;
+    function _refCol(local, ref) {
+        var d = local - ref;
+        return d >= 0 ? '#166534' : '#dc2626';
+    }
+    function _refTxt(local, ref) {
+        var d = local - ref;
+        return (d >= 0 ? '+' : '') + d.toFixed(1);
+    }
+
     el.innerHTML =
 
         '<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(80px,1fr)); gap:0.4rem; margin-bottom:0.4rem;">' +
 
             '<div style="text-align:center; background:' + nivelBg + '; border-radius:8px; padding:0.4rem;">' +
-
                 '<div style="font-size:1.25rem; font-weight:900; color:' + nivelColor + ';">' + d.media.toFixed(1) + '</div>' +
-
                 '<div style="font-size:0.65rem; color:#64748b; font-weight:600;">IBSE TOTAL</div>' +
-
+                '<div style="font-size:0.6rem; color:#94a3b8; margin-top:0.15rem;">GR <strong style="color:' + _refCol(d.media,_IBSE_GR) + ';">' + _refTxt(d.media,_IBSE_GR) + '</strong> · AND <strong style="color:' + _refCol(d.media,_IBSE_AND) + ';">' + _refTxt(d.media,_IBSE_AND) + '</strong></div>' +
             '</div>' +
 
             '<div style="text-align:center; background:#f0fdf4; border-radius:8px; padding:0.4rem;">' +
-
                 '<div style="font-size:0.95rem; font-weight:700; color:#166534;">' + (d.factorVinculo != null && !isNaN(d.factorVinculo) ? d.factorVinculo.toFixed(1) : '—') + '</div>' +
-
                 '<div style="font-size:0.62rem; color:#64748b;">Vínculo</div>' +
-
+                '<div style="font-size:0.6rem; color:#94a3b8;">GR — · AND —</div>' +
             '</div>' +
 
             '<div style="text-align:center; background:#fefce8; border-radius:8px; padding:0.4rem;">' +
-
                 '<div style="font-size:0.95rem; font-weight:700; color:#854d0e;">' + (d.factorSituacion != null && !isNaN(d.factorSituacion) ? d.factorSituacion.toFixed(1) : '—') + '</div>' +
-
                 '<div style="font-size:0.62rem; color:#64748b;">Situación</div>' +
-
+                '<div style="font-size:0.6rem; color:#94a3b8;">GR — · AND —</div>' +
             '</div>' +
 
             '<div style="text-align:center; background:#eff6ff; border-radius:8px; padding:0.4rem;">' +
-
                 '<div style="font-size:0.95rem; font-weight:700; color:#1d4ed8;">' + (d.factorControl != null && !isNaN(d.factorControl) ? d.factorControl.toFixed(1) : '—') + '</div>' +
-
                 '<div style="font-size:0.62rem; color:#64748b;">Control</div>' +
-
+                '<div style="font-size:0.6rem; color:#94a3b8;">GR — · AND —</div>' +
             '</div>' +
 
             '<div style="text-align:center; background:#faf5ff; border-radius:8px; padding:0.4rem;">' +
-
                 '<div style="font-size:0.95rem; font-weight:700; color:#7c3aed;">' + (d.factorPersona != null && !isNaN(d.factorPersona) ? d.factorPersona.toFixed(1) : '—') + '</div>' +
-
                 '<div style="font-size:0.62rem; color:#64748b;">Persona</div>' +
-
+                '<div style="font-size:0.6rem; color:#94a3b8;">GR — · AND —</div>' +
             '</div>' +
 
         '</div>' +
@@ -60444,6 +61233,11 @@ function COMPAS_limpiarEstudiosComplementarios() {
         db.ref('escalas_respuestas/sf12/' + mun).remove();
         console.info('[COMPAS] Firebase: estudios complementarios + escalas eliminados para ' + mun);
     }
+    // [NEUTRALIZADO 2026-04-11] La llamada a COMPAS_limpiarPriorizacionTematica() aquí
+    // marcaba __compas_carriles_borrados[mun].tematica=true, lo que bloqueaba el
+    // BACKUP-HYDRATE de datosParticipacionCiudadana en COMPAS_cargarPrioridadesFirebase
+    // e impedía al motor de propuesta obtener la participación como contexto → propuestaActual.length=0.
+    // try { if (typeof COMPAS_limpiarPriorizacionTematica === 'function') COMPAS_limpiarPriorizacionTematica(); } catch(e) {}
     // Re-render
     try { if (typeof renderizarPanelIBSE === 'function') renderizarPanelIBSE(); } catch(e) {}
     try { if (typeof renderizarSeccionEstudios === 'function') renderizarSeccionEstudios(); } catch(e) {}
@@ -60653,9 +61447,9 @@ function duke_simularCasos(callback) {
 
     // Construir lista de casos con sexo/edad proporcionales
     var casos = [];
-    var GR = ['18-29','30-44','45-64','65-74','75+'];
-    var edadRangoMin = {'18-29':18,'30-44':30,'45-64':45,'65-74':65,'75+':75};
-    var edadRangoMax = {'18-29':29,'30-44':44,'45-64':64,'65-74':74,'75+':89};
+    var GR = ['16-29','30-44','45-59','60-74','75+'];
+    var edadRangoMin = {'16-29':18,'30-44':30,'45-59':45,'60-74':65,'75+':75};
+    var edadRangoMax = {'16-29':29,'30-44':44,'45-59':64,'60-74':74,'75+':89};
 
     if (teor) {
         var celdas = [];
@@ -60796,9 +61590,9 @@ function duke_agregarRespuestas(mun, callback) {
         function _agregar(arr) {
             var n = arr.length, sumTotal = 0, nBajo = 0;
             var porSexo = {H:{n:0,sum:0}, M:{n:0,sum:0}};
-            var porEdad = {'18-29':{n:0,sum:0},'30-44':{n:0,sum:0},'45-64':{n:0,sum:0},'65-74':{n:0,sum:0},'75+':{n:0,sum:0}};
+            var porEdad = {'16-29':{n:0,sum:0},'30-44':{n:0,sum:0},'45-59':{n:0,sum:0},'60-74':{n:0,sum:0},'75+':{n:0,sum:0}};
             var porSexoEdad = {};
-            ['18-29','30-44','45-64','65-74','75+'].forEach(function(g) {
+            ['16-29','30-44','45-59','60-74','75+'].forEach(function(g) {
                 porSexoEdad[g] = { H:{n:0,sum:0}, M:{n:0,sum:0} };
             });
             arr.forEach(function(d) {
@@ -60809,7 +61603,7 @@ function duke_agregarRespuestas(mun, callback) {
                 if (porSexo[sx]) { porSexo[sx].n++; porSexo[sx].sum += t; }
                 var e = d.edad;
                 if (e) {
-                    var g = e < 30 ? '18-29' : e < 45 ? '30-44' : e < 65 ? '45-64' : e < 75 ? '65-74' : '75+';
+                    var g = e < 30 ? '16-29' : e < 45 ? '30-44' : e < 65 ? '45-59' : e < 75 ? '60-74' : '75+';
                     if (porEdad[g]) { porEdad[g].n++; porEdad[g].sum += t; }
                     if (sx && porSexoEdad[g] && porSexoEdad[g][sx]) { porSexoEdad[g][sx].n++; porSexoEdad[g][sx].sum += t; }
                 }
@@ -60835,7 +61629,7 @@ function _duke_sam_animar(containerId, porSexoEdad, nTotal, samPob, samN, samEsD
     var myId = _duke_sam_animId;
     var el = document.getElementById(containerId);
     if (!el || typeof sam_renderMonitorMuestra !== 'function') return;
-    var GR = ['18-29','30-44','45-64','65-74','75+'];
+    var GR = ['16-29','30-44','45-59','60-74','75+'];
 
     // Trazabilidad: capturar datos de tri-pirámide en window._piramides
     if (!window._piramides) window._piramides = {};
@@ -61019,7 +61813,7 @@ function _monitorDukeEstructurado(aggObj) {
     var _nH = agg.porSexo.H.n, _nM = agg.porSexo.M.n;
     var _nConSexo = _nH + _nM;
     var _nConEdad = 0;
-    ['18-29','30-44','45-64','65-74','75+'].forEach(function(g) { _nConEdad += agg.porEdad[g].n; });
+    ['16-29','30-44','45-59','60-74','75+'].forEach(function(g) { _nConEdad += agg.porEdad[g].n; });
     html += '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-top:.5rem;margin-bottom:.4rem;">Muestra</div>';
     html += '<div style="font-size:.75rem;color:#475569;line-height:1.55;margin-bottom:.35rem;">';
     if (_soloSim) {
@@ -61041,7 +61835,7 @@ function _monitorDukeEstructurado(aggObj) {
         var _pobSAM = (typeof sam_obtenerPoblacion === 'function') ? sam_obtenerPoblacion() : null;
         var _nObjD = (typeof compas_pob_calcularN === 'function' && _pobSAM && _pobSAM.total > 0) ? compas_pob_calcularN((typeof getMunicipioActual === 'function') ? getMunicipioActual() : null) : null;
         if (_pobSAM && _nObjD) {
-            var _GR = ['18-29','30-44','45-64','65-74','75+'];
+            var _GR = ['16-29','30-44','45-59','60-74','75+'];
             var _colEst = {ok:['#dcfce7','#16a34a','OK'], infra:['#fee2e2','#ef4444','Infra'], sobre:['#fef9c3','#d97706','Sobre'], nd:['#f1f5f9','#94a3b8','\u2014']};
             var _nRefD = Math.max(_nObjD, agg.n);
             html += '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-top:.5rem;margin-bottom:.3rem;">Representatividad muestral</div>';
@@ -61182,7 +61976,7 @@ function _monitorDukeEstructurado(aggObj) {
     // Por edad
     html += '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.3rem;">Por grupo de edad</div>';
     html += '<div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.45rem;">';
-    ['18-29','30-44','45-64','65-74','75+'].forEach(function(g) {
+    ['16-29','30-44','45-59','60-74','75+'].forEach(function(g) {
         var d = agg.porEdad[g];
         if (d.n > 0) {
             var m = Math.round(d.sum / d.n * 10) / 10;
@@ -61194,7 +61988,7 @@ function _monitorDukeEstructurado(aggObj) {
     html += '</div>';
 
     // Pirámide por edad (patrón IBSE renderPiramide)
-    var _pyrGrupos = ['18-29','30-44','45-64','65-74','75+'];
+    var _pyrGrupos = ['16-29','30-44','45-59','60-74','75+'];
     if (_pyrGrupos.some(function(g) { return agg.porEdad[g].n > 0; })) {
         html += '<div style="margin-bottom:1rem;">';
         html += '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.4rem;">Duke-UNC por grupo de edad</div>';
@@ -61271,7 +62065,7 @@ function _monitorDukeEstructurado(aggObj) {
             _iParts.push('La muestra no tiene base suficiente para análisis por sexo (n=' + _iNH + ' hombres, n=' + _iNM + ' mujeres; mínimo recomendado: 5 por grupo).');
         }
         var _iEdadBajos = [];
-        ['18-29','30-44','45-64','65-74','75+'].forEach(function(g) {
+        ['16-29','30-44','45-59','60-74','75+'].forEach(function(g) {
             var d = agg.porEdad[g];
             if (d.n >= 5) {
                 var m = Math.round(d.sum / d.n * 10) / 10;
@@ -61440,9 +62234,9 @@ function cage_agregarRespuestas(mun, callback) {
         function _agregar(arr) {
             var n = arr.length, sumPos = 0, nRiesgo = 0, nAlta = 0;
             var porSexo = {H:{n:0,sumPos:0,nR:0}, M:{n:0,sumPos:0,nR:0}};
-            var porEdad = {'18-29':{n:0,nR:0},'30-44':{n:0,nR:0},'45-64':{n:0,nR:0},'65-74':{n:0,nR:0},'75+':{n:0,nR:0}};
+            var porEdad = {'16-29':{n:0,nR:0},'30-44':{n:0,nR:0},'45-59':{n:0,nR:0},'60-74':{n:0,nR:0},'75+':{n:0,nR:0}};
             var porSexoEdad = {};
-            ['18-29','30-44','45-64','65-74','75+'].forEach(function(g) { porSexoEdad[g] = {H:{n:0},M:{n:0}}; });
+            ['16-29','30-44','45-59','60-74','75+'].forEach(function(g) { porSexoEdad[g] = {H:{n:0},M:{n:0}}; });
             arr.forEach(function(d) {
                 var p = d.cage_positivos;
                 sumPos += p;
@@ -61452,7 +62246,7 @@ function cage_agregarRespuestas(mun, callback) {
                 if (porSexo[sx]) { porSexo[sx].n++; porSexo[sx].sumPos += p; if (p >= 2) porSexo[sx].nR++; }
                 var e = d.edad;
                 if (e) {
-                    var g = e < 30 ? '18-29' : e < 45 ? '30-44' : e < 65 ? '45-64' : e < 75 ? '65-74' : '75+';
+                    var g = e < 30 ? '16-29' : e < 45 ? '30-44' : e < 65 ? '45-59' : e < 75 ? '60-74' : '75+';
                     if (porEdad[g]) { porEdad[g].n++; if (p >= 2) porEdad[g].nR++; }
                     if (porSexoEdad[g] && porSexoEdad[g][sx]) { porSexoEdad[g][sx].n++; }
                 }
@@ -61510,7 +62304,7 @@ function _monitorCAGEEstructurado(aggObj) {
     var _nHC = agg.porSexo.H.n, _nMC = agg.porSexo.M.n;
     var _nConSexoC = _nHC + _nMC;
     var _nConEdadC = 0;
-    ['18-29','30-44','45-64','65-74','75+'].forEach(function(g) { _nConEdadC += agg.porEdad[g].n; });
+    ['16-29','30-44','45-59','60-74','75+'].forEach(function(g) { _nConEdadC += agg.porEdad[g].n; });
     html += '<div style="font-size:.72rem;color:#64748b;margin-top:.5rem;margin-bottom:.4rem;font-weight:600;">Muestra</div>';
     html += '<div style="font-size:.75rem;color:#475569;line-height:1.55;margin-bottom:.35rem;">';
     html += '<strong>' + agg.n + '</strong> respuestas · con sexo: ' + _nConSexoC + ' · con edad: ' + _nConEdadC;
@@ -61546,7 +62340,7 @@ function _monitorCAGEEstructurado(aggObj) {
     // Por edad
     html += '<div style="font-size:.72rem;color:#64748b;margin-bottom:.3rem;font-weight:600;">Por grupo de edad</div>';
     html += '<div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.45rem;">';
-    ['18-29','30-44','45-64','65-74','75+'].forEach(function(g) {
+    ['16-29','30-44','45-59','60-74','75+'].forEach(function(g) {
         var d = agg.porEdad[g];
         if (d.n > 0) {
             html += '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:.3rem .5rem;font-size:.7rem;">';
@@ -61701,9 +62495,9 @@ function predimed_agregarRespuestas(mun, callback) {
         function _agregar(arr) {
             var n = arr.length, sumT = 0, nBaja = 0, nMedia = 0, nAlta = 0;
             var porSexo = {H:{n:0,sum:0}, M:{n:0,sum:0}};
-            var porEdad = {'18-29':{n:0,sum:0},'30-44':{n:0,sum:0},'45-64':{n:0,sum:0},'65-74':{n:0,sum:0},'75+':{n:0,sum:0}};
+            var porEdad = {'16-29':{n:0,sum:0},'30-44':{n:0,sum:0},'45-59':{n:0,sum:0},'60-74':{n:0,sum:0},'75+':{n:0,sum:0}};
             var porSexoEdad = {};
-            ['18-29','30-44','45-64','65-74','75+'].forEach(function(g) { porSexoEdad[g] = {H:{n:0},M:{n:0}}; });
+            ['16-29','30-44','45-59','60-74','75+'].forEach(function(g) { porSexoEdad[g] = {H:{n:0},M:{n:0}}; });
             arr.forEach(function(d) {
                 var t = d.pred_total;
                 sumT += t;
@@ -61712,7 +62506,7 @@ function predimed_agregarRespuestas(mun, callback) {
                 if (porSexo[sx]) { porSexo[sx].n++; porSexo[sx].sum += t; }
                 var e = d.edad;
                 if (e) {
-                    var g = e < 30 ? '18-29' : e < 45 ? '30-44' : e < 65 ? '45-64' : e < 75 ? '65-74' : '75+';
+                    var g = e < 30 ? '16-29' : e < 45 ? '30-44' : e < 65 ? '45-59' : e < 75 ? '60-74' : '75+';
                     if (porEdad[g]) { porEdad[g].n++; porEdad[g].sum += t; }
                     if (porSexoEdad[g] && porSexoEdad[g][sx]) { porSexoEdad[g][sx].n++; }
                 }
@@ -61777,7 +62571,7 @@ function _monitorPREDIMEDEstructurado(aggObj) {
     var _nHP = agg.porSexo.H.n, _nMP = agg.porSexo.M.n;
     var _nConSexoP = _nHP + _nMP;
     var _nConEdadP = 0;
-    ['18-29','30-44','45-64','65-74','75+'].forEach(function(g) { _nConEdadP += agg.porEdad[g].n; });
+    ['16-29','30-44','45-59','60-74','75+'].forEach(function(g) { _nConEdadP += agg.porEdad[g].n; });
     html += '<div style="font-size:.72rem;color:#64748b;margin-top:.5rem;margin-bottom:.4rem;font-weight:600;">Muestra</div>';
     html += '<div style="font-size:.75rem;color:#475569;line-height:1.55;margin-bottom:.35rem;">';
     html += '<strong>' + agg.n + '</strong> respuestas · con sexo: ' + _nConSexoP + ' · con edad: ' + _nConEdadP;
@@ -61813,7 +62607,7 @@ function _monitorPREDIMEDEstructurado(aggObj) {
     // Por edad
     html += '<div style="font-size:.72rem;color:#64748b;margin-bottom:.3rem;font-weight:600;">Por grupo de edad</div>';
     html += '<div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.45rem;">';
-    ['18-29','30-44','45-64','65-74','75+'].forEach(function(g) {
+    ['16-29','30-44','45-59','60-74','75+'].forEach(function(g) {
         var d = agg.porEdad[g];
         if (d.n > 0) {
             var m = Math.round(d.sum / d.n * 10) / 10;
@@ -61825,7 +62619,7 @@ function _monitorPREDIMEDEstructurado(aggObj) {
     html += '</div>';
 
     // Gráfico resumen por grupo de edad (patrón Duke/IBSE pirámide)
-    var _pyrGP = ['18-29','30-44','45-64','65-74','75+'];
+    var _pyrGP = ['16-29','30-44','45-59','60-74','75+'];
     if (_pyrGP.some(function(g) { return agg.porEdad[g].n > 0; })) {
         html += '<div style="margin-bottom:1rem;">';
         html += '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.4rem;">PREDIMED por grupo de edad</div>';
@@ -62084,9 +62878,9 @@ function sf12_simularCasos(callback) {
     if (!info.N || !info.pob) { alert('No hay datos de población. Carga el padrón.'); return; }
     var teor = (typeof sam_generarPiramideTeorica === 'function') ? sam_generarPiramideTeorica(info.pob, info.N) : null;
     if (!teor) { alert('No se puede generar distribución teórica.'); return; }
-    var GR = ['18-29','30-44','45-64','65-74','75+'];
-    var edadMin = {'18-29':18,'30-44':30,'45-64':45,'65-74':65,'75+':75};
-    var edadMax = {'18-29':29,'30-44':44,'45-64':64,'65-74':74,'75+':89};
+    var GR = ['16-29','30-44','45-59','60-74','75+'];
+    var edadMin = {'16-29':18,'30-44':30,'45-59':45,'60-74':65,'75+':75};
+    var edadMax = {'16-29':29,'30-44':44,'45-59':64,'60-74':74,'75+':89};
     var casos = [];
     GR.forEach(function(g) {
         for (var i = 0; i < (teor.hombres[g]||0); i++) casos.push({sexo:'H',sexo_num:1,edad:edadMin[g]+Math.floor(Math.random()*(edadMax[g]-edadMin[g]+1))});
@@ -62246,16 +63040,16 @@ function sf12_agregarRespuestas(mun, callback) {
         function _agregar(arr) {
             var n = arr.length, sumP = 0, sumM = 0;
             var porSexo = {H:{n:0,sumP:0,sumM:0}, M:{n:0,sumP:0,sumM:0}};
-            var porEdad = {'18-29':{n:0,sumP:0,sumM:0},'30-44':{n:0,sumP:0,sumM:0},'45-64':{n:0,sumP:0,sumM:0},'65-74':{n:0,sumP:0,sumM:0},'75+':{n:0,sumP:0,sumM:0}};
+            var porEdad = {'16-29':{n:0,sumP:0,sumM:0},'30-44':{n:0,sumP:0,sumM:0},'45-59':{n:0,sumP:0,sumM:0},'60-74':{n:0,sumP:0,sumM:0},'75+':{n:0,sumP:0,sumM:0}};
             var porSexoEdad = {};
-            ['18-29','30-44','45-64','65-74','75+'].forEach(function(g) { porSexoEdad[g] = {H:{n:0},M:{n:0}}; });
+            ['16-29','30-44','45-59','60-74','75+'].forEach(function(g) { porSexoEdad[g] = {H:{n:0},M:{n:0}}; });
             arr.forEach(function(d) {
                 sumP += d.pcs; sumM += d.mcs;
                 var sx = d.sexo || '';
                 if (porSexo[sx]) { porSexo[sx].n++; porSexo[sx].sumP += d.pcs; porSexo[sx].sumM += d.mcs; }
                 var e = d.edad;
                 if (e) {
-                    var g = e < 30 ? '18-29' : e < 45 ? '30-44' : e < 65 ? '45-64' : e < 75 ? '65-74' : '75+';
+                    var g = e < 30 ? '16-29' : e < 45 ? '30-44' : e < 65 ? '45-59' : e < 75 ? '60-74' : '75+';
                     if (porEdad[g]) { porEdad[g].n++; porEdad[g].sumP += d.pcs; porEdad[g].sumM += d.mcs; }
                     if (porSexoEdad[g] && porSexoEdad[g][sx]) { porSexoEdad[g][sx].n++; }
                 }
@@ -62308,7 +63102,7 @@ function _monitorSF12Estructurado(aggObj) {
     var _nHS = agg.porSexo.H.n, _nMS = agg.porSexo.M.n;
     var _nConSexoS = _nHS + _nMS;
     var _nConEdadS = 0;
-    ['18-29','30-44','45-64','65-74','75+'].forEach(function(g) { _nConEdadS += agg.porEdad[g].n; });
+    ['16-29','30-44','45-59','60-74','75+'].forEach(function(g) { _nConEdadS += agg.porEdad[g].n; });
     html += '<div style="font-size:.72rem;color:#64748b;margin-top:.5rem;margin-bottom:.4rem;font-weight:600;">Muestra</div>';
     html += '<div style="font-size:.75rem;color:#475569;line-height:1.55;margin-bottom:.35rem;">';
     html += '<strong>' + agg.n + '</strong> respuestas · con sexo: ' + _nConSexoS + ' · con edad: ' + _nConEdadS;
@@ -62349,7 +63143,7 @@ function _monitorSF12Estructurado(aggObj) {
     // Por edad
     html += '<div style="font-size:.72rem;color:#64748b;margin-bottom:.3rem;font-weight:600;">Por grupo de edad</div>';
     html += '<div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.45rem;">';
-    ['18-29','30-44','45-64','65-74','75+'].forEach(function(g) {
+    ['16-29','30-44','45-59','60-74','75+'].forEach(function(g) {
         var d = agg.porEdad[g];
         if (d.n > 0) {
             html += '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:.3rem .5rem;font-size:.68rem;">';
@@ -62360,7 +63154,7 @@ function _monitorSF12Estructurado(aggObj) {
     html += '</div>';
 
     // Gráfico resumen por grupo de edad (patrón Duke pirámide)
-    var _pyrGS = ['18-29','30-44','45-64','65-74','75+'];
+    var _pyrGS = ['16-29','30-44','45-59','60-74','75+'];
     if (_pyrGS.some(function(g) { return agg.porEdad[g].n > 0; })) {
         html += '<div style="margin-bottom:1rem;">';
         html += '<div style="font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.4rem;">SF-12 por grupo de edad</div>';
@@ -62454,9 +63248,9 @@ function cage_simularCasos(callback) {
     if (!info.N || !info.pob) { alert('No hay datos de población. Carga el padrón.'); return; }
     var teor = (typeof sam_generarPiramideTeorica === 'function') ? sam_generarPiramideTeorica(info.pob, info.N) : null;
     if (!teor) { alert('No se puede generar distribución teórica.'); return; }
-    var GR = ['18-29','30-44','45-64','65-74','75+'];
-    var eMin = {'18-29':18,'30-44':30,'45-64':45,'65-74':65,'75+':75};
-    var eMax = {'18-29':29,'30-44':44,'45-64':64,'65-74':74,'75+':89};
+    var GR = ['16-29','30-44','45-59','60-74','75+'];
+    var eMin = {'16-29':18,'30-44':30,'45-59':45,'60-74':65,'75+':75};
+    var eMax = {'16-29':29,'30-44':44,'45-59':64,'60-74':74,'75+':89};
     var casos = [];
     GR.forEach(function(g) {
         for (var i = 0; i < (teor.hombres[g]||0); i++) casos.push({sexo:'H',sexo_num:1,edad:eMin[g]+Math.floor(Math.random()*(eMax[g]-eMin[g]+1))});
@@ -62526,6 +63320,9 @@ function cage_borrarDatos() {
     if (typeof db !== 'undefined') {
         db.ref('escalas_respuestas/cage/' + mun).remove();
     }
+    if (window.compasEscalasDiagnosticas && Array.isArray(window.compasEscalasDiagnosticas)) {
+        window.compasEscalasDiagnosticas = window.compasEscalasDiagnosticas.filter(function(e){ return e.nombre_escala !== 'CAGE'; });
+    }
     if (typeof renderizarSeccionEstudios === 'function') renderizarSeccionEstudios();
     if (typeof actualizarChecklistIA === 'function') actualizarChecklistIA();
 }
@@ -62588,9 +63385,9 @@ function predimed_simularCasos(callback) {
     if (!info.N || !info.pob) { alert('No hay datos de población. Carga el padrón.'); return; }
     var teor = (typeof sam_generarPiramideTeorica === 'function') ? sam_generarPiramideTeorica(info.pob, info.N) : null;
     if (!teor) { alert('No se puede generar distribución teórica.'); return; }
-    var GR = ['18-29','30-44','45-64','65-74','75+'];
-    var eMin = {'18-29':18,'30-44':30,'45-64':45,'65-74':65,'75+':75};
-    var eMax = {'18-29':29,'30-44':44,'45-64':64,'65-74':74,'75+':89};
+    var GR = ['16-29','30-44','45-59','60-74','75+'];
+    var eMin = {'16-29':18,'30-44':30,'45-59':45,'60-74':65,'75+':75};
+    var eMax = {'16-29':29,'30-44':44,'45-59':64,'60-74':74,'75+':89};
     var casos = [];
     GR.forEach(function(g) {
         for (var i = 0; i < (teor.hombres[g]||0); i++) casos.push({sexo:'H',sexo_num:1,edad:eMin[g]+Math.floor(Math.random()*(eMax[g]-eMin[g]+1))});
@@ -62659,6 +63456,9 @@ function predimed_borrarDatos() {
     if (!confirm('¿Eliminar TODOS los datos PREDIMED de ' + mun + '? Esta acción no se puede deshacer.')) return;
     if (typeof db !== 'undefined') {
         db.ref('escalas_respuestas/predimed/' + mun).remove();
+    }
+    if (window.compasEscalasDiagnosticas && Array.isArray(window.compasEscalasDiagnosticas)) {
+        window.compasEscalasDiagnosticas = window.compasEscalasDiagnosticas.filter(function(e){ return e.nombre_escala !== 'PREDIMED'; });
     }
     if (typeof renderizarSeccionEstudios === 'function') renderizarSeccionEstudios();
     if (typeof actualizarChecklistIA === 'function') actualizarChecklistIA();
@@ -64966,7 +65766,7 @@ function hpc_buildFormExterno(nombreMunicipio) {
         '<div style="margin-bottom:.7rem;">' +
         '<div style="font-size:.85rem;font-weight:600;color:#374151;margin-bottom:.35rem;">Edad</div>' +
         '<div style="display:flex;flex-wrap:wrap;gap:.35rem;">' +
-        hpcRadioGroup('hpc-ext-edad', ['Menor de 18','18-29','30-44','45-59','60-74','75 o más'], '#2d6a4f') +
+        hpcRadioGroup('hpc-ext-edad', ['Menor de 16','16-29','30-44','45-59','60-74','75 o más'], '#2d6a4f') +
         '</div></div>' +
         '<div>' +
         '<div style="font-size:.85rem;font-weight:600;color:#374151;margin-bottom:.35rem;">Sexo</div>' +
@@ -65294,9 +66094,11 @@ function COMPAS_cargarPrioridadesFirebase(municipio) {
 
             // [BACKUP-HYDRATE] Hidratar datosParticipacionCiudadana si cargarParticipacionCiudadana()
             // no llegó a tiempo o su callback fue descartado. No sobreescribir si ya hay datos VRELAS.
+            // [GUARD] No rehidratar si la priorización temática fue borrada explícitamente en esta sesión.
             if (getMunicipioActual() === municipio &&
                 !window.datosParticipacionCiudadana &&
-                !(window.datosParticipacionCiudadana && window.datosParticipacionCiudadana.temasFreq)) {
+                !(window.datosParticipacionCiudadana && window.datosParticipacionCiudadana.temasFreq) &&
+                !_borrado('tematica')) {
                 window.datosParticipacionCiudadana = d;
                 window.datosParticipacionCiudadanaMunicipio = municipio;
             }
