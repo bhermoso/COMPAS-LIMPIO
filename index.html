@@ -2840,7 +2840,17 @@
 
                                 <button onclick="window.open('https://redcap-fibao.granadasalud.es/DSGM/surveys/?s=JH98PCF4XHY3WPWE','_blank')" style="background:#fff; border:1px solid #7dd3fc; border-radius:6px; padding:0.4rem 0.75rem; font-size:0.78rem; font-weight:600; color:#0369a1; cursor:pointer;" title="Abrir formulario REDCap en nueva pestaña">🔗 Abrir formulario REDCap</button>
 
-                                <button onclick="ibse_v2_abrir()" style="background:#0074c8; color:white; border:none; border-radius:6px; padding:0.4rem 0.75rem; font-size:0.78rem; font-weight:600; cursor:pointer;" title="Abrir monitor completo IBSE">📊 Monitor</button>
+                                <!-- [DESACTIVADO TEMPORALMENTE 2026-04-17]
+                                     Monitor comparativo externo (ibse_v2_abrir) ocultado
+                                     mientras no esté demostrada la equivalencia metodológica
+                                     con los datos de referencia externos (EAS/Andalucía/Granada).
+                                     Reactivar cuando se disponga de microdatos y sintaxis oficial comparables.
+                                     Para reactivar: eliminar display:none del botón siguiente. -->
+                                <button onclick="ibse_v2_abrir()" style="display:none; background:#0074c8; color:white; border:none; border-radius:6px; padding:0.4rem 0.75rem; font-size:0.78rem; font-weight:600; cursor:pointer;" title="Abrir monitor completo IBSE">📊 Monitor</button>
+
+                                <button onclick="compasLocal_ibse_abrir()" style="background:#0f766e; color:white; border:none; border-radius:6px; padding:0.4rem 0.75rem; font-size:0.78rem; font-weight:600; cursor:pointer;" title="Monitor IBSE local — sin comparativas externas">📊 Local</button>
+
+                                <button onclick="ibseSM_abrir()" style="background:#1e40af; color:white; border:none; border-radius:6px; padding:0.4rem 0.75rem; font-size:0.78rem; font-weight:600; cursor:pointer;" title="Supermonitor IBSE — auditoría y trazabilidad">📈 Super</button>
 
                                 <button onclick="ibse_borrarDatos()" style="background:#fff; border:1px solid #fca5a5; border-radius:6px; padding:0.4rem 0.5rem; font-size:0.75rem; color:#dc2626; cursor:pointer;" title="Borrar datos IBSE">🗑️</button>
 
@@ -5871,7 +5881,7 @@
 
                         <span class="badge-dato" id="badge-informe" style="background:#fff9e6;color:#ff6600;padding:0.25rem 0.5rem;border-radius:4px;font-size:0.75rem;">📄 Informe: --</span>
 
-                        <span class="badge-dato" id="badge-determinantes" style="background:#fff9e6;color:#ff6600;padding:0.25rem 0.5rem;border-radius:4px;font-size:0.75rem;">📊 EAS: --</span>
+                        <span class="badge-dato" id="badge-determinantes" style="background:#fff9e6;color:#ff6600;padding:0.25rem 0.5rem;border-radius:4px;font-size:0.75rem;">🧠 IBSE: —</span>
 
                         <span class="badge-dato" id="badge-conclusiones" style="background:#fff9e6;color:#ff6600;padding:0.25rem 0.5rem;border-radius:4px;font-size:0.75rem;">💡 Conclusiones: --</span>
 
@@ -11133,35 +11143,33 @@ function actualizarBadgesFase4() {
 
         
 
-        // Badge Determinantes
+        // Badge IBSE (valor resumen del Monitor Local — mismo cálculo que compasLocal_ibse_render)
 
         const badgeDet = document.getElementById('badge-determinantes');
 
         if (badgeDet) {
 
-            if (datos.determinantes) {
+            var _ibseMedia = null;
 
-                const numDet = _contarDeterminantesValidos(datos.determinantes);
+            if (typeof _compasLocalIBSE_datos !== 'undefined' && _compasLocalIBSE_datos && _compasLocalIBSE_datos.length > 0) {
 
-                if (numDet >= TOTAL_DETERMINANTES_EPVSA) {
+                var _aggBadge = compasLocal_ibse_agregar(_compasLocalIBSE_datos);
 
-                    badgeDet.style.cssText = estiloOk;
+                if (_aggBadge && _aggBadge.media != null) _ibseMedia = _aggBadge.media;
 
-                    badgeDet.textContent = '📊 Determinantes: ' + numDet + '/' + TOTAL_DETERMINANTES_EPVSA;
+            }
 
-                } else {
+            if (_ibseMedia !== null) {
 
-                    badgeDet.style.cssText = estiloWarning;
+                badgeDet.style.cssText = _ibseMedia >= 76 ? estiloOk : _ibseMedia >= 51 ? estiloWarning : estiloPendiente;
 
-                    badgeDet.textContent = '📊 Determinantes: ' + numDet + '/' + TOTAL_DETERMINANTES_EPVSA;
-
-                }
+                badgeDet.textContent = '🧠 IBSE: ' + _ibseMedia.toFixed(1);
 
             } else {
 
                 badgeDet.style.cssText = estiloPendiente;
 
-                badgeDet.textContent = '📊 Determinantes: 0/' + TOTAL_DETERMINANTES_EPVSA;
+                badgeDet.textContent = '🧠 IBSE: —';
 
             }
 
@@ -48282,7 +48290,7 @@ function renderizarSeccionEstudios() {
             descripcion:'Cuestionario de 8 \u00edtems \u00b7 4 factores \u00b7 Escala 0\u2013100',
             estado: ico + ' ' + sc + '/100', estadoBg:bg, estadoFg:col,
             datoHtml: datoIBSE,
-            monitorFn:'ibseMonitor_abrir()',
+            monitorFn:'ibseSM_abrir()',
             accionesHtml: accionesIBSE,
             detalleHtml:'Factores: V\u00ednculo \u00b7 Situaci\u00f3n \u00b7 Control \u00b7 Persona.<br>' +
                 'Umbral \u00f3ptimo: \u226570 \u00b7 Riesgo moderado: 50\u201369 \u00b7 Riesgo elevado: &lt;50.'
@@ -48294,7 +48302,7 @@ function renderizarSeccionEstudios() {
             descripcion:'Cuestionario de 8 \u00edtems \u00b7 4 factores \u00b7 Escala 0\u2013100',
             estado:'Sin datos', estadoBg:'#f1f5f9', estadoFg:'#94a3b8',
             datoHtml:'',
-            monitorFn:'ibseMonitor_abrir()',
+            monitorFn:'ibseSM_abrir()',
             accionesHtml:'<button onclick="window.open(\'https://redcap-fibao.granadasalud.es/DSGM/surveys/?s=JH98PCF4XHY3WPWE\',\'_blank\')" style="background:#0369a1;color:white;border:none;border-radius:7px;padding:0.36rem 0.7rem;font-size:0.74rem;font-weight:600;cursor:pointer;">\uD83D\uDD17 Formulario REDCap</button>' +
                 '<button onclick="ibse_abrirCuestionario()" style="background:#667eea;color:white;border:none;border-radius:7px;padding:0.36rem 0.7rem;font-size:0.74rem;font-weight:600;cursor:pointer;">Cuestionario inline</button>' +
                 '<label style="background:white;border:1px solid #e2e8f0;border-radius:7px;' +
@@ -48880,13 +48888,13 @@ function _sam_barraRow(g, pctPob, pctIdeal, pctCons, stH, stM, maxPct, nActual, 
     var tM = '\u2640 ' + g + ' | pob:' + pob.mujeres[g] + ' ideal:' + teor.mujeres[g] + ' (esper.' + nIdealParcM + ') cons:' + (cons.mujeres[g]||0);
     // H side: 3 capas — población tenue (fondo), ideal intermedia, conseguida siempre presente
     var hSide = '<div data-sam-side="' + g + '-h" style="flex:1;position:relative;height:20px;display:flex;justify-content:flex-end;" title="' + tH + '">' +
-        '<div style="position:absolute;right:0;top:0px;height:16px;width:' + wPH + '%;background:repeating-linear-gradient(90deg,#d1d5db 0px,#d1d5db 3px,#b0b8c4 3px,#b0b8c4 4px);opacity:0.6;border-radius:2px 0 0 2px;z-index:1;border-bottom:2px solid #94a3b8;border-top:2px solid #94a3b8;"></div>' +
+        '<div style="position:absolute;right:0;top:0px;height:8px;width:' + wPH + '%;background:repeating-linear-gradient(90deg,#d1d5db 0px,#d1d5db 3px,#b0b8c4 3px,#b0b8c4 4px);opacity:0.6;border-radius:2px 0 0 2px;z-index:1;border-bottom:2px solid #94a3b8;border-top:2px solid #94a3b8;"></div>' +
         '<div data-sam-ideal="' + g + '-h" style="position:absolute;right:0;top:4px;height:8px;width:' + wIH + '%;background:#3b82f6;border-radius:2px 0 0 2px;z-index:2;opacity:0.7;"></div>' +
         '<div data-sam-cons="' + g + '-h" style="position:absolute;right:0;top:10px;height:6px;width:' + wCH + '%;background:' + colH + ';border-radius:2px 0 0 2px;z-index:3;transition:width .12s ease-out;"></div>' +
     '</div>';
     // M side: left-aligned, conseguida siempre presente
     var mSide = '<div data-sam-side="' + g + '-m" style="flex:1;position:relative;height:20px;" title="' + tM + '">' +
-        '<div style="position:absolute;left:0;top:0px;height:16px;width:' + wPM + '%;background:repeating-linear-gradient(90deg,#e5e7eb 0px,#e5e7eb 3px,#c4c9d1 3px,#c4c9d1 4px);opacity:0.6;border-radius:0 2px 2px 0;z-index:1;border-bottom:2px solid #94a3b8;border-top:2px solid #94a3b8;"></div>' +
+        '<div style="position:absolute;left:0;top:0px;height:8px;width:' + wPM + '%;background:repeating-linear-gradient(90deg,#e5e7eb 0px,#e5e7eb 3px,#c4c9d1 3px,#c4c9d1 4px);opacity:0.6;border-radius:0 2px 2px 0;z-index:1;border-bottom:2px solid #94a3b8;border-top:2px solid #94a3b8;"></div>' +
         '<div data-sam-ideal="' + g + '-m" style="position:absolute;left:0;top:4px;height:8px;width:' + wIM + '%;background:#60a5fa;border-radius:0 2px 2px 0;z-index:2;opacity:0.7;"></div>' +
         '<div data-sam-cons="' + g + '-m" style="position:absolute;left:0;top:10px;height:6px;width:' + wCM + '%;background:' + colM + ';border-radius:0 2px 2px 0;z-index:3;transition:width .12s ease-out;"></div>' +
     '</div>';
@@ -48917,7 +48925,7 @@ function _sam_tablaDesviaciones(desv) {
         '<table style="width:100%;border-collapse:separate;border-spacing:0;">' +
         '<thead><tr style="background:#f1f5f9;">' +
             '<th style="padding:0.25rem 0.45rem;text-align:left;font-size:0.7rem;color:#1e293b;font-weight:600;border-bottom:2px solid #94a3b8;">Grupo</th>' +
-            '<th style="padding:0.25rem 0.45rem;text-align:right;font-size:0.7rem;color:#1d4ed8;font-weight:600;border-bottom:2px solid #94a3b8;">Te\u00f3rico</th>' +
+            '<th style="padding:0.25rem 0.45rem;text-align:right;font-size:0.7rem;color:#1d4ed8;font-weight:600;border-bottom:2px solid #94a3b8;">Te\u00f3rico <span style="font-size:.62rem;font-weight:400;color:#94a3b8;">(SAM)</span></th>' +
             '<th style="padding:0.25rem 0.45rem;text-align:right;font-size:0.7rem;color:#1e293b;font-weight:600;border-bottom:2px solid #94a3b8;">Conseguido</th>' +
             '<th style="padding:0.25rem 0.45rem;text-align:right;font-size:0.7rem;color:#1e293b;font-weight:600;border-bottom:2px solid #94a3b8;">\u0394 abs</th>' +
             '<th style="padding:0.25rem 0.45rem;text-align:right;font-size:0.7rem;color:#1e293b;font-weight:600;border-bottom:2px solid #94a3b8;">\u0394 pp</th>' +
@@ -48938,9 +48946,12 @@ function sam_renderMonitorMuestra(containerId, poblacion, muestraConseguida, N, 
     // Percentages relative to each own total — comparable distributions
     var pctPob   = sam_calcularPorcentajes(pob);
     var pctIdeal = sam_calcularPorcentajes(teor);
-    // Conseguida: conteos reales / N — crece con cada respuesta, comparable con pctIdeal
+    // Conseguida: proporciones reales comparables con pctIdeal.
+    // Cuando nActual < N (animación): Nref=N → barras crecen de 0 a ideal conforme se recogen datos.
+    // Cuando nActual >= N (colección completa): Nref=nActual → barras muestran proporción real,
+    // evitando que el exceso de volumen infle visualmente las barras respecto a la referencia.
     var pctCons  = { hombres: {}, mujeres: {} };
-    var Nref = Math.max(N, 1);
+    var Nref = nActual >= N ? Math.max(nActual, 1) : Math.max(N, 1);
     _SAM_GRUPOS.forEach(function(g) {
         pctCons.hombres[g] = nActual > 0 ? (cons.hombres[g] / Nref) * 100 : 0;
         pctCons.mujeres[g] = nActual > 0 ? (cons.mujeres[g] / Nref) * 100 : 0;
@@ -49040,13 +49051,14 @@ function sam_renderMonitorMuestra(containerId, poblacion, muestraConseguida, N, 
 
     // ── RAMA FULL RENDER: primera vez — construir estructura completa con data-attrs ──
     var progresoHtml =
-        '<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.6rem;">' +
-        '<div style="font-size:0.7rem;font-weight:700;color:#1e293b;flex-shrink:0;">Progreso</div>' +
+        '<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.3rem;">' +
+        '<div style="font-size:0.7rem;font-weight:700;color:#1e293b;flex-shrink:0;">Progreso (volumen)</div>' +
         '<div style="flex:1;height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;">' +
             '<div data-sam-prog-bar style="height:100%;width:' + Math.round(progreso * 100) + '%;background:#3b82f6;border-radius:3px;transition:width .12s ease-out;"></div>' +
         '</div>' +
         '<div data-sam-prog-text style="font-size:0.7rem;color:#3b82f6;font-weight:700;flex-shrink:0;min-width:4.5rem;text-align:right;">' + nActual + ' / ' + N + '</div>' +
-        '</div>';
+        '</div>' +
+        '<div style="font-size:.64rem;color:#64748b;line-height:1.4;margin-bottom:.4rem;">El volumen total no equivale a ajuste distributivo; el sem\u00e1foro eval\u00faa la distribuci\u00f3n por celdas.</div>';
 
     var leyendaHtml =
         '<div style="display:flex;gap:0.65rem;flex-wrap:wrap;margin-bottom:0.5rem;font-size:0.6rem;color:#475569;">' +
@@ -49220,6 +49232,12 @@ function compas_pob_cargarDesdeFirebase(mun, anyo) {
             var g1519 = _grupoSeguro('15-19');
             var h1619 = Math.round(g1519.h * 4 / 5);
             var m1619 = Math.round(g1519.m * 4 / 5);
+
+            // [FIX 2026-04-14] Grupo 0-15: suma quinquenales 0-4, 5-9, 10-14 + 1/5 de 15-19
+            entry.grupos['0-15'] = {
+                h: _grupoSeguro('0-4').h + _grupoSeguro('5-9').h + _grupoSeguro('10-14').h + Math.round(g1519.h * 1 / 5),
+                m: _grupoSeguro('0-4').m + _grupoSeguro('5-9').m + _grupoSeguro('10-14').m + Math.round(g1519.m * 1 / 5)
+            };
 
             entry.grupos['16-29'] = {
                 h: h1619 + _grupoSeguro('20-24').h + _grupoSeguro('25-29').h,
@@ -58216,7 +58234,45 @@ if(window.COMPAS){window.COMPAS.v3={
 
 </div>
 
+<!-- ══════════════════════════════════════════════════════════════════
+     MONITOR IBSE LOCAL — nuevo, paralelo, sin comparativas externas
+     ID: modal-ibse-local  |  Abre con: compasLocal_ibse_abrir()
+     NO hereda lógica del monitor anterior (#modal-ibse-monitor).
+     ══════════════════════════════════════════════════════════════════ -->
+<div id="modal-ibse-local" style="display:none;position:fixed;inset:0;z-index:100020;background:rgba(15,23,42,.78);backdrop-filter:blur(4px);overflow-y:auto;padding:1rem;">
+  <div style="max-width:780px;margin:0 auto;background:white;border-radius:8px;overflow:hidden;">
+    <div style="border-bottom:3px solid #0f766e;padding:1rem 1.5rem;display:flex;justify-content:space-between;align-items:center;background:#f0fdf4;">
+      <div>
+        <h2 style="margin:0;color:#134e4a;font-size:1.05rem;font-weight:700;">Bienestar Socioemocional — Muestra Local</h2>
+        <p id="ibse-local-subtitulo" style="margin:.15rem 0 0;color:#64748b;font-size:.75rem;">Análisis descriptivo de la muestra observada · COMPÁS</p>
+      </div>
+      <button onclick="compasLocal_ibse_cerrar()" style="background:none;border:1px solid #a7f3d0;color:#134e4a;width:30px;height:30px;border-radius:4px;font-size:1rem;cursor:pointer;line-height:1;">✕</button>
+    </div>
+    <div id="ibse-local-contenido" style="padding:1.25rem 1.5rem;min-height:180px;">
+      <div style="text-align:center;padding:3rem 1rem;color:#94a3b8;"><p style="margin:0;">Cargando…</p></div>
+    </div>
+    <div style="padding:.75rem 1.5rem;border-top:1px solid #e2e8f0;display:flex;justify-content:flex-end;">
+      <button onclick="compasLocal_ibse_cerrar()" style="padding:.4rem 1rem;background:none;border:1px solid #cbd5e1;color:#475569;border-radius:4px;font-weight:600;cursor:pointer;font-size:.8rem;">Cerrar</button>
+    </div>
+  </div>
+</div>
 
+<!-- ── SUPERMONITOR IBSE ─────────────────────────────────────────────────── -->
+<div id="modal-ibse-super" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(15,23,42,.6);z-index:999999;overflow:auto;padding:1.5rem 1rem;">
+  <div style="background:white;border-radius:10px;max-width:920px;margin:0 auto;box-shadow:0 12px 40px rgba(0,0,0,.28);display:flex;flex-direction:column;min-height:560px;">
+    <div style="padding:.9rem 1.25rem .7rem;border-bottom:2px solid #1e40af;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+      <div>
+        <div style="font-size:.62rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#94a3b8;margin-bottom:.18rem;">COMPÁS · Auditoría y trazabilidad</div>
+        <div style="font-size:.95rem;font-weight:800;color:#1e293b;" id="ibseSM-titulo">Supermonitor IBSE</div>
+      </div>
+      <button onclick="ibseSM_cerrar()" style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:#64748b;padding:.3rem .55rem;border-radius:4px;" title="Cerrar">&#x2715;</button>
+    </div>
+    <div style="display:flex;overflow-x:auto;border-bottom:1px solid #e2e8f0;flex-shrink:0;background:#f8fafc;" id="ibseSM-tabs"></div>
+    <div style="padding:1.15rem 1.25rem;flex:1;overflow-y:auto;" id="ibseSM_content">
+      <div style="color:#94a3b8;text-align:center;padding:2.5rem;">Cargando&hellip;</div>
+    </div>
+  </div>
+</div>
 
 <script>
 
@@ -58257,42 +58313,42 @@ function ibse_v2_calcularIBSE(d) {
     // Cada factor se calcula con los ítems disponibles del par.
     // Par completo: media de ambos transforms. Par parcial: transform del ítem único.
     // Par sin datos: null. Total = media de factores disponibles (rescalado proporcional).
-    var fV = (dep !== null && sol !== null) ? (((5-dep)+(5-sol))/2-1)*25
-           : (dep !== null)                 ? ((5-dep)-1)*25
-           : (sol !== null)                 ? ((5-sol)-1)*25
+    // [FIX 2026-04-16b] EAS escalas originales: P.57b (1-4) → (v-1)*(100/3); P.57c (1-5) → (v-1)*25.
+    // Inversión SOLO deprimido y solo (P.57b, 1-4): (4-v)*(100/3). Resultado: 0-100.
+    var fV = (dep !== null && sol !== null) ? ((4-dep)*(100/3) + (4-sol)*(100/3)) / 2
+           : (dep !== null)                 ? (4-dep)*(100/3)
+           : (sol !== null)                 ? (4-sol)*(100/3)
            : null;
 
-    var fS = (fel !== null && dis !== null) ? (((fel+1)+(dis+1))/2-1)*25
-           : (fel !== null)                 ? ((fel+1)-1)*25
-           : (dis !== null)                 ? ((dis+1)-1)*25
+    var fS = (fel !== null && dis !== null) ? ((fel-1)*(100/3) + (dis-1)*(100/3)) / 2
+           : (fel !== null)                 ? (fel-1)*(100/3)
+           : (dis !== null)                 ? (dis-1)*(100/3)
            : null;
 
-    var fC = (ene !== null && tra !== null) ? (((ene+1)+(tra+1))/2-1)*25
-           : (ene !== null)                 ? ((ene+1)-1)*25
-           : (tra !== null)                 ? ((tra+1)-1)*25
+    var fC = (ene !== null && tra !== null) ? ((ene-1)*(100/3) + (tra-1)*(100/3)) / 2
+           : (ene !== null)                 ? (ene-1)*(100/3)
+           : (tra !== null)                 ? (tra-1)*(100/3)
            : null;
 
-    var fP = (opt !== null && bm  !== null) ? (((6-opt)+(6-bm))/2-1)*25
-           : (opt !== null)                 ? ((6-opt)-1)*25
-           : (bm  !== null)                 ? ((6-bm)-1)*25
+    var fP = (opt !== null && bm  !== null) ? ((opt-1)*25 + (bm-1)*25) / 2
+           : (opt !== null)                 ? (opt-1)*25
+           : (bm  !== null)                 ? (bm-1)*25
            : null;
 
-    // [FIX 2026-04-12 v2] Total por peso uniforme por ítem válido.
-    // Algebraicamente idéntico al original con 8/8: sum_t/8*25-25 = (fV+fS+fC+fP)/4.
-    // Elimina double-weighting del ítem superviviente en pares incompletos.
+    // IBSE = media simple de los 8 ítems recodificados a 0-100. Rango: 0-100.
     var _st = 0, _nt = 0;
-    if (dep !== null) { _st += (5-dep); _nt++; }
-    if (sol !== null) { _st += (5-sol); _nt++; }
-    if (fel !== null) { _st += (fel+1); _nt++; }
-    if (dis !== null) { _st += (dis+1); _nt++; }
-    if (ene !== null) { _st += (ene+1); _nt++; }
-    if (tra !== null) { _st += (tra+1); _nt++; }
-    if (opt !== null) { _st += (6-opt); _nt++; }
-    if (bm  !== null) { _st += (6-bm);  _nt++; }
+    if (dep !== null) { _st += (4-dep)*(100/3); _nt++; }
+    if (sol !== null) { _st += (4-sol)*(100/3); _nt++; }
+    if (fel !== null) { _st += (fel-1)*(100/3); _nt++; }
+    if (dis !== null) { _st += (dis-1)*(100/3); _nt++; }
+    if (ene !== null) { _st += (ene-1)*(100/3); _nt++; }
+    if (tra !== null) { _st += (tra-1)*(100/3); _nt++; }
+    if (opt !== null) { _st += (opt-1)*25; _nt++; }
+    if (bm  !== null) { _st += (bm-1)*25;  _nt++; }
 
     return { factor_vinculo:fV, factor_situacion:fS, factor_control:fC, factor_persona:fP,
 
-             ibse_total: _st / _nt * 25 - 25 };
+             ibse_total: _st / _nt };
 
 }
 
@@ -58326,7 +58382,7 @@ function ibse_v2_calcularDistribuciones(arr) {
 
     var sexos = {1:[],2:[]};
 
-    var edades = {'16-29':[],'30-44':[],'45-59':[],'60-74':[],'75+':[]};
+    var edades = {'0-15':[],'16-29':[],'30-44':[],'45-59':[],'60-74':[],'75+':[]};
 
     arr.forEach(function(r){
 
@@ -58338,7 +58394,9 @@ function ibse_v2_calcularDistribuciones(arr) {
 
         if (e!==null){
 
-            if (e<30) edades['16-29'].push(r);
+            if (e<16) edades['0-15'].push(r);
+
+            else if (e<30) edades['16-29'].push(r);
 
             else if (e<45) edades['30-44'].push(r);
 
@@ -58743,8 +58801,8 @@ function _ibse_sam_animar(el, dist, samPob, samN, samEsDemo) {
 function ibse_v2_renderContextoExterno(agg) {
     if (!agg || !agg.ibse_total) return '';
 
-    var IBSE_AND = 62.4;
-    var IBSE_GR  = 60.8;
+    var IBSE_AND = 75.939159;
+    var IBSE_GR  = 81.782549;
     var local    = agg.ibse_total;
 
     var dAnd = local - IBSE_AND;
@@ -58888,7 +58946,7 @@ function _ibse_v2_renderMarco_legacy() {
 
             '<h4 style="'+hStyle+'">Aplicaciones</h4>' +
 
-            '<p style="'+pStyle+'">El IBSE se utiliza en investigación social y en análisis de desigualdades socioemocionales por sexo, edad y condiciones de vida. En Andalucía, el IBSE-8 se incorpora como indicador de bienestar emocional en la <strong>VI Encuesta Andaluza de Salud (2023)</strong>. Su aplicación permite complementar indicadores clásicos con una medida del bienestar subjetivo relevante para la planificación en salud pública y el análisis comunitario.</p>' +
+            '<p style="'+pStyle+'">El IBSE se utiliza en investigación social y en análisis de desigualdades socioemocionales por sexo, edad y condiciones de vida. En , el IBSE-8 se incorpora como indicador de bienestar emocional en la <strong>VI Encuesta Andaluza de Salud (2023)</strong>. Su aplicación permite complementar indicadores clásicos con una medida del bienestar subjetivo relevante para la planificación en salud pública y el análisis comunitario.</p>' +
 
         '</div>' +
 
@@ -58930,7 +58988,7 @@ function ibse_v2_renderResultados(agg) {
         {lbl:'Persona',   val:agg.factor_persona,    col:'#475569'}
     ];
 
-    var _IBSE_AND = 62.4, _IBSE_GR = 60.8;  // EAS 2023
+    var _IBSE_AND = 75.939159, _IBSE_GR = 81.782549;  // 
 
     var html = '<div style="margin-bottom:1.2rem;">';
 
@@ -58946,9 +59004,9 @@ function ibse_v2_renderResultados(agg) {
     html += 'padding:.65rem .9rem;background:#dbeafe;border:1.5px solid #93c5fd;border-radius:6px;';
     html += 'margin-bottom:.5rem;box-sizing:border-box;">';
 
-    // Bloque izquierdo: label IBSE global
-    html += '<div style="display:flex;flex-direction:column;align-items:center;gap:.15rem;flex:1;">';
-    html += '<span style="font-size:.68rem;font-weight:700;color:#1e3a5f;letter-spacing:.04em;text-transform:uppercase;">IBSE global</span>';
+    // Bloque MUESTRA PARTICIPANTE (único valor local)
+    html += '<div style="display:flex;flex-direction:column;align-items:center;gap:.1rem;flex:1;">';
+    html += '<span style="font-size:.65rem;font-weight:700;color:#1e40af;letter-spacing:.04em;text-transform:uppercase;">Muestra participante</span>';
     html += '<span style="font-size:1.35rem;font-weight:900;color:'+nivelCol+';line-height:1;">'+media.toFixed(1)+'</span>';
     html += '<span style="font-size:.62rem;color:#64748b;">/ 100 &nbsp;<em>'+nivel+'</em></span>';
     html += '</div>';
@@ -58956,21 +59014,11 @@ function ibse_v2_renderResultados(agg) {
     // Separador
     html += '<div style="width:1px;height:2.5rem;background:#93c5fd;opacity:.5;flex-shrink:0;"></div>';
 
-    // Bloque LOCAL
-    html += '<div style="display:flex;flex-direction:column;align-items:center;gap:.1rem;flex:1;">';
-    html += '<span style="font-size:.65rem;font-weight:700;color:#1e40af;letter-spacing:.04em;text-transform:uppercase;">Local</span>';
-    html += '<span style="font-size:1.35rem;font-weight:900;color:'+nivelCol+';line-height:1;">'+media.toFixed(1)+'</span>';
-    html += '<span style="font-size:.6rem;color:#64748b;">muestra propia</span>';
-    html += '</div>';
-
-    // Separador
-    html += '<div style="width:1px;height:2.5rem;background:#93c5fd;opacity:.5;flex-shrink:0;"></div>';
-
     // Bloque GRANADA
     html += '<div style="display:flex;flex-direction:column;align-items:center;gap:.1rem;flex:1;">';
-    html += '<span style="font-size:.65rem;font-weight:700;color:#334155;letter-spacing:.04em;text-transform:uppercase;">Granada</span>';
+    html += '<span style="font-size:.65rem;font-weight:700;color:#334155;letter-spacing:.04em;text-transform:uppercase;"></span>';
     html += '<span style="font-size:1.35rem;font-weight:700;color:#334155;line-height:1;">'+_IBSE_GR.toFixed(1)+'</span>';
-    html += '<span style="font-size:.6rem;color:#94a3b8;">EAS 2023</span>';
+    html += '<span style="font-size:.6rem;color:#94a3b8;"></span>';
     html += '</div>';
 
     // Separador
@@ -58980,7 +59028,7 @@ function ibse_v2_renderResultados(agg) {
     html += '<div style="display:flex;flex-direction:column;align-items:center;gap:.1rem;flex:1;">';
     html += '<span style="font-size:.65rem;font-weight:700;color:#334155;letter-spacing:.04em;text-transform:uppercase;">Andaluc\u00eda</span>';
     html += '<span style="font-size:1.35rem;font-weight:700;color:#334155;line-height:1;">'+_IBSE_AND.toFixed(1)+'</span>';
-    html += '<span style="font-size:.6rem;color:#94a3b8;">EAS 2023</span>';
+    html += '<span style="font-size:.6rem;color:#94a3b8;"></span>';
     html += '</div>';
 
     html += '</div>';  // cierre banda
@@ -59055,7 +59103,7 @@ function ibse_v2_renderMuestra(arr, dist) {
 
 function ibse_v2_renderPiramide(dist) {
 
-    var grupos=['16-29','30-44','45-59','60-74','75+'];
+    var grupos=['0-15','16-29','30-44','45-59','60-74','75+'];
 
     if (!grupos.some(function(g){return dist.edades[g].length>0;})) return '';
 
@@ -59093,6 +59141,13 @@ function ibse_v2_renderPiramide(dist) {
 
     html+='</div></div>';
 
+    if (dist.edades && dist.edades['0-15'] && dist.edades['0-15'].length >= 5) {
+        html += '<div style="margin-top:.6rem;text-align:right;">' +
+            '<button onclick="ibse_abrirSubmodal015()" ' +
+            'style="font-size:.7rem;padding:.35rem .6rem;border:1px solid #cbd5f5;border-radius:6px;background:#eef2ff;color:#3730a3;cursor:pointer;">' +
+            'Ver análisis específico 0–15</button></div>';
+    }
+
     return html;
 
 }
@@ -59101,7 +59156,7 @@ function ibse_v2_renderPiramide(dist) {
 
 function ibse_v2_renderDesagregados(dist) {
 
-    var grupos=['16-29','30-44','45-59','60-74','75+'];
+    var grupos=['0-15','16-29','30-44','45-59','60-74','75+'];
 
     if (!grupos.some(function(g){return dist.edades[g].length>0;})) return '';
 
@@ -59171,13 +59226,14 @@ function monitorIBSE_analizarPorEdad() {
         {id:'ibse_disfrutar',  label:'Disfrutar de la vida',escala:4, invertir:false},
         {id:'ibse_energia',    label:'Energía',             escala:4, invertir:false},
         {id:'ibse_tranquilo',  label:'Tranquilo/a',         escala:4, invertir:false},
-        {id:'ibse_optimista',  label:'Optimista',           escala:5, invertir:true},
-        {id:'ibse_bienmismo',  label:'Bien conmigo mismo/a',escala:5, invertir:true}
+        {id:'ibse_optimista',  label:'Optimista',           escala:5, invertir:false},
+        {id:'ibse_bienmismo',  label:'Bien conmigo mismo/a',escala:5, invertir:false}
     ];
-    var GRUPOS = ['16-29','30-44','45-59','60-74','75+'];
+    var GRUPOS = ['0-15','16-29','30-44','45-59','60-74','75+'];
 
     function grupoEdad(e) {
         if (e==null||isNaN(e)) return null;
+        if (e<16) return '0-15';
         if (e<30) return '16-29';
         if (e<45) return '30-44';
         if (e<60) return '45-59';
@@ -59349,7 +59405,7 @@ function ibse_v2_renderInterpretacion(agg, arr, dist) {
     }
 
     // 4. Edad (solo grupos con n >= 5)
-    var grupos = ['16-29','30-44','45-59','60-74','75+'];
+    var grupos = ['0-15','16-29','30-44','45-59','60-74','75+'];
 
     var edadTextos = [];
 
@@ -59377,9 +59433,46 @@ function ibse_v2_renderInterpretacion(agg, arr, dist) {
         parrafos.push('<em>Nota metodológica: con n=' + n + ', los resultados desagregados tienen precisión limitada. Se recomienda ampliar la muestra antes de extraer conclusiones definitivas por subgrupo.</em>');
     }
 
+    // 5b. Grupo 0-15: lectura específica si hay base suficiente
+    var _ga015 = (dist.edades && dist.edades['0-15']) || [];
+    if (_ga015.length >= 5) {
+        var _m015    = _ga015.reduce(function(s,r){return s+r.ibse_total;},0) / _ga015.length;
+        var _dif015  = _m015 - media;
+        var _abs015  = Math.abs(_dif015);
+        var _etq015  = _abs015 < 3 ? 'posición similar' : _abs015 < 7 ? 'diferencia moderada' : 'diferencia relevante';
+        var _dir015  = _dif015 >= 0 ? 'por encima' : 'por debajo';
+        var _IBSE_AND015 = 75.939159, _IBSE_GR015 = 81.782549;
+        var _dAnd015 = _m015 - _IBSE_AND015, _dGr015 = _m015 - _IBSE_GR015;
+        function _etqExt015(d) { var a=Math.abs(d); return a<3?'posición similar':a<7?'diferencia moderada':'diferencia relevante'; }
+        function _dir015ext(d) { return d>=0?'por encima':'por debajo'; }
+        var _txt015 =
+            'Subgrupo 0-15 (participantes menores de 16 años, n=' + _ga015.length + '): ' +
+            'media IBSE ' + _m015.toFixed(1) + '. ' +
+            'Respecto al total local (' + media.toFixed(1) + '): ' + _etq015 + ' (' + _abs015.toFixed(1) + '\u202fpuntos ' + _dir015 + '). ' +
+            'Respecto a Granada (' + _IBSE_GR015.toFixed(1) + ', EAS\u202f2023): ' + _etqExt015(_dGr015) + ' (' + Math.abs(_dGr015).toFixed(1) + '\u202fpuntos ' + _dir015ext(_dGr015) + '). ' +
+            'Respecto a Andalucía (' + _IBSE_AND015.toFixed(1) + ', EAS\u202f2023): ' + _etqExt015(_dAnd015) + ' (' + Math.abs(_dAnd015).toFixed(1) + '\u202fpuntos ' + _dir015ext(_dAnd015) + '). ' +
+            '<em>Lectura comparativa del subgrupo participante; el grupo está sobrerrepresentado respecto a la población. ' +
+            'No se aplica ajuste muestral (SAM). No debe interpretarse como estimación poblacional.</em>';
+        // Brecha por sexo dentro de 0-15 (mínimo 5 por grupo)
+        var _g015H = _ga015.filter(function(r){ return r.sexo === 1; });
+        var _g015M = _ga015.filter(function(r){ return r.sexo === 2; });
+        if (_g015H.length >= 5 && _g015M.length >= 5) {
+            var _m015H    = _g015H.reduce(function(s,r){return s+r.ibse_total;},0) / _g015H.length;
+            var _m015M    = _g015M.reduce(function(s,r){return s+r.ibse_total;},0) / _g015M.length;
+            var _dsx015   = Math.abs(_m015H - _m015M);
+            if (_dsx015 > 5) {
+                var _menor015 = _m015H < _m015M ? 'chicos' : 'chicas';
+                _txt015 += ' Dentro del grupo se observa una brecha de ' + _dsx015.toFixed(1) +
+                           ' puntos entre sexos: los <strong>' + _menor015 + '</strong> presentan menor bienestar' +
+                           ' (n=' + _g015H.length + '\u202fH\u202f/\u202fn=' + _g015M.length + '\u202fM).';
+            }
+        }
+        parrafos.push(_txt015);
+    }
+
     // 6. Comparación con referencias externas EAS 2023
-    var IBSE_AND = 62.4;
-    var IBSE_GR  = 60.8;
+    var IBSE_AND = 75.939159;
+    var IBSE_GR  = 81.782549;
     var dAnd = media - IBSE_AND;
     var dGr  = media - IBSE_GR;
     function _interpExt(d) {
@@ -59390,15 +59483,15 @@ function ibse_v2_renderInterpretacion(agg, arr, dist) {
     }
     function _signoExt(d) { return d >= 0 ? 'por encima' : 'por debajo'; }
     parrafos.push(
-        'Respecto a las referencias poblacionales de la EAS 2023 (muestra probabilística), ' +
+        'Respecto a las referencias de la EAS 2023, ' +
         'el valor local (' + media.toFixed(1) + ') se sitúa ' +
         Math.abs(dAnd).toFixed(1) + ' puntos ' + _signoExt(dAnd) + ' de Andalucía (' + IBSE_AND.toFixed(1) + ', ' + _interpExt(dAnd) + ')' +
         ' y ' + Math.abs(dGr).toFixed(1) + ' puntos ' + _signoExt(dGr) + ' de la provincia de Granada (' + IBSE_GR.toFixed(1) + ', ' + _interpExt(dGr) + ').' +
-        ' <em>Los datos locales proceden de una muestra no probabilística (COMPÁS); la comparación es orientativa.</em>'
+        ' <em>La comparación con referencias poblacionales externas es útil como contexto orientativo; los datos locales describen la población participante observada y no constituyen una estimación poblacional estricta.</em>'
     );
 
     // 7. Cautela por desequilibrio de composición etaria (criterio max/min > 2)
-    var _gruposExt = ['16-29','30-44','45-59','60-74','75+'];
+    var _gruposExt = ['0-15','16-29','30-44','45-59','60-74','75+'];
     var _sizes = [];
     _gruposExt.forEach(function(g) {
         var ga = dist.edades[g];
@@ -59409,14 +59502,14 @@ function ibse_v2_renderInterpretacion(agg, arr, dist) {
         var _min = Math.min.apply(null, _sizes);
         if (_min > 0 && (_max / _min) > 2) {
             parrafos.push(
-                '<em>La muestra presenta desequilibrios relevantes en su composición por edad. Este factor puede influir en el valor global del IBSE, por lo que la comparación con referencias poblacionales debe interpretarse con cautela.</em>'
+                '<em>La composición de la muestra presenta desequilibrios por edad que pueden influir en el valor global del IBSE. Este aspecto refuerza la lectura descriptiva del grupo observado frente a la comparación directa con referencias poblacionales.</em>'
             );
         }
     }
 
     // 8. Cierre orientativo
     parrafos.push(
-        '<em>Los resultados reflejan la situación de la población participante y deben interpretarse como una aproximación orientativa, no como una estimación poblacional.</em>'
+        '<em>Los resultados describen el bienestar socioemocional de la población participante observada. No se trata de una estimación poblacional estricta. Su uso en planificación local debe valorarse en coherencia con la calidad muestral evaluada en este mismo monitor.</em>'
     );
 
     // Render
@@ -59565,7 +59658,7 @@ function ibse_v2_obtenerPoblacion(mun) {
     var _pobOficial = (window._COMPAS_POB_OFICIAL && window._COMPAS_POB_OFICIAL[mun]) ||
                       (window._COMPAS_POB_AGREGADOS && window._COMPAS_POB_AGREGADOS[mun]) || null;
     if (_pobOficial && _pobOficial.grupos) {
-        var _grupos = ['16-29','30-44','45-59','60-74','75+'];
+        var _grupos = ['0-15','16-29','30-44','45-59','60-74','75+'];
         var _r = {};
         var _ok = false;
         _grupos.forEach(function(g) {
@@ -59611,7 +59704,7 @@ function ibse_v2_obtenerNObjetivo(mun) {
 
 function ibse_v2_calcularRepresentatividad(dist, pob, nObj) {
 
-    var grupos = ['16-29','30-44','45-59','60-74','75+'];
+    var grupos = ['0-15','16-29','30-44','45-59','60-74','75+'];
 
     var pobTotal = 0;
 
@@ -59806,7 +59899,7 @@ function ibse_v2_renderRepresentatividad(dist) {
 
         html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.5rem;margin-bottom:.65rem;">';
 
-        var grupos2 = ['16-29','30-44','45-59','60-74','75+'];
+        var grupos2 = ['0-15','16-29','30-44','45-59','60-74','75+'];
 
         // Mini tabla conseguido por sexo × edad
 
@@ -59907,7 +60000,7 @@ function ibse_v2_renderRepresentatividad(dist) {
 
         '<th style="padding:.3rem .45rem;text-align:right;color:#64748b;font-weight:700;border-bottom:1px solid #e2e8f0;">Pob.</th>' +
 
-        '<th style="padding:.3rem .45rem;text-align:right;color:#5b8dd9;font-weight:700;border-bottom:1px solid #e2e8f0;">Obj.</th>' +
+        '<th style="padding:.3rem .45rem;text-align:right;color:#5b8dd9;font-weight:700;border-bottom:1px solid #e2e8f0;">Obj. <span style="font-size:.6rem;font-weight:400;color:#94a3b8;">(captaci\u00f3n)</span></th>' +
 
         '<th style="padding:.3rem .45rem;text-align:right;color:#10b981;font-weight:700;border-bottom:1px solid #e2e8f0;">Cons.</th>' +
 
@@ -59977,7 +60070,9 @@ function ibse_v2_renderRepresentatividad(dist) {
 
             '<td style="padding:.28rem .45rem;text-align:center;">' +
 
-              '<span style="background:'+ce[0]+';color:'+ce[1]+';font-size:.64rem;font-weight:700;padding:.15rem .45rem;border-radius:20px;white-space:nowrap;">'+ce[2]+'</span>' +
+              (f.grupo==='0-15' && f.pob===0
+                ? '<span style="color:#94a3b8;font-size:.62rem;font-style:italic;">Sin padr\u00f3n infantil</span>'
+                : '<span style="background:'+ce[0]+';color:'+ce[1]+';font-size:.64rem;font-weight:700;padding:.15rem .45rem;border-radius:20px;white-space:nowrap;">'+ce[2]+'</span>') +
 
             '</td></tr>';
 
@@ -60220,7 +60315,7 @@ function ibse_v2_renderJuicioMuestra(dist) {
 
     html += '<div style="font-size:.75rem;color:#64748b;margin-bottom:.3rem;">';
 
-    html += 'Celdas OK: ' + nOk + '/' + nCeldas + ' (' + (pctOk*100).toFixed(0) + '%)';
+    html += 'Celdas OK: ' + nOk + '/' + nCeldas + ' (' + (pctOk*100).toFixed(0) + '%) <span style="color:#94a3b8;font-size:.68rem;">(criterio \u00b110%)</span>';
 
     html += ' · Infra: ' + nInfra + ' · Sobre: ' + nSobre;
 
@@ -60257,6 +60352,191 @@ function ibse_v2_renderJuicioMuestra(dist) {
 
     return html;
 
+}
+
+
+
+// ── ibse_abrirSubmodal015 ────────────────────────────────────────────────────
+// Submodal del grupo 0-15. Autónomo. Sin SAM. Sin tocar otros bloques.
+
+function ibse_abrirSubmodal015() {
+
+    // Eliminar instancia previa si existe
+    var prev = document.getElementById('ibse-submodal-015');
+    if (prev) prev.parentNode.removeChild(prev);
+
+    var raw = window._ibse_v2_rawData;
+
+    // Sin datos: modal de aviso simple
+    if (!raw || !raw.length) {
+        var ovErr = document.createElement('div');
+        ovErr.id = 'ibse-submodal-015';
+        ovErr.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center;';
+        ovErr.innerHTML = '<div style="background:#fff;border-radius:12px;padding:1.5rem 2rem;max-width:340px;text-align:center;font-family:inherit;">' +
+            '<div style="font-size:.9rem;font-weight:700;color:#1e293b;margin-bottom:.6rem;">Subgrupo 0\u201315</div>' +
+            '<div style="font-size:.8rem;color:#64748b;margin-bottom:1rem;">No hay datos disponibles en este momento.</div>' +
+            '<button onclick="var e=document.getElementById(\'ibse-submodal-015\');if(e)e.parentNode.removeChild(e);" ' +
+            'style="font-size:.75rem;padding:.35rem .8rem;border:1px solid #cbd5e1;border-radius:6px;background:#f8fafc;color:#334155;cursor:pointer;">Cerrar</button></div>';
+        document.body.appendChild(ovErr);
+        return;
+    }
+
+    // Filtrar grupo 0-15 (misma lógica que ibse_v2_calcularDistribuciones)
+    var arr015 = raw.filter(function(r) {
+        var e = _ibseParseNumeroSeguro(r.edad);
+        return e !== null && e < 16;
+    });
+
+    // Base insuficiente
+    if (arr015.length < 5) {
+        var ovIns = document.createElement('div');
+        ovIns.id = 'ibse-submodal-015';
+        ovIns.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center;';
+        ovIns.innerHTML = '<div style="background:#fff;border-radius:12px;padding:1.5rem 2rem;max-width:360px;text-align:center;font-family:inherit;">' +
+            '<div style="font-size:.9rem;font-weight:700;color:#1e293b;margin-bottom:.6rem;">Subgrupo 0\u201315</div>' +
+            '<div style="font-size:.8rem;color:#64748b;line-height:1.5;margin-bottom:1rem;">Base insuficiente para el an\u00e1lisis.<br>' +
+            'Se necesitan al menos 5 registros del grupo 0\u201315. Actualmente hay <strong>' + arr015.length + '</strong>.</div>' +
+            '<button onclick="var e=document.getElementById(\'ibse-submodal-015\');if(e)e.parentNode.removeChild(e);" ' +
+            'style="font-size:.75rem;padding:.35rem .8rem;border:1px solid #cbd5e1;border-radius:6px;background:#f8fafc;color:#334155;cursor:pointer;">Cerrar</button></div>';
+        document.body.appendChild(ovIns);
+        return;
+    }
+
+    // ── Cálculos ──
+    var REF_GR  = 81.782549;
+    var REF_AND = 75.939159;
+
+    var media015   = arr015.reduce(function(s,r){return s+r.ibse_total;},0) / arr015.length;
+    var mediaLocal = raw.reduce(function(s,r){return s+r.ibse_total;},0) / raw.length;
+
+    var chicos = arr015.filter(function(r){return r.sexo===1;});
+    var chicas  = arr015.filter(function(r){return r.sexo===2;});
+    var mChicos = chicos.length>0 ? chicos.reduce(function(s,r){return s+r.ibse_total;},0)/chicos.length : null;
+    var mChicas  = chicas.length>0  ? chicas.reduce(function(s,r){return s+r.ibse_total;},0)/chicas.length  : null;
+
+    var difLocal = (media015 - mediaLocal).toFixed(1);
+    var difLocalDir = (media015 >= mediaLocal) ? 'por encima' : 'por debajo';
+    var difLocalAbs = Math.abs(parseFloat(difLocal)).toFixed(1);
+
+    var difGR  = (media015 - REF_GR).toFixed(1);
+    var difAND = (media015 - REF_AND).toFixed(1);
+
+    var colMedia = media015>=76?'#10b981':media015>=51?'#f59e0b':media015>=26?'#f97316':'#ef4444';
+
+    // ── Interpretación ──
+    var interp = 'El subgrupo 0\u201315 presenta un IBSE de ' + media015.toFixed(1) +
+        ', situado ' + difLocalAbs + ' puntos ' + difLocalDir + ' del total local (' + mediaLocal.toFixed(1) + '). ';
+
+    var posGR  = parseFloat(difGR)  >= 0 ? 'superior' : 'inferior';
+    var posAND = parseFloat(difAND) >= 0 ? 'superior' : 'inferior';
+    interp += 'Respecto a Granada (' + REF_GR + ') el grupo es ' + posGR +
+        ' en ' + Math.abs(parseFloat(difGR)).toFixed(1) + ' puntos, y respecto a Andaluc\u00eda (' + REF_AND + ') ' +
+        posAND + ' en ' + Math.abs(parseFloat(difAND)).toFixed(1) + ' puntos. ';
+
+    if (mChicos !== null && mChicas !== null) {
+        var difSexo = Math.abs(mChicos - mChicas).toFixed(1);
+        var mayorSexo = mChicos >= mChicas ? 'chicos' : 'chicas';
+        interp += 'La diferencia interna por sexo es de ' + difSexo + ' puntos, siendo mayor en ' + mayorSexo + '.';
+    }
+
+    // ── Render HTML del modal ──
+    var cerrarJs = "var e=document.getElementById('ibse-submodal-015');if(e)e.parentNode.removeChild(e);";
+
+    var h = '';
+
+    // Cabecera
+    h += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;">';
+    h += '<div><div style="font-size:1rem;font-weight:800;color:#1e293b;">Subgrupo 0\u201315</div>';
+    h += '<div style="font-size:.75rem;color:#64748b;margin-top:.15rem;">Participantes menores de 16 a\u00f1os</div></div>';
+    h += '<button onclick="' + cerrarJs + '" style="font-size:1rem;line-height:1;background:none;border:none;color:#94a3b8;cursor:pointer;padding:.1rem .3rem;">\u00d7</button>';
+    h += '</div>';
+
+    // Métrica principal
+    h += '<div style="display:flex;align-items:baseline;gap:.5rem;margin-bottom:.9rem;">';
+    h += '<span style="font-size:2rem;font-weight:800;color:' + colMedia + ';">' + media015.toFixed(1) + '</span>';
+    h += '<span style="font-size:.8rem;color:#64748b;">/ 100 \u00b7 n\u202f=\u202f' + arr015.length + '</span>';
+    h += '</div>';
+
+    // Comparación
+    h += '<div style="margin-bottom:.9rem;">';
+    h += '<div style="font-size:.78rem;font-weight:700;color:#1e293b;margin-bottom:.4rem;">Comparaci\u00f3n</div>';
+    h += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem;">';
+
+    var _refItem = function(label, val, col) {
+        return '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:.45rem .6rem;">' +
+            '<div style="font-size:.65rem;color:#64748b;margin-bottom:.1rem;">' + label + '</div>' +
+            '<div style="font-size:.88rem;font-weight:700;color:' + col + ';">' + val + '</div></div>';
+    };
+
+    var colLocal = Math.abs(parseFloat(difLocal)) <= 3 ? '#64748b' : (parseFloat(difLocal) > 0 ? '#10b981' : '#ef4444');
+    h += _refItem('0\u201315 (este municipio)', media015.toFixed(1), colMedia);
+    h += _refItem('Total local', mediaLocal.toFixed(1), '#3730a3');
+    h += _refItem('Granada', REF_GR.toFixed(1), '#64748b');
+    h += _refItem('Andaluc\u00eda', REF_AND.toFixed(1), '#64748b');
+    h += '</div></div>';
+
+    // Desglose por sexo
+    h += '<div style="margin-bottom:.9rem;">';
+    h += '<div style="font-size:.78rem;font-weight:700;color:#1e293b;margin-bottom:.4rem;">Desglose por sexo (0\u201315)</div>';
+    h += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem;">';
+    if (mChicos !== null) {
+        h += '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:.45rem .6rem;">';
+        h += '<div style="font-size:.65rem;color:#3b82f6;margin-bottom:.1rem;">\u2642 Chicos (n\u202f=\u202f' + chicos.length + ')</div>';
+        h += '<div style="font-size:.88rem;font-weight:700;color:#1e40af;">' + mChicos.toFixed(1) + '</div></div>';
+    } else {
+        h += '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:.45rem .6rem;">';
+        h += '<div style="font-size:.65rem;color:#94a3b8;">\u2642 Chicos</div>';
+        h += '<div style="font-size:.8rem;color:#94a3b8;">\u2014</div></div>';
+    }
+    if (mChicas !== null) {
+        h += '<div style="background:#fdf2f8;border:1px solid #f9a8d4;border-radius:8px;padding:.45rem .6rem;">';
+        h += '<div style="font-size:.65rem;color:#ec4899;margin-bottom:.1rem;">\u2640 Chicas (n\u202f=\u202f' + chicas.length + ')</div>';
+        h += '<div style="font-size:.88rem;font-weight:700;color:#9d174d;">' + mChicas.toFixed(1) + '</div></div>';
+    } else {
+        h += '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:.45rem .6rem;">';
+        h += '<div style="font-size:.65rem;color:#94a3b8;">\u2640 Chicas</div>';
+        h += '<div style="font-size:.8rem;color:#94a3b8;">\u2014</div></div>';
+    }
+    h += '</div></div>';
+
+    // Interpretación
+    h += '<div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:.65rem .75rem;margin-bottom:.75rem;">';
+    h += '<div style="font-size:.75rem;font-weight:700;color:#0369a1;margin-bottom:.3rem;">Interpretaci\u00f3n</div>';
+    h += '<div style="font-size:.74rem;color:#0c4a6e;line-height:1.55;">' + interp + '</div>';
+    h += '</div>';
+
+    // Nota metodológica
+    h += '<div style="background:#fefce8;border:1px solid #fde68a;border-radius:8px;padding:.55rem .7rem;">';
+    h += '<div style="font-size:.72rem;color:#78350f;line-height:1.5;">';
+    h += '<strong>Nota metodol\u00f3gica.</strong> Este an\u00e1lisis describe el bienestar socioemocional del subgrupo infantil participante (n\u202f=\u202f' + arr015.length + '). ' +
+        'En contextos de recogida escolar, la cobertura puede aproximarse a una parte muy amplia de la poblaci\u00f3n real del grupo, lo que refuerza su valor descriptivo para la planificaci\u00f3n local. ' +
+        'No se aplica ajuste muestral (SAM), ya que el objetivo es caracterizar el grupo observado. ' +
+        'Los resultados deben interpretarse como una descripci\u00f3n del colectivo participante y no como una estimaci\u00f3n poblacional estricta.';
+    h += '</div></div>';
+
+    // Botón cerrar
+    h += '<div style="text-align:right;margin-top:.9rem;">';
+    h += '<button onclick="' + cerrarJs + '" style="font-size:.75rem;padding:.35rem .9rem;border:1px solid #cbd5e1;border-radius:6px;background:#f8fafc;color:#334155;cursor:pointer;">Cerrar</button>';
+    h += '</div>';
+
+    // Montar overlay
+    var overlay = document.createElement('div');
+    overlay.id = 'ibse-submodal-015';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:1rem;box-sizing:border-box;';
+
+    var caja = document.createElement('div');
+    caja.style.cssText = 'position:relative;z-index:2147483001;background:#fff;border-radius:14px;padding:1.5rem;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.35);font-family:inherit;';
+    caja.innerHTML = h;
+
+    overlay.appendChild(caja);
+
+    // Cerrar al hacer clic fuera de la caja
+    overlay.addEventListener('click', function(ev) {
+        if (ev.target === overlay) overlay.parentNode.removeChild(overlay);
+    });
+
+    document.body.appendChild(overlay);
+    overlay.offsetHeight;
 }
 
 
@@ -60575,9 +60855,9 @@ var IBSE_ITEMS_5 = [
 
     { id: 'ibse_tranquilo', texto: 'Tranquilo/a y relajado/a',    invertir: false },
 
-    { id: 'ibse_optimista', texto: 'Me he sentido optimista respecto a mi futuro',        invertir: true  },
+    { id: 'ibse_optimista', texto: 'Me he sentido optimista respecto a mi futuro',        invertir: false },
 
-    { id: 'ibse_bienmismo', texto: 'Por lo general me he sentido bien conmigo mismo/a', invertir: true  }
+    { id: 'ibse_bienmismo', texto: 'Por lo general me he sentido bien conmigo mismo/a', invertir: false }
 
 ];
 
@@ -60604,43 +60884,43 @@ function calcularIBSE(d) {
         return { factorVinculo: null, factorSituacion: null, factorControl: null, factorPersona: null, total: null };
     }
 
+    // [FIX 2026-04-16b] EAS escalas originales: P.57b (1-4) → (v-1)*(100/3); P.57c (1-5) → (v-1)*25.
+    // Inversión SOLO deprimido y solo (P.57b, 1-4): (4-v)*(100/3). Resultado: 0-100.
     // Factor VÍNCULO: deprimido (inv) + solo (inv) · escala 1-4
-    var fVinculo = (dep !== null && sol !== null) ? (((5-dep)+(5-sol))/2-1)*25
-                 : (dep !== null)                  ? ((5-dep)-1)*25
-                 : (sol !== null)                  ? ((5-sol)-1)*25
+    var fVinculo = (dep !== null && sol !== null) ? ((4-dep)*(100/3) + (4-sol)*(100/3)) / 2
+                 : (dep !== null)                  ? (4-dep)*(100/3)
+                 : (sol !== null)                  ? (4-sol)*(100/3)
                  : null;
 
     // Factor SITUACIÓN: feliz + disfrutar · escala 1-4
-    var fSituacion = (fel !== null && dis !== null) ? (((fel+1)+(dis+1))/2-1)*25
-                   : (fel !== null)                  ? ((fel+1)-1)*25
-                   : (dis !== null)                  ? ((dis+1)-1)*25
+    var fSituacion = (fel !== null && dis !== null) ? ((fel-1)*(100/3) + (dis-1)*(100/3)) / 2
+                   : (fel !== null)                  ? (fel-1)*(100/3)
+                   : (dis !== null)                  ? (dis-1)*(100/3)
                    : null;
 
     // Factor CONTROL: energía + tranquilo · escala 1-4
-    var fControl = (ene !== null && tra !== null) ? (((ene+1)+(tra+1))/2-1)*25
-                 : (ene !== null)                  ? ((ene+1)-1)*25
-                 : (tra !== null)                  ? ((tra+1)-1)*25
+    var fControl = (ene !== null && tra !== null) ? ((ene-1)*(100/3) + (tra-1)*(100/3)) / 2
+                 : (ene !== null)                  ? (ene-1)*(100/3)
+                 : (tra !== null)                  ? (tra-1)*(100/3)
                  : null;
 
-    // Factor PERSONA: optimista (inv) + bienmismo (inv) · escala 1-5
-    var fPersona = (opt !== null && bie !== null) ? (((6-opt)+(6-bie))/2-1)*25
-                 : (opt !== null)                  ? ((6-opt)-1)*25
-                 : (bie !== null)                  ? ((6-bie)-1)*25
+    // Factor PERSONA: optimista + bienmismo · escala 1-5 (1=muy de acuerdo, 5=muy en desacuerdo) → NO invertidos
+    var fPersona = (opt !== null && bie !== null) ? ((opt-1)*25 + (bie-1)*25) / 2
+                 : (opt !== null)                  ? (opt-1)*25
+                 : (bie !== null)                  ? (bie-1)*25
                  : null;
 
-    // [FIX 2026-04-12 v2] Total por peso uniforme por ítem válido.
-    // Algebraicamente idéntico al original con 8/8: sum_t/8*25-25 = (fV+fS+fC+fP)/4.
-    // Elimina double-weighting del ítem superviviente en pares incompletos.
+    // IBSE = media simple de los 8 ítems recodificados a 0-100. Rango: 0-100.
     var _st = 0, _nt = 0;
-    if (dep !== null) { _st += (5-dep); _nt++; }
-    if (sol !== null) { _st += (5-sol); _nt++; }
-    if (fel !== null) { _st += (fel+1); _nt++; }
-    if (dis !== null) { _st += (dis+1); _nt++; }
-    if (ene !== null) { _st += (ene+1); _nt++; }
-    if (tra !== null) { _st += (tra+1); _nt++; }
-    if (opt !== null) { _st += (6-opt); _nt++; }
-    if (bie !== null) { _st += (6-bie); _nt++; }
-    var total = _st / _nt * 25 - 25;
+    if (dep !== null) { _st += (4-dep)*(100/3); _nt++; }
+    if (sol !== null) { _st += (4-sol)*(100/3); _nt++; }
+    if (fel !== null) { _st += (fel-1)*(100/3); _nt++; }
+    if (dis !== null) { _st += (dis-1)*(100/3); _nt++; }
+    if (ene !== null) { _st += (ene-1)*(100/3); _nt++; }
+    if (tra !== null) { _st += (tra-1)*(100/3); _nt++; }
+    if (opt !== null) { _st += (opt-1)*25; _nt++; }
+    if (bie !== null) { _st += (bie-1)*25; _nt++; }
+    var total = _st / _nt;
 
     return { factorVinculo: fVinculo, factorSituacion: fSituacion, factorControl: fControl, factorPersona: fPersona, total: total };
 
@@ -60996,7 +61276,7 @@ function renderizarPanelIBSE() {
     }
 
     // [FIX 2026-04-12] Referencias EAS 2023 para comparación local/Granada/Andalucía.
-    var _IBSE_AND = 62.4, _IBSE_GR = 60.8;
+    var _IBSE_AND = 75.939159, _IBSE_GR = 81.782549;
     function _refCol(local, ref) {
         var d = local - ref;
         return d >= 0 ? '#166534' : '#dc2626';
@@ -61289,6 +61569,1855 @@ function ibse_abrirMonitor() { ibse_v2_abrir(); } // redirect legacy por si algo
 // ── [ELIMINADO] ibse_renderMonitorFullscreen, ibse_cerrarMonitor, handler Escape v1 ──
 // Todo el monitor IBSE ahora usa ibse_v2_abrir() / ibse_v2_cerrar() en #modal-ibse-monitor.
 // ── FIN BLOQUE ELIMINADO ──
+
+// ══════════════════════════════════════════════════════════════════════════════
+// MONITOR IBSE LOCAL — compasLocal_ibse_*
+// Monitor paralelo. Sin comparativas externas. Sin herencia del monitor viejo.
+// Entrada: window._ibse_v2_rawData (registros brutos, procesados de forma independiente)
+// Store propio: _compasLocalIBSE_datos — no depende de _ibse_v2_respuestas.
+// Escala IBSE: 0–100.
+// Umbrales explícitos — ajustables aquí sin tocar otra cosa.
+// ══════════════════════════════════════════════════════════════════════════════
+
+var _IBSELOCAL_CFG = {
+    N_MIN_TOTAL:    50,   // alerta si n_valido < este valor
+    N_MIN_SUBGRUPO: 20,   // advertencia en subgrupo si n < este valor
+    BRECHA_SEXO:     3.0, // diferencia absoluta (pts 0-100) que activa alerta de sexo
+    BRECHA_EDAD:     4.0, // diferencia del grupo vs total que activa alerta de edad
+    TRAMO_BAJO_PCT:  0.30,// alerta si ≥30% de la muestra cae en tramos bajo+muy bajo
+    DT_ALTA:        15.0  // alerta si desviación típica supera este valor
+};
+
+// ── Grupos de edad del nuevo monitor (4 grupos, prudentes) ───────────────────
+// Menores de 16: se cuentan en cobertura pero no entran en el análisis por edad.
+// Si en el futuro se requiere análisis 0–15 específico, añadir como bloque aparte.
+var _IBSELOCAL_GRUPOS_EDAD = [
+    { nombre: '16–29', min: 16, max: 29 },
+    { nombre: '30–44', min: 30, max: 44 },
+    { nombre: '45–59', min: 45, max: 59 },
+    { nombre: '60 o más', min: 60, max: 999 }
+];
+
+// ── Referencia EAS Andalucía 2023 ───────────────────────────────────────────
+// Fuente: IBSE_100-Edad-trans_orig.xlsx — Bericat SEWBI 0-100 — Verificado 2026-04-17
+// Misma fórmula y mismos 8 ítems que COMPÁS. Muestra ponderada n≈7.000 adultos.
+// Grupos edad EAS (16-24, 25-34…) ≠ grupos COMPÁS (16-29, 30-44…) → no comparar por edad.
+var _IBSELOCAL_EAS_REF = {
+    total:   { media: 75.94, ic_inf: 75.48, ic_sup: 76.36 },
+    hombres: { media: 78.01, ic_inf: 77.29, ic_sup: 78.62 },
+    mujeres: { media: 73.98, ic_inf: 73.43, ic_sup: 74.54 },
+    edad: [
+        { nombre: '16–24', media: 85.04, ic_inf: 83.43, ic_sup: 86.70 },
+        { nombre: '25–34', media: 80.67, ic_inf: 79.43, ic_sup: 81.92 },
+        { nombre: '35–44', media: 79.62, ic_inf: 78.55, ic_sup: 80.61 },
+        { nombre: '45–54', media: 76.06, ic_inf: 75.21, ic_sup: 76.99 },
+        { nombre: '55–64', media: 71.84, ic_inf: 70.79, ic_sup: 72.84 },
+        { nombre: '65–74', media: 72.21, ic_inf: 71.20, ic_sup: 73.22 },
+        { nombre: '75\u00a0o\u00a0más', media: 64.87, ic_inf: 63.67, ic_sup: 65.95 }
+    ]
+};
+
+// ── Cálculo de agregados ─────────────────────────────────────────────────────
+function compasLocal_ibse_agregar(arr) {
+    if (!arr || !arr.length) return null;
+
+    // Extraer valores válidos del índice
+    var vals = [];
+    arr.forEach(function(r) {
+        var v = r.ibse_total;
+        if (v != null && !isNaN(v)) vals.push(v);
+    });
+
+    var n_total    = (arr._meta) ? arr._meta.n_total_raw : arr.length;
+    var n_excluido = (arr._meta) ? arr._meta.n_excluido  : 0;
+    var n_valido   = vals.length;
+    if (n_valido === 0) return null;
+
+    // Media
+    var suma  = vals.reduce(function(s, v) { return s + v; }, 0);
+    var media = suma / n_valido;
+
+    // Mediana
+    var sorted  = vals.slice().sort(function(a, b) { return a - b; });
+    var mediana = (n_valido % 2 === 0)
+        ? (sorted[n_valido / 2 - 1] + sorted[n_valido / 2]) / 2
+        : sorted[Math.floor(n_valido / 2)];
+
+    // Desviación típica
+    var varianza = vals.reduce(function(s, v) { return s + Math.pow(v - media, 2); }, 0) / n_valido;
+    var dt       = Math.sqrt(varianza);
+
+    // Min y max observados
+    var min_obs = sorted[0];
+    var max_obs = sorted[sorted.length - 1];
+
+    // Distribución por tramos (escala 0–100, mismos tramos que el monitor v2)
+    var tramos = [
+        { nombre: 'Muy bajo',  rango: '0–25',   min:  0, max: 25,  n: 0 },
+        { nombre: 'Bajo',      rango: '26–50',  min: 26, max: 50,  n: 0 },
+        { nombre: 'Moderado',  rango: '51–75',  min: 51, max: 75,  n: 0 },
+        { nombre: 'Alto',      rango: '76–100', min: 76, max: 100, n: 0 }
+    ];
+    vals.forEach(function(v) {
+        if      (v <= 25)  tramos[0].n++;
+        else if (v <= 50)  tramos[1].n++;
+        else if (v <= 75)  tramos[2].n++;
+        else               tramos[3].n++;
+    });
+
+    // Por sexo (1=hombre, 2=mujer)
+    var por_sexo = [
+        { grupo: 'Hombres', codigo: 1, vals_sx: [] },
+        { grupo: 'Mujeres', codigo: 2, vals_sx: [] }
+    ];
+    arr.forEach(function(r) {
+        if (r.ibse_total == null || isNaN(r.ibse_total)) return;
+        if      (r.sexo === 1) por_sexo[0].vals_sx.push(r.ibse_total);
+        else if (r.sexo === 2) por_sexo[1].vals_sx.push(r.ibse_total);
+    });
+    por_sexo.forEach(function(g) {
+        g.n     = g.vals_sx.length;
+        g.media = g.n > 0
+            ? g.vals_sx.reduce(function(s, v) { return s + v; }, 0) / g.n
+            : null;
+        g.dif   = (g.media != null) ? (g.media - media) : null;
+    });
+
+    // Por edad
+    var por_edad = _IBSELOCAL_GRUPOS_EDAD.map(function(gdef) {
+        return { nombre: gdef.nombre, min: gdef.min, max: gdef.max, vals_ed: [] };
+    });
+    var n_sin_edad = 0; // en análisis complete-case (adultos) la edad siempre es conocida
+    var n_menores  = (arr._meta) ? arr._meta.n_menores : 0; // desde procesarRaw (edad<16 con ítems completos)
+    arr.forEach(function(r) {
+        if (r.ibse_total == null || isNaN(r.ibse_total)) return;
+        var e = r.edad;
+        if (e == null || isNaN(e)) { n_sin_edad++; return; }
+        // Todos los registros en arr son adultos (edad ≥ 16): no hay edad<16 aquí
+        for (var i = 0; i < por_edad.length; i++) {
+            if (e >= por_edad[i].min && e <= por_edad[i].max) {
+                por_edad[i].vals_ed.push(r.ibse_total);
+                break;
+            }
+        }
+    });
+    por_edad.forEach(function(g) {
+        g.n     = g.vals_ed.length;
+        g.media = g.n > 0
+            ? g.vals_ed.reduce(function(s, v) { return s + v; }, 0) / g.n
+            : null;
+        g.dif   = (g.media != null) ? (g.media - media) : null;
+    });
+
+    // Alertas internas (umbrales en _IBSELOCAL_CFG)
+    var alertas = [];
+    var cfg = _IBSELOCAL_CFG;
+
+    if (n_valido < cfg.N_MIN_TOTAL) {
+        alertas.push({ id: 'A1', msg: 'Muestra reducida (n\u00a0=\u00a0' + n_valido + '). Los resultados deben interpretarse con cautela.', prioritaria: true });
+    }
+    var pct_bajo = (tramos[0].n + tramos[1].n) / n_valido;
+    if (pct_bajo > cfg.TRAMO_BAJO_PCT) {
+        alertas.push({ id: 'A3', msg: 'El\u00a0' + Math.round(pct_bajo * 100) + '\u00a0% de la muestra presenta puntuaciones en tramo bajo o muy bajo.', prioritaria: false });
+    }
+    var mH = por_sexo[0].media, mM = por_sexo[1].media;
+    if (mH != null && mM != null && Math.abs(mH - mM) >= cfg.BRECHA_SEXO) {
+        var _quien = mH > mM ? 'hombres' : 'mujeres';
+        alertas.push({ id: 'A4', msg: 'Diferencia por sexo: ' + Math.abs(mH - mM).toFixed(1) + '\u00a0pts (' + _quien + ' con mayor puntuación media).', prioritaria: false });
+    }
+    por_sexo.forEach(function(g) {
+        if (g.n > 0 && g.n < cfg.N_MIN_SUBGRUPO) {
+            alertas.push({ id: 'A6', msg: g.grupo + ': muestra reducida en este subgrupo (n\u00a0=\u00a0' + g.n + '). Resultado orientativo.', prioritaria: false });
+        }
+    });
+    por_edad.forEach(function(g) {
+        if (g.n > 0 && g.n < cfg.N_MIN_SUBGRUPO) {
+            alertas.push({ id: 'A6', msg: 'Grupo\u00a0' + g.nombre + ': muestra reducida (n\u00a0=\u00a0' + g.n + '). Resultado orientativo.', prioritaria: false });
+        }
+        if (g.n > 0 && g.dif != null && Math.abs(g.dif) >= cfg.BRECHA_EDAD) {
+            var _dir = g.dif > 0 ? 'por encima' : 'por debajo';
+            alertas.push({ id: 'A5', msg: 'Grupo\u00a0' + g.nombre + ': ' + Math.abs(g.dif).toFixed(1) + '\u00a0pts ' + _dir + ' del promedio de la muestra.', prioritaria: false });
+        }
+    });
+    if (dt >= cfg.DT_ALTA) {
+        alertas.push({ id: 'A7', msg: 'Alta dispersión interna (DT\u00a0=\u00a0' + dt.toFixed(1) + '). El promedio describe de forma limitada la variedad real de la muestra.', prioritaria: false });
+    }
+
+    // ── Medias de factores ────────────────────────────────────────────────────
+    var _fKeys = ['vinculo','situacion','control','persona'];
+    var _fSums = { vinculo: 0, situacion: 0, control: 0, persona: 0 };
+    var _fN    = 0;
+    arr.forEach(function(r) {
+        if (!r.factores) return;
+        var ok = true;
+        _fKeys.forEach(function(k) { if (r.factores[k] == null || isNaN(r.factores[k])) ok = false; });
+        if (!ok) return;
+        _fKeys.forEach(function(k) { _fSums[k] += r.factores[k]; });
+        _fN++;
+    });
+    var factor_medias = null;
+    if (_fN >= 5) {
+        factor_medias = {};
+        _fKeys.forEach(function(k) { factor_medias[k] = _fSums[k] / _fN; });
+    }
+
+    // ── Señales de malestar (ítems negativos brutos, escala 1-4) ─────────────
+    var _depVals = [], _soloVals = [];
+    arr.forEach(function(r) {
+        if (r.dep_raw  != null) _depVals.push(r.dep_raw);
+        if (r.solo_raw != null) _soloVals.push(r.solo_raw);
+    });
+    function _pctAltoMalestar(vals) {
+        if (!vals.length) return null;
+        var nAlto = 0;
+        vals.forEach(function(v) { if (v >= 3) nAlto++; });
+        return { pct: nAlto / vals.length, n_alto: nAlto, n: vals.length,
+                 media_raw: vals.reduce(function(s,v) { return s+v; }, 0) / vals.length };
+    }
+    var malestar = { deprimido: _pctAltoMalestar(_depVals), solo: _pctAltoMalestar(_soloVals) };
+
+    // ── Medias de ítems positivos (normalizadas 0-100, mayor = más bienestar) ─
+    // P57b positivos (feliz, disfrutar, energía, tranquilo): raw 1-4, 1=peor → norm=(raw-1)/3×100
+    // P57c (optimista, bienmismo): raw 1-5, 1=mejor (invertida) → norm=(5-raw)/4×100
+    var _ipKeys4 = ['fel_raw','dis_raw','ene_raw','tra_raw'];
+    var _ipKeys5 = ['opt_raw','bie_raw'];
+    var _ipSums  = { fel_raw:0, dis_raw:0, ene_raw:0, tra_raw:0, opt_raw:0, bie_raw:0 };
+    var _ipN     = { fel_raw:0, dis_raw:0, ene_raw:0, tra_raw:0, opt_raw:0, bie_raw:0 };
+    arr.forEach(function(r) {
+        _ipKeys4.concat(_ipKeys5).forEach(function(k) {
+            if (r[k] != null) { _ipSums[k] += r[k]; _ipN[k]++; }
+        });
+    });
+    var item_medias = null;
+    var _ipAllOk = _ipKeys4.concat(_ipKeys5).every(function(k) { return _ipN[k] >= 5; });
+    if (_ipAllOk) {
+        item_medias = {};
+        _ipKeys4.forEach(function(k) { item_medias[k] = (_ipSums[k] / _ipN[k] - 1) / 3 * 100; });
+        _ipKeys5.forEach(function(k) { item_medias[k] = (5 - _ipSums[k] / _ipN[k]) / 4 * 100; });
+    }
+
+    // ── Análisis separado de menores de 16 ───────────────────────────────────
+    var _menVals = [], _menDepVals = [], _menSoloVals = [];
+    var _menSrc = (arr._menores && arr._menores.length) ? arr._menores : [];
+    _menSrc.forEach(function(r) {
+        if (r.ibse_total != null && !isNaN(r.ibse_total)) _menVals.push(r.ibse_total);
+        if (r.dep_raw  != null) _menDepVals.push(r.dep_raw);
+        if (r.solo_raw != null) _menSoloVals.push(r.solo_raw);
+    });
+    var menores_agg = null;
+    if (_menVals.length > 0) {
+        var _ms  = _menVals.slice().sort(function(a,b) { return a-b; });
+        var _mmedia = _menVals.reduce(function(s,v) { return s+v; }, 0) / _menVals.length;
+        menores_agg = {
+            n:       _menVals.length,
+            media:   _mmedia,
+            mediana: _menVals.length % 2 === 0
+                ? (_ms[_menVals.length/2-1] + _ms[_menVals.length/2]) / 2
+                : _ms[Math.floor(_menVals.length/2)],
+            min:     _ms[0],
+            max:     _ms[_ms.length-1],
+            malestar: { deprimido: _pctAltoMalestar(_menDepVals), solo: _pctAltoMalestar(_menSoloVals) }
+        };
+    }
+
+    // ── SAM: Sistema de Análisis Muestral (3 pirámides) ─────────────────────────
+    // Compara: (1) Población real [_COMPAS_POB_OFICIAL], (2) Muestra teórica proporcional,
+    // (3) Muestra real (n_valido). Calcula pesos post-estratificados y media IBSE ajustada.
+    var sam = null;
+    var _samMunKey = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
+    var _samPob = (_samMunKey && window._COMPAS_POB_OFICIAL && window._COMPAS_POB_OFICIAL[_samMunKey])
+                  ? window._COMPAS_POB_OFICIAL[_samMunKey] : null;
+    if (_samPob && _samPob.grupos && _samPob.total > 0) {
+        var _sg = (typeof _SAM_GRUPOS !== 'undefined') ? _SAM_GRUPOS : ['16-29','30-44','45-59','60-74','75+'];
+        var _pobTot = _samPob.total;
+        // Muestra real: conteo por sexo × grupo edad
+        var _nr = {}, _nrIBSE = {};
+        _sg.forEach(function(g) { _nr['h_'+g]=0; _nr['m_'+g]=0; _nrIBSE['h_'+g]=0; _nrIBSE['m_'+g]=0; });
+        arr.forEach(function(r) {
+            if (r.ibse_total==null || r.sexo==null || r.edad==null) return;
+            var g = (typeof sam_edadAGrupo==='function') ? sam_edadAGrupo(r.edad) : null;
+            if (!g) return;
+            var s = r.sexo===1 ? 'h' : r.sexo===2 ? 'm' : null; if (!s) return;
+            _nr[s+'_'+g]++; _nrIBSE[s+'_'+g] += r.ibse_total;
+        });
+        // Teórica proporcional + ratios + pesos
+        var _samGrupos = [], _pesos = {};
+        _sg.forEach(function(g) {
+            ['h','m'].forEach(function(s) {
+                var _pobCell = (_samPob.grupos[g] && _samPob.grupos[g][s]) ? _samPob.grupos[g][s] : 0;
+                var _pobPct  = _pobCell / _pobTot;
+                var _nt      = _pobPct * n_valido;
+                var _nrCell  = _nr[s+'_'+g];
+                var _muePct  = n_valido > 0 ? _nrCell / n_valido : 0;
+                var _ratio   = _nt > 0 ? _nrCell / _nt : null;
+                var _w       = _muePct > 0 ? _pobPct / _muePct : null;
+                _pesos[s+'_'+g] = _w;
+                _samGrupos.push({ grupo:g, sexo:s, pob:_pobCell, pob_pct:_pobPct*100,
+                    n_teorico:Math.round(_nt*10)/10, n_real:_nrCell, muestra_pct:_muePct*100,
+                    ratio:_ratio, infra:(_ratio!=null&&_ratio<0.8), sobre:(_ratio!=null&&_ratio>1.2) });
+            });
+        });
+        // Media ajustada post-estratificada
+        var _sumaWI=0, _sumaW=0;
+        arr.forEach(function(r) {
+            if (r.ibse_total==null || r.sexo==null || r.edad==null) return;
+            var g=(typeof sam_edadAGrupo==='function')?sam_edadAGrupo(r.edad):null; if(!g) return;
+            var s=r.sexo===1?'h':r.sexo===2?'m':null; if(!s) return;
+            var w=_pesos[s+'_'+g]; if(w==null) return;
+            _sumaWI += r.ibse_total * w; _sumaW += w;
+        });
+        var _medAdj = _sumaW > 0 ? _sumaWI / _sumaW : null;
+        // Dictamen de reponderabilidad — 10 celdas base (_SAM_GRUPOS × 2 sexos), pesos reales ya calculados
+        var _drVacias = 0, _drEscasas = 0, _drPesoMax = 0;
+        _sg.forEach(function(g) {
+            ['h','m'].forEach(function(s) {
+                var _nrCell = _nr[s+'_'+g];
+                if (_nrCell === 0) _drVacias++;
+                else if (_nrCell < 5) _drEscasas++;
+                var _w = _pesos[s+'_'+g];
+                if (_w != null && _w > _drPesoMax) _drPesoMax = _w;
+            });
+        });
+        var _dictRep = (n_valido < 20 || _drVacias >= 3 || _drPesoMax > 6.0)
+            ? 'no_reponderable'
+            : (n_valido < 30 || _drVacias >= 1 || _drEscasas >= 2 || _drPesoMax > 4.0)
+            ? 'parcial'
+            : 'reponderable';
+        sam = {
+            disponible:      true,
+            poblacion_total: _pobTot,
+            cobertura:       n_valido / _pobTot,
+            grupos:          _samGrupos,
+            media_cruda:     media,
+            media_ajustada:  _medAdj,
+            sesgo:           (_medAdj != null) ? _medAdj - media : null,
+            n_infra:         _samGrupos.filter(function(g){return g.infra;}).length,
+            n_sobre:         _samGrupos.filter(function(g){return g.sobre;}).length,
+            n_sin_sexoedad:              n_valido - _samGrupos.reduce(function(s,g){return s+g.n_real;},0),
+            dictamen_reponderabilidad:   _dictRep
+        };
+    } else {
+        sam = { disponible: false };
+    }
+
+    return {
+        n_total:       n_total,
+        n_valido:      n_valido,
+        n_excluido:    n_excluido,
+        n_sin_edad:    n_sin_edad,
+        n_menores:     n_menores,
+        media:         media,
+        mediana:       mediana,
+        dt:            dt,
+        min_obs:       min_obs,
+        max_obs:       max_obs,
+        tramos:        tramos,
+        por_sexo:      por_sexo,
+        por_edad:      por_edad,
+        alertas:       alertas,
+        factor_medias: factor_medias,
+        malestar:      malestar,
+        item_medias:   item_medias,
+        menores_agg:   menores_agg,
+        sam:           sam
+    };
+}
+
+// ── Render completo ──────────────────────────────────────────────────────────
+function compasLocal_ibse_render(agg, municipio) {
+    if (!agg) {
+        return '<div style="text-align:center;padding:2.5rem 1rem;color:#94a3b8;">' +
+               '<p style="margin:0;">No hay datos suficientes para mostrar el monitor.</p></div>';
+    }
+
+    var S  = 'font-size:.82rem;color:#374151;line-height:1.6;';
+    var SB = 'font-size:.82rem;color:#374151;line-height:1.6;font-weight:700;';
+    var G  = 'font-size:.75rem;color:#64748b;';
+    var H  = 'font-size:.8rem;font-weight:700;color:#134e4a;margin:0 0 .5rem;';
+    var BK = 'background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:.85rem 1rem;margin-bottom:.85rem;';
+    var html = '';
+
+    var nivel    = agg.media >= 76 ? 'alto' : agg.media >= 51 ? 'moderado' : agg.media >= 26 ? 'bajo' : 'muy bajo';
+    var nivelCol = agg.media >= 76 ? '#166534' : agg.media >= 51 ? '#854d0e' : agg.media >= 26 ? '#c2410c' : '#dc2626';
+    var pct      = Math.max(0, Math.min(100, agg.media));
+
+    // ── A: Alertas prioritarias (antes de cualquier resultado) ───────────────
+    var alertasPrev = agg.alertas.filter(function(a) { return a.prioritaria; });
+    if (alertasPrev.length) {
+        html += '<div style="background:#fef9c3;border:1px solid #fcd34d;border-radius:7px;padding:.75rem 1rem;margin-bottom:.85rem;">';
+        html += '<div style="font-size:.78rem;font-weight:700;color:#92400e;margin-bottom:.3rem;">Aviso sobre la muestra</div>';
+        alertasPrev.forEach(function(a) {
+            html += '<div style="'+G+'margin-bottom:.2rem;">⚠ ' + a.msg + '</div>';
+        });
+        html += '</div>';
+    }
+    var _htmlA = html; html = '';
+
+    // ── 1: Señales de malestar (emociones negativas — primero) ───────────────
+    // Visible independientemente del índice global. No enmascarado por el promedio.
+    var _malDep  = agg.malestar && agg.malestar.deprimido;
+    var _malSolo = agg.malestar && agg.malestar.solo;
+    if (_malDep || _malSolo) {
+        html += '<div style="background:#fff1f2;border:1px solid #fecaca;border-left:3px solid #ef4444;border-radius:7px;padding:.85rem 1rem;margin-bottom:.85rem;">';
+        html += '<div style="font-size:.78rem;font-weight:700;color:#991b1b;margin-bottom:.35rem;">Señales de malestar (ítems negativos)</div>';
+        html += '<div style="font-size:.72rem;color:#64748b;margin-bottom:.5rem;">% con respuesta \u2265\u00a03 en escala 1-4 (buena parte del tiempo o m\u00e1s).</div>';
+        html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.4rem;">';
+        if (_malDep) {
+            var _pD = Math.round(_malDep.pct * 100);
+            var _cD = _pD >= 25 ? '#dc2626' : _pD >= 15 ? '#d97706' : '#166534';
+            html += '<div style="background:white;border:1px solid #fecaca;border-radius:6px;padding:.6rem .75rem;">';
+            html += '<div style="font-size:.71rem;font-weight:700;color:#7f1d1d;margin-bottom:.1rem;">Deprimido/a</div>';
+            html += '<div style="font-size:1.6rem;font-weight:900;color:' + _cD + ';line-height:1.2;">' + _pD + '\u00a0%</div>';
+            html += '<div style="' + G + '">n\u00a0=\u00a0' + _malDep.n_alto + '\u00a0/\u00a0' + _malDep.n + '\u00a0válidos</div>';
+            html += '</div>';
+        }
+        if (_malSolo) {
+            var _pS = Math.round(_malSolo.pct * 100);
+            var _cS = _pS >= 25 ? '#dc2626' : _pS >= 15 ? '#d97706' : '#166534';
+            html += '<div style="background:white;border:1px solid #fecaca;border-radius:6px;padding:.6rem .75rem;">';
+            html += '<div style="font-size:.71rem;font-weight:700;color:#7f1d1d;margin-bottom:.1rem;">Solo/a</div>';
+            html += '<div style="font-size:1.6rem;font-weight:900;color:' + _cS + ';line-height:1.2;">' + _pS + '\u00a0%</div>';
+            html += '<div style="' + G + '">n\u00a0=\u00a0' + _malSolo.n_alto + '\u00a0/\u00a0' + _malSolo.n + '\u00a0válidos</div>';
+            html += '</div>';
+        }
+        html += '</div>';
+        html += '<p style="font-size:.7rem;color:#94a3b8;margin:0;font-style:italic;">Umbral \u2265\u00a03 operativo, no cl\u00ednico. Independiente del \u00edndice global.</p>';
+        html += '</div>';
+    }
+    var _html1 = html; html = '';
+
+    // ── 2: Bienestar emocional positivo (nuevo bloque) ───────────────────────
+    // Medias de ítems positivos normalizadas a 0-100 (mayor = mayor bienestar).
+    // P57b (feliz, disfrutar, energía, tranquilo): norm=(raw-1)/3×100
+    // P57c (optimista, bienmismo): escala 1-5 invertida, norm=(5-raw)/4×100
+    if (agg.item_medias) {
+        var _im = agg.item_medias;
+        var _iInfo = [
+            { k:'fel_raw', lbl:'Felicidad',             col:'#f59e0b' },
+            { k:'dis_raw', lbl:'Disfrute de la vida',   col:'#f97316' },
+            { k:'ene_raw', lbl:'Energía vital',          col:'#22c55e' },
+            { k:'tra_raw', lbl:'Tranquilidad',           col:'#0ea5e9' },
+            { k:'opt_raw', lbl:'Optimismo',              col:'#a855f7' },
+            { k:'bie_raw', lbl:'Bien\u00a0consigo\u00a0mismo/a', col:'#6366f1' }
+        ];
+        html += '<div style="' + BK + 'border-left:3px solid #f59e0b;">';
+        html += '<div style="' + H + 'color:#92400e;">Bienestar emocional positivo</div>';
+        _iInfo.forEach(function(ii) {
+            var v = _im[ii.k];
+            if (v == null) return;
+            var nI = v>=76?'alto':v>=51?'moderado':v>=26?'bajo':'muy bajo';
+            html += '<div style="margin-bottom:.5rem;">';
+            html += '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.1rem;">';
+            html += '<span style="font-size:.78rem;font-weight:600;color:#1e293b;">' + ii.lbl + '</span>';
+            html += '<span style="font-size:.8rem;font-weight:700;color:' + ii.col + ';min-width:5rem;text-align:right;">' + v.toFixed(1) + ' <span style="font-size:.63rem;color:#94a3b8;font-weight:400;">(' + nI + ')</span></span>';
+            html += '</div>';
+            html += '<div style="position:relative;height:8px;background:#e5e7eb;border-radius:3px;">';
+            html += '<div style="position:absolute;left:0;top:0;height:100%;width:' + Math.min(100,v).toFixed(1) + '%;background:' + ii.col + ';border-radius:3px;opacity:.8;"></div>';
+            html += '</div></div>';
+        });
+        html += '<p style="margin:.2rem 0 0;' + G + 'font-style:italic;">Puntuaciones normalizadas 0–100. Ítems P57b (escala 1-4) y P57c (escala 1-5, invertida). Mayor valor = mayor bienestar en ese ítem.</p>';
+        html += '</div>';
+    }
+    var _html2 = html; html = '';
+
+    // ── 3: Perfil por factores (Bericat) ─────────────────────────────────────
+    if (agg.factor_medias) {
+        var _fm = agg.factor_medias;
+        var _fInfo = [
+            { k:'vinculo',   lbl:'Vínculo',   sub:'Relaciones · Soledad · Depresión', col:'#0ea5e9' },
+            { k:'situacion', lbl:'Situación',  sub:'Felicidad · Disfrute de la vida',  col:'#22c55e' },
+            { k:'control',   lbl:'Control',    sub:'Energía · Tranquilidad',           col:'#f59e0b' },
+            { k:'persona',   lbl:'Persona',    sub:'Optimismo · Autoestima',           col:'#a855f7' }
+        ];
+        html += '<div style="' + BK + '">';
+        html += '<div style="' + H + '">Perfil por factores (Bericat)</div>';
+        _fInfo.forEach(function(fi) {
+            var v = _fm[fi.k];
+            if (v == null) return;
+            var nF = v>=76?'alto':v>=51?'moderado':v>=26?'bajo':'muy bajo';
+            html += '<div style="margin-bottom:.55rem;">';
+            html += '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.12rem;">';
+            html += '<span style="font-size:.78rem;font-weight:600;color:#1e293b;">' + fi.lbl + '</span>';
+            html += '<span style="' + G + '">' + fi.sub + '</span>';
+            html += '<span style="font-size:.8rem;font-weight:700;color:' + fi.col + ';min-width:4.5rem;text-align:right;">' + v.toFixed(1) + ' <span style="font-size:.63rem;color:#94a3b8;font-weight:400;">(' + nF + ')</span></span>';
+            html += '</div>';
+            html += '<div style="position:relative;height:9px;background:#e5e7eb;border-radius:3px;">';
+            html += '<div style="position:absolute;left:0;top:0;height:100%;width:' + Math.min(100,v).toFixed(1) + '%;background:' + fi.col + ';border-radius:3px;opacity:.85;"></div>';
+            html += '</div></div>';
+        });
+        // Detectar el factor más bajo e interpretarlo guiadamente
+        if (_fm) {
+            var _fVals = [
+                { k:'vinculo',   v:_fm.vinculo,   lbl:'Vínculo',   sig:'vínculos sociales, soledad y estado depresivo' },
+                { k:'situacion', v:_fm.situacion, lbl:'Situación',  sig:'felicidad cotidiana y disfrute de la vida' },
+                { k:'control',   v:_fm.control,   lbl:'Control',    sig:'energía vital y calma interior' },
+                { k:'persona',   v:_fm.persona,   lbl:'Persona',    sig:'optimismo y autovaloración' }
+            ];
+            var _fMin = _fVals.reduce(function(a,b){ return (a.v!=null&&b.v!=null&&b.v<a.v)?b:a; }, _fVals[0]);
+            var _fMax = _fVals.reduce(function(a,b){ return (a.v!=null&&b.v!=null&&b.v>a.v)?b:a; }, _fVals[0]);
+            var _brechaFact = (_fMin.v!=null && _fMax.v!=null) ? (_fMax.v - _fMin.v) : null;
+            var _factNota = _fMin.v != null
+                ? 'Factor prioritario: <strong>' + _fMin.lbl + '</strong> (' + _fMin.v.toFixed(1) + ')'
+                  + (_brechaFact != null && _brechaFact >= 8 ? ' — brecha de ' + _brechaFact.toFixed(1) + '\u00a0pts con ' + _fMax.lbl + '.' : '.')
+                : '';
+            if (_factNota) html += '<p style="margin:.3rem 0 0;font-size:.74rem;color:#374151;line-height:1.55;font-style:normal;">' + _factNota + '</p>';
+        }
+        html += '<p style="margin:.25rem 0 0;' + G + 'font-style:italic;">Rango teórico: 25–100. Diferencias ≥5\u00a0pts entre factores son interpretativas.</p>';
+        html += '</div>';
+    }
+    var _html3 = html; html = '';
+
+    // ── 4: IBSE global (síntesis) ────────────────────────────────────────────
+    html += '<div style="' + BK + '">';
+    html += '<div style="' + H + '">IBSE — Índice de Bienestar Socioemocional (síntesis)</div>';
+    html += '<div style="display:flex;align-items:baseline;gap:.5rem;margin-bottom:.5rem;">';
+    html += '<span style="font-size:1.9rem;font-weight:800;color:' + nivelCol + ';">' + agg.media.toFixed(1) + '</span>';
+    html += '<span style="font-size:.82rem;color:#64748b;">/ 100</span>';
+    html += '<span style="font-size:.78rem;font-weight:700;color:' + nivelCol + ';margin-left:.25rem;">' + nivel + '</span>';
+    html += '</div>';
+    html += '<div style="position:relative;height:7px;background:#e5e7eb;border-radius:4px;margin-bottom:.4rem;">';
+    html += '<div style="position:absolute;left:0;top:0;height:100%;width:' + pct + '%;background:' + nivelCol + ';border-radius:4px;"></div>';
+    html += '</div>';
+    html += '<div style="' + G + '">Mediana: <strong style="color:#1e293b;">' + agg.mediana.toFixed(1) + '</strong> \u00b7 DT: <strong style="color:#1e293b;">' + agg.dt.toFixed(1) + '</strong> \u00b7 Rango: ' + agg.min_obs.toFixed(1) + '–' + agg.max_obs.toFixed(1) + '</div>';
+    // Interpretación guiada del índice global
+    var _interpTexto = agg.media >= 76
+        ? 'Nivel <strong>alto</strong> de bienestar socioemocional. Revisar si existen subgrupos en nivel bajo enmascarados por el promedio.'
+        : agg.media >= 51
+        ? 'Nivel <strong>moderado</strong> de bienestar. Comparar factores para identificar qué dimensiones tiran a la baja.'
+        : agg.media >= 26
+        ? 'Nivel <strong>bajo</strong> de bienestar socioemocional. Revisar qué factores y subgrupos concentran el peor resultado.'
+        : 'Nivel <strong>muy bajo</strong> de bienestar socioemocional. Requiere interpretación cautelosa (muestra, cobertura) y contraste con los ítems negativos.';
+    html += '<p style="font-size:.75rem;color:#374151;line-height:1.6;margin:.45rem 0 0;padding:.4rem .6rem;background:#f8fafc;border-left:3px solid ' + nivelCol + ';border-radius:0 4px 4px 0;">' + _interpTexto + '</p>';
+    html += '</div>';
+    var _html4 = html; html = '';
+
+    // ── 4b: Muestra y cobertura ───────────────────────────────────────────────
+    html += '<div style="' + BK + '">';
+    html += '<div style="' + H + '">Muestra y cobertura</div>';
+    var _pctExcl = agg.n_total > 0 ? Math.round(agg.n_excluido / agg.n_total * 100) : 0;
+    var _pctVal  = agg.n_total > 0 ? Math.round(agg.n_valido   / agg.n_total * 100) : 0;
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.5rem;margin-bottom:.5rem;">';
+    html += _ibseLocal_tarjeta('Registros totales', agg.n_total, '#0369a1');
+    html += _ibseLocal_tarjeta('Válidos (adultos, completos)', agg.n_valido + ' <span style="font-size:.65rem;color:#64748b;font-weight:400;">(' + _pctVal + '\u00a0%)</span>', '#166534');
+    html += _ibseLocal_tarjeta('Excluidos (incompletos/sin edad)', agg.n_excluido + ' <span style="font-size:.65rem;color:#64748b;font-weight:400;">(' + _pctExcl + '\u00a0%)</span>', '#9f1239');
+    if (agg.n_menores > 0) html += _ibseLocal_tarjeta('Menores &lt;16 (bloque separado)', agg.n_menores, '#c2410c');
+    html += '</div>';
+    html += '<p style="font-size:.68rem;color:#64748b;margin:.2rem 0 .4rem;font-style:italic;">Análisis por casos completos: edad ≥\u00a016 años con los 8\u00a0ítems IBSE\u00a0válidos. Registros incompletos, con edad ausente o menores de 16\u00a0años no entran en el índice.</p>';
+    html += '<div style="margin-top:.4rem;">';
+    html += '<span style="' + G + 'margin-right:.75rem;">Por sexo (muestra válida):</span>';
+    var _h = agg.por_sexo[0], _m = agg.por_sexo[1];
+    html += '<span style="' + S + 'margin-right:.75rem;">Hombres: <strong>' + _h.n + '</strong>';
+    if (agg.n_valido > 0) html += ' <span style="' + G + '">(' + Math.round(_h.n * 100 / agg.n_valido) + ' %)</span>';
+    html += '</span>';
+    html += '<span style="' + S + '">Mujeres: <strong>' + _m.n + '</strong>';
+    if (agg.n_valido > 0) html += ' <span style="' + G + '">(' + Math.round(_m.n * 100 / agg.n_valido) + ' %)</span>';
+    html += '</span>';
+    html += '</div>';
+    html += '<p style="margin:.6rem 0 0;' + G + 'font-style:italic;">Muestra no probabilística. Los resultados describen a las personas que participaron, no estiman la población general del municipio.</p>';
+    html += '</div>';
+    var _html4b = html; html = '';
+
+    // ── 4d: Composición demográfica — SAM (pirámide bicapa, 4 grupos del monitor) ──
+    if (agg.sam && agg.sam.disponible) {
+        var _s = agg.sam;
+        // 4 grupos del monitor (no _SAM_GRUPOS de 5 grupos)
+        var _sg4 = ['16-29','30-44','45-59','60+'];
+        // Mapa: grupo display → claves en agg.sam.grupos (que usa _SAM_GRUPOS con guión)
+        var _samMap = {'16-29':['16-29'],'30-44':['30-44'],'45-59':['45-59'],'60+':['60-74','75+']};
+
+        // Estructuras de pirámide agregando desde agg.sam.grupos a los 4 grupos del monitor
+        var _pirPob  = { hombres:{}, mujeres:{}, total: _s.poblacion_total };
+        var _pirTeor = { hombres:{}, mujeres:{}, total: agg.n_valido };
+        var _pirCons = { hombres:{}, mujeres:{}, total: agg.n_valido };
+        _sg4.forEach(function(g) {
+            _pirPob.hombres[g]=0; _pirPob.mujeres[g]=0;
+            _pirTeor.hombres[g]=0; _pirTeor.mujeres[g]=0;
+            _pirCons.hombres[g]=0; _pirCons.mujeres[g]=0;
+        });
+
+        // Datos agregados por celda para la tabla numérica
+        var _agg4 = {};
+        _sg4.forEach(function(g) { _agg4[g] = { h:{pob:0,nt:0,nr:0,infra:false,sobre:false}, m:{pob:0,nt:0,nr:0,infra:false,sobre:false} }; });
+
+        _s.grupos.forEach(function(row) {
+            var _sd = row.sexo==='h' ? 'hombres' : 'mujeres';
+            for (var _gi=0; _gi<_sg4.length; _gi++) {
+                var _dg = _sg4[_gi];
+                if (_samMap[_dg].indexOf(row.grupo) !== -1) {
+                    _pirPob[_sd][_dg]  += row.pob;
+                    _pirTeor[_sd][_dg] += row.n_teorico;
+                    _pirCons[_sd][_dg] += row.n_real;
+                    _agg4[_dg][row.sexo].pob += row.pob;
+                    _agg4[_dg][row.sexo].nt  += row.n_teorico;
+                    _agg4[_dg][row.sexo].nr  += row.n_real;
+                    if (row.infra) _agg4[_dg][row.sexo].infra = true;
+                    if (row.sobre) _agg4[_dg][row.sexo].sobre = true;
+                    break;
+                }
+            }
+        });
+
+        // Estado infra/sobre por grupo display y sexo — calculado desde ratio agregado real
+        // (no propagado desde flags de subgrupos, para que pirámide y tabla sean coherentes)
+        var _stH = {}, _stM = {};
+        _sg4.forEach(function(g) {
+            var _rH = _agg4[g].h.nt > 0 ? _agg4[g].h.nr / _agg4[g].h.nt : null;
+            var _rM = _agg4[g].m.nt > 0 ? _agg4[g].m.nr / _agg4[g].m.nt : null;
+            _stH[g] = (_rH != null && _rH < 0.8) ? 'infra' : (_rH != null && _rH > 1.2) ? 'sobre' : 'ok';
+            _stM[g] = (_rM != null && _rM < 0.8) ? 'infra' : (_rM != null && _rM > 1.2) ? 'sobre' : 'ok';
+        });
+
+        // Porcentajes — bicapa: pob (referencia) + cons (muestra real).
+        // _pctTeor se conserva para la microtabla pero NO se pasa a la pirámide:
+        // pctTeor ≡ pctPob algebraicamente (n_teorico = pobPct × n_valido → /n_valido cancela).
+        var _pctPob  = { hombres:{}, mujeres:{} };
+        var _pctTeor = { hombres:{}, mujeres:{} };
+        var _pctCons = { hombres:{}, mujeres:{} };
+        var _Nref = Math.max(agg.n_valido, 1);
+        var _Pref = Math.max(_s.poblacion_total, 1);
+        _sg4.forEach(function(g) {
+            _pctPob.hombres[g]  = _pirPob.hombres[g]  / _Pref * 100;
+            _pctPob.mujeres[g]  = _pirPob.mujeres[g]  / _Pref * 100;
+            _pctTeor.hombres[g] = _pirTeor.hombres[g] / _Nref * 100;
+            _pctTeor.mujeres[g] = _pirTeor.mujeres[g] / _Nref * 100;
+            _pctCons.hombres[g] = _pirCons.hombres[g] / _Nref * 100;
+            _pctCons.mujeres[g] = _pirCons.mujeres[g] / _Nref * 100;
+        });
+        // Capa teórica nula para pirámide: barra azul width=0 → invisible en _sam_barraRow
+        var _pctTeorCero = { hombres:{}, mujeres:{} };
+        _sg4.forEach(function(g) { _pctTeorCero.hombres[g] = 0; _pctTeorCero.mujeres[g] = 0; });
+
+        // Eje estable: máximo de pob y cons (pctTeor ≡ pctPob, excluido del cálculo)
+        var _maxPct = 0.1;
+        _sg4.forEach(function(g) {
+            ['hombres','mujeres'].forEach(function(sx) {
+                if (_pctPob[sx][g]  > _maxPct) _maxPct = _pctPob[sx][g];
+                if (_pctCons[sx][g] > _maxPct) _maxPct = _pctCons[sx][g];
+            });
+        });
+
+        html += '<div style="' + BK + '">';
+        html += '<div style="' + H + '">Composici\u00f3n demogr\u00e1fica de la muestra \u2014 SAM</div>';
+
+        // Corrección demográfica — presentación condicionada al dictamen provisional
+        if (_s.media_ajustada != null) {
+            var _sStr = (_s.sesgo >= 0 ? '+' : '') + _s.sesgo.toFixed(1);
+            var _sCol = Math.abs(_s.sesgo) < 1 ? '#166534' : Math.abs(_s.sesgo) < 3 ? '#854d0e' : '#dc2626';
+            if (_s.dictamen_reponderabilidad === 'no_reponderable') {
+                html += '<div style="background:#fef9c3;border:1px solid #fcd34d;border-radius:6px;padding:.5rem .8rem;margin-bottom:.65rem;">';
+                html += '<div style="font-size:.74rem;font-weight:700;color:#78350f;margin-bottom:.15rem;">Correcci\u00f3n demogr\u00e1fica no aplicable</div>';
+                html += '<p style="margin:0;font-size:.68rem;color:#92400e;font-style:italic;">Desequilibrios estructurales impiden ponderaci\u00f3n fiable (n\u00a0=\u00a0' + agg.n_valido + '). IBSE crudo: <strong>' + _s.media_cruda.toFixed(1) + '</strong>. Media ajustada no disponible.</p>';
+                html += '</div>';
+            } else {
+                var _adjBg = _s.dictamen_reponderabilidad === 'parcial' ? '#fffbeb' : '#f0f9ff';
+                var _adjBd = _s.dictamen_reponderabilidad === 'parcial' ? '#fcd34d' : '#bae6fd';
+                var _adjHd = _s.dictamen_reponderabilidad === 'parcial' ? '#78350f' : '#0c4a6e';
+                html += '<div style="background:' + _adjBg + ';border:1px solid ' + _adjBd + ';border-radius:6px;padding:.55rem .85rem;margin-bottom:.65rem;">';
+                html += '<div style="font-size:.77rem;font-weight:700;color:' + _adjHd + ';margin-bottom:.2rem;">Correcci\u00f3n demogr\u00e1fica del \u00edndice</div>';
+                html += '<div style="display:flex;gap:1.5rem;align-items:baseline;flex-wrap:wrap;">';
+                html += '<span style="' + S + '">IBSE crudo: <strong style="font-size:.92rem;">' + _s.media_cruda.toFixed(1) + '</strong></span>';
+                html += '<span style="' + S + '">IBSE ajustado' + (_s.dictamen_reponderabilidad === 'parcial' ? ' (orientativo)' : '') + ': <strong style="font-size:.92rem;color:#0369a1;">' + _s.media_ajustada.toFixed(1) + '</strong></span>';
+                html += '<span style="font-size:.77rem;">Sesgo composici\u00f3n: <strong style="color:' + _sCol + ';">' + _sStr + '\u00a0pts</strong></span>';
+                html += '</div>';
+                if (_s.dictamen_reponderabilidad === 'parcial') {
+                    html += '<p style="margin:.2rem 0 0;font-size:.68rem;color:#92400e;font-style:italic;">\u26a0\u00a0Celdas con pocos registros: media ajustada orientativa.</p>';
+                }
+                html += '<p style="margin:.2rem 0 0;font-size:.68rem;color:#64748b;font-style:italic;">IBSE ajustado: ponderaci\u00f3n sexo\u00a0\u00d7\u00a0edad (INE). Sesgo: &lt;1\u00a0pt negligible · 1\u20133 moderado · &gt;3 revisar.</p>';
+                html += '</div>';
+            }
+        }
+
+        // Leyenda bicapa
+        html += '<div style="display:flex;gap:.65rem;flex-wrap:wrap;margin-bottom:.45rem;font-size:.6rem;color:#475569;">';
+        html += '<span style="display:flex;align-items:center;gap:3px;"><span style="display:inline-block;width:13px;height:8px;background:repeating-linear-gradient(90deg,#d1d5db 0px,#d1d5db 3px,#b0b8c4 3px,#b0b8c4 4px);opacity:.6;border-radius:1px;border:1px solid #94a3b8;"></span><strong>Poblaci\u00f3n real</strong> (padr\u00f3n INE)</span>';
+        html += '<span style="display:flex;align-items:center;gap:3px;"><span style="display:inline-block;width:13px;height:5px;background:#16a34a;border-radius:1px;"></span><strong>Muestra real</strong> (representativa)</span>';
+        html += '<span style="display:flex;align-items:center;gap:3px;"><span style="display:inline-block;width:13px;height:5px;background:#ef4444;border-radius:1px;"></span>Infrarrepresentado</span>';
+        html += '<span style="display:flex;align-items:center;gap:3px;"><span style="display:inline-block;width:13px;height:5px;background:#f97316;border-radius:1px;"></span>Sobrerrepresentado</span>';
+        html += '</div>';
+
+        // Cabecera H / M
+        html += '<div style="display:flex;gap:3px;margin-bottom:3px;">';
+        html += '<div style="flex:1;text-align:right;font-size:.59rem;color:#94a3b8;padding-right:4px;">\u2642 Hombres</div>';
+        html += '<div style="width:32px;flex-shrink:0;"></div>';
+        html += '<div style="flex:1;font-size:.59rem;color:#94a3b8;padding-left:4px;">Mujeres \u2640</div>';
+        html += '</div>';
+
+        // Pirámide bicapa — _pctTeorCero hace que la barra azul de _sam_barraRow tenga anchura 0
+        var _pirHtml = '';
+        if (typeof _sam_barraRow === 'function') {
+            _sg4.slice().reverse().forEach(function(g) {
+                _pirHtml += _sam_barraRow(g, _pctPob, _pctTeorCero, _pctCons,
+                    _stH[g]||'nd', _stM[g]||'nd', _maxPct,
+                    agg.n_valido, _pirPob, _pirTeor, _pirCons, 1);
+            });
+        }
+        html += '<div style="position:relative;z-index:0;overflow:hidden;">' + _pirHtml + '</div>';
+
+        // Microtabla — conserva columna Teórico (n) como referencia numérica
+        html += '<div style="overflow-x:auto;margin-top:.6rem;">';
+        html += '<table style="width:100%;border-collapse:separate;border-spacing:0;font-size:.73rem;">';
+        html += '<thead><tr style="background:#f1f5f9;">';
+        html += '<th style="padding:.28rem .45rem;text-align:left;font-weight:600;color:#1e293b;border-bottom:2px solid #94a3b8;">Grupo</th>';
+        html += '<th style="padding:.28rem .45rem;text-align:right;font-weight:600;color:#64748b;border-bottom:2px solid #94a3b8;">Pob.\u00a0(%)</th>';
+        html += '<th style="padding:.28rem .45rem;text-align:right;font-weight:600;color:#1d4ed8;border-bottom:2px solid #94a3b8;">Te\u00f3rico</th>';
+        html += '<th style="padding:.28rem .45rem;text-align:right;font-weight:600;color:#1e293b;border-bottom:2px solid #94a3b8;">Real</th>';
+        html += '<th style="padding:.28rem .45rem;text-align:right;font-weight:600;color:#1e293b;border-bottom:2px solid #94a3b8;">\u0394 abs</th>';
+        html += '<th style="padding:.28rem .45rem;text-align:right;font-weight:600;color:#1e293b;border-bottom:2px solid #94a3b8;">Ratio</th>';
+        html += '</tr></thead><tbody>';
+        _sg4.forEach(function(g) {
+            ['h','m'].forEach(function(sx) {
+                var _cell = _agg4[g][sx];
+                var _lbl  = (sx==='h' ? '\u2642\u00a0' : '\u2640\u00a0') + g;
+                var _ratio = _cell.nt > 0 ? _cell.nr / _cell.nt : null;
+                var _infra = _ratio != null && _ratio < 0.8;
+                var _sobre = _ratio != null && _ratio > 1.2;
+                var _col  = _infra ? '#dc2626' : _sobre ? '#d97706' : '#16a34a';
+                var _bg   = _infra ? '#fff1f2' : _sobre ? '#fff7ed' : '#ffffff';
+                var _dAbs = _cell.nr - Math.round(_cell.nt);
+                var _pobPct = _cell.pob / _Pref * 100;
+                html += '<tr style="background:' + _bg + ';border-top:1px solid #f1f5f9;">';
+                html += '<td style="padding:.23rem .45rem;color:#374151;">' + _lbl + '</td>';
+                html += '<td style="text-align:right;padding:.23rem .45rem;color:#64748b;">' + _pobPct.toFixed(1) + '\u00a0%</td>';
+                html += '<td style="text-align:right;padding:.23rem .45rem;color:#1d4ed8;">' + _cell.nt.toFixed(1) + '</td>';
+                html += '<td style="text-align:right;padding:.23rem .45rem;font-weight:700;color:#1e293b;">' + _cell.nr + '</td>';
+                html += '<td style="text-align:right;padding:.23rem .45rem;font-weight:700;color:' + _col + ';">' + (_dAbs>=0?'+':'') + _dAbs + '</td>';
+                html += '<td style="text-align:right;padding:.23rem .45rem;font-weight:700;color:' + _col + ';">' + (_ratio!=null?_ratio.toFixed(2):'—') + '</td>';
+                html += '</tr>';
+            });
+        });
+        html += '</tbody></table></div>';
+
+        // Cobertura y resumen numérico
+        var _cob = (_s.cobertura * 100).toFixed(2);
+        html += '<div style="margin-top:.5rem;display:flex;gap:1.5rem;flex-wrap:wrap;">';
+        html += '<span style="' + G + '">Cobertura: <strong>' + _cob + '\u00a0%</strong> del padr\u00f3n \u2265\u00a016</span>';
+        if (_s.n_infra > 0) html += '<span style="font-size:.72rem;color:#dc2626;">Infrarrepresentados: <strong>' + _s.n_infra + '\u00a0grupos</strong></span>';
+        if (_s.n_sobre > 0) html += '<span style="font-size:.72rem;color:#d97706;">Sobrerrepresentados: <strong>' + _s.n_sobre + '\u00a0grupos</strong></span>';
+        if (!_s.n_infra && !_s.n_sobre) html += '<span style="font-size:.72rem;color:#166534;">\u2713 Todos los grupos dentro del margen representativo</span>';
+        if (_s.n_sin_sexoedad > 0) html += '<span style="' + G + '">Sin sexo/edad (no ponderados): <strong>' + _s.n_sin_sexoedad + '</strong></span>';
+        html += '</div>';
+
+        // Valoración — usa dictamen_reponderabilidad calculado en el agregador
+        var _vTexto, _vBg, _vBd, _vCol;
+        if (_s.dictamen_reponderabilidad === 'no_reponderable') {
+            _vTexto = 'Desequilibrios estructurales impiden correcci\u00f3n demogr\u00e1fica fiable. Resultados descriptivos de los participantes observados.';
+            _vBg = '#fff1f2'; _vBd = '#fecaca'; _vCol = '#991b1b';
+        } else if (_s.dictamen_reponderabilidad === 'parcial') {
+            _vTexto = 'Fragilidad estructural: celdas con pocos o ning\u00fan registro. Correcci\u00f3n demogr\u00e1fica orientativa.';
+            _vBg = '#fffbeb'; _vBd = '#fcd34d'; _vCol = '#78350f';
+        } else {
+            _vTexto = 'Composici\u00f3n muestral pr\u00f3xima a la distribuci\u00f3n poblacional de referencia'
+                + (_s.n_infra > 0 || _s.n_sobre > 0
+                    ? ', con ' + (_s.n_infra + _s.n_sobre) + '\u00a0grupo' + (_s.n_infra + _s.n_sobre > 1 ? 's' : '') + ' fuera del margen \u00b120\u00a0%'
+                    : '')
+                + '. Correcci\u00f3n demogr\u00e1fica orientativa.';
+            _vBg = '#f0fdf4'; _vBd = '#86efac'; _vCol = '#166534';
+        }
+        html += '<div data-sam-valoracion="provisional" style="background:' + _vBg + ';border:1px solid ' + _vBd + ';border-left:3px solid ' + _vCol + ';border-radius:0 5px 5px 0;padding:.5rem .8rem;margin-top:.5rem;">';
+        html += '<div style="font-size:.73rem;font-weight:700;color:' + _vCol + ';margin-bottom:.15rem;">Valoraci\u00f3n provisional de la muestra</div>';
+        html += '<p style="margin:0;font-size:.69rem;color:#374151;line-height:1.55;">' + _vTexto + '</p>';
+        html += '<p style="margin:.2rem 0 0;font-size:.64rem;color:#94a3b8;font-style:italic;">Valoraci\u00f3n provisional del monitor. No constituye certificaci\u00f3n formal de representatividad.</p>';
+        html += '</div>';
+
+        html += '<p style="margin:.35rem 0 0;font-size:.68rem;color:#94a3b8;font-style:italic;">Gris\u00a0tramado: poblaci\u00f3n INE (referencia). Barra coloreada: muestra real. \u201cTe\u00f3rico\u201d: objetivo proporcional para n\u00a0=\u00a0' + agg.n_valido + '. Ratio\u00a0&lt;\u00a00,8\u00a0\u2192\u00a0infra; &gt;\u00a01,2\u00a0\u2192\u00a0sobre. Grupo\u00a060+ agrega 60\u201374\u00a0y\u00a075+.</p>';
+        html += '</div>';
+
+    } else if (agg.sam && !agg.sam.disponible) {
+        html += '<div style="' + BK + 'border-left:3px solid #cbd5e1;">';
+        html += '<div style="' + H + 'color:#64748b;">Representatividad muestral (SAM)</div>';
+        html += '<p style="' + G + 'font-style:italic;margin:0;">Padr\u00f3n municipal no disponible para este municipio. Cuando se carguen los datos de poblaci\u00f3n (INE), este bloque mostrar\u00e1 la pir\u00e1mide bicapa de referencia poblacional y muestra real, la tabla de desviaciones y el IBSE ajustado demogr\u00e1ficamente.</p>';
+        html += '</div>';
+    }
+    var _html4d = html; html = '';
+
+    // ── 4c: Distribución interna de puntuaciones ─────────────────────────────
+    html += '<div style="' + BK + '">';
+    html += '<div style="' + H + '">Distribución interna de puntuaciones</div>';
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:.4rem;">';
+    agg.tramos.forEach(function(t) {
+        var pctT = agg.n_valido > 0 ? Math.round(t.n * 100 / agg.n_valido) : 0;
+        var bg   = t.min >= 76 ? '#dcfce7' : t.min >= 51 ? '#fef9c3' : t.min >= 26 ? '#ffedd5' : '#fee2e2';
+        var bord = t.min >= 76 ? '#86efac' : t.min >= 51 ? '#fcd34d' : t.min >= 26 ? '#fdba74' : '#fca5a5';
+        html += '<div style="background:' + bg + ';border:1px solid ' + bord + ';border-radius:6px;padding:.55rem .7rem;text-align:center;">';
+        html += '<div style="font-size:.7rem;font-weight:700;color:#374151;">' + t.nombre + '</div>';
+        html += '<div style="font-size:.65rem;color:#64748b;margin-bottom:.2rem;">' + t.rango + '</div>';
+        html += '<div style="font-size:1.1rem;font-weight:800;color:#1e293b;">' + pctT + ' %</div>';
+        html += '<div style="font-size:.65rem;color:#64748b;">n\u00a0=\u00a0' + t.n + '</div>';
+        html += '</div>';
+    });
+    html += '</div>';
+    html += '</div>';
+    var _html4c = html; html = '';
+
+    // ── 5: Diferencias internas — Por sexo ───────────────────────────────────
+    html += '<div style="' + BK + '">';
+    html += '<div style="' + H + '">Resultado por sexo</div>';
+    html += '<table style="width:100%;border-collapse:collapse;font-size:.8rem;">';
+    html += '<thead><tr style="background:#f1f5f9;">';
+    html += '<th style="text-align:left;padding:.4rem .5rem;color:#475569;font-weight:600;">Grupo</th>';
+    html += '<th style="text-align:center;padding:.4rem .5rem;color:#475569;font-weight:600;">n</th>';
+    html += '<th style="text-align:center;padding:.4rem .5rem;color:#475569;font-weight:600;">Media</th>';
+    html += '<th style="text-align:center;padding:.4rem .5rem;color:#475569;font-weight:600;">Dif. vs total</th>';
+    html += '</tr></thead><tbody>';
+    html += '<tr style="border-top:1px solid #e2e8f0;">';
+    html += '<td style="padding:.38rem .5rem;color:#1e293b;font-weight:600;">Total muestra</td>';
+    html += '<td style="text-align:center;padding:.38rem .5rem;color:#475569;">' + agg.n_valido + '</td>';
+    html += '<td style="text-align:center;padding:.38rem .5rem;font-weight:700;color:#1e293b;">' + agg.media.toFixed(1) + '</td>';
+    html += '<td style="text-align:center;padding:.38rem .5rem;color:#94a3b8;">—</td></tr>';
+    agg.por_sexo.forEach(function(g) {
+        var mediaStr = g.media != null ? g.media.toFixed(1) : '—';
+        var difStr   = g.dif   != null ? (g.dif > 0 ? '+' : '') + g.dif.toFixed(1) : '—';
+        var difCol   = g.dif != null ? (g.dif >= 0 ? '#166534' : '#c2410c') : '#94a3b8';
+        var ndAviso  = g.n > 0 && g.n < _IBSELOCAL_CFG.N_MIN_SUBGRUPO ? ' <span style="color:#d97706;" title="Muestra reducida">⚠</span>' : '';
+        html += '<tr style="border-top:1px solid #e2e8f0;">';
+        html += '<td style="padding:.38rem .5rem;color:#374151;">' + g.grupo + ndAviso + '</td>';
+        html += '<td style="text-align:center;padding:.38rem .5rem;color:#475569;">' + (g.n || 0) + '</td>';
+        html += '<td style="text-align:center;padding:.38rem .5rem;font-weight:700;color:#1e293b;">' + mediaStr + '</td>';
+        html += '<td style="text-align:center;padding:.38rem .5rem;font-weight:600;color:' + difCol + ';">' + difStr + '</td>';
+        html += '</tr>';
+    });
+    html += '</tbody></table>';
+    html += '<p style="margin:.5rem 0 0;' + G + 'font-style:italic;">Diferencia descriptiva. No se realizan pruebas de significación estadística.</p>';
+    html += '</div>';
+    var _html5 = html; html = '';
+
+    // ── 5b: Diferencias internas — Por edad ──────────────────────────────────
+    html += '<div style="' + BK + '">';
+    html += '<div style="' + H + '">Resultado por grupo de edad</div>';
+    var _hayEdad = agg.por_edad.some(function(g) { return g.n > 0; });
+    if (!_hayEdad) {
+        html += '<p style="' + G + 'font-style:italic;">No hay datos de edad suficientes para este análisis.</p>';
+    } else {
+        html += '<table style="width:100%;border-collapse:collapse;font-size:.8rem;">';
+        html += '<thead><tr style="background:#f1f5f9;">';
+        html += '<th style="text-align:left;padding:.4rem .5rem;color:#475569;font-weight:600;">Grupo</th>';
+        html += '<th style="text-align:center;padding:.4rem .5rem;color:#475569;font-weight:600;">n</th>';
+        html += '<th style="text-align:center;padding:.4rem .5rem;color:#475569;font-weight:600;">Media</th>';
+        html += '<th style="text-align:center;padding:.4rem .5rem;color:#475569;font-weight:600;">Dif. vs total</th>';
+        html += '</tr></thead><tbody>';
+        html += '<tr style="border-top:1px solid #e2e8f0;">';
+        html += '<td style="padding:.38rem .5rem;color:#1e293b;font-weight:600;">Total muestra</td>';
+        html += '<td style="text-align:center;padding:.38rem .5rem;color:#475569;">' + agg.n_valido + '</td>';
+        html += '<td style="text-align:center;padding:.38rem .5rem;font-weight:700;color:#1e293b;">' + agg.media.toFixed(1) + '</td>';
+        html += '<td style="text-align:center;padding:.38rem .5rem;color:#94a3b8;">—</td></tr>';
+        agg.por_edad.forEach(function(g) {
+            if (g.n === 0) return;
+            var mediaStr = g.media != null ? g.media.toFixed(1) : '—';
+            var difStr   = g.dif   != null ? (g.dif > 0 ? '+' : '') + g.dif.toFixed(1) : '—';
+            var difCol   = g.dif != null ? (g.dif >= 0 ? '#166534' : '#c2410c') : '#94a3b8';
+            var ndAviso  = g.n < _IBSELOCAL_CFG.N_MIN_SUBGRUPO ? ' <span style="color:#d97706;" title="Muestra reducida">⚠</span>' : '';
+            html += '<tr style="border-top:1px solid #e2e8f0;">';
+            html += '<td style="padding:.38rem .5rem;color:#374151;">' + g.nombre + ndAviso + '</td>';
+            html += '<td style="text-align:center;padding:.38rem .5rem;color:#475569;">' + g.n + '</td>';
+            html += '<td style="text-align:center;padding:.38rem .5rem;font-weight:700;color:#1e293b;">' + mediaStr + '</td>';
+            html += '<td style="text-align:center;padding:.38rem .5rem;font-weight:600;color:' + difCol + ';">' + difStr + '</td>';
+            html += '</tr>';
+        });
+        html += '</tbody></table>';
+        if (agg.n_menores > 0) {
+            html += '<p style="margin:.4rem 0 0;' + G + 'font-style:italic;">Menores de 16 años (n\u00a0=\u00a0' + agg.n_menores + ') contabilizados en la muestra pero excluidos del análisis por edad.</p>';
+        }
+        html += '<p style="margin:.4rem 0 0;' + G + 'font-style:italic;">Grupos de edad: 16–29 / 30–44 / 45–59 / 60 o más. Registros sin edad: no incluidos en este bloque.</p>';
+    }
+    html += '</div>';
+    var _html5b = html; html = '';
+
+    // ── 6: Menores de 16 años ────────────────────────────────────────────────
+    if (agg.menores_agg) {
+        var _ma    = agg.menores_agg;
+        var _maLvl = _ma.media>=76?'alto':_ma.media>=51?'moderado':_ma.media>=26?'bajo':'muy bajo';
+        var _maCol = _ma.media>=76?'#166534':_ma.media>=51?'#854d0e':'#c2410c';
+        html += '<div style="' + BK + 'border-left:3px solid #f97316;">';
+        html += '<div style="font-size:.8rem;font-weight:700;color:#c2410c;margin:0 0 .5rem;">Menores de 16 años (n\u00a0=\u00a0' + _ma.n + ')</div>';
+        html += '<div style="display:flex;align-items:baseline;gap:.5rem;margin-bottom:.35rem;">';
+        html += '<span style="font-size:1.6rem;font-weight:900;color:' + _maCol + ';">' + _ma.media.toFixed(1) + '</span>';
+        html += '<span style="' + G + '">/ 100 \u00b7 mediana: <strong>' + _ma.mediana.toFixed(1) + '</strong> \u00b7 nivel: <strong>' + _maLvl + '</strong></span>';
+        html += '</div>';
+        html += '<div style="' + G + 'margin-bottom:.3rem;">Rango observado: ' + _ma.min.toFixed(0) + '–' + _ma.max.toFixed(0) + '</div>';
+        if (_ma.malestar && (_ma.malestar.deprimido || _ma.malestar.solo)) {
+            html += '<div style="font-size:.71rem;font-weight:600;color:#7f1d1d;margin:.45rem 0 .3rem;">Señales de malestar (menores)</div>';
+            html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-bottom:.4rem;">';
+            if (_ma.malestar.deprimido) {
+                var _mpD = Math.round(_ma.malestar.deprimido.pct * 100);
+                var _mcD = _mpD >= 25 ? '#dc2626' : _mpD >= 15 ? '#d97706' : '#166534';
+                html += '<div style="background:white;border:1px solid #fecaca;border-radius:6px;padding:.5rem .65rem;">';
+                html += '<div style="font-size:.68rem;font-weight:700;color:#7f1d1d;margin-bottom:.1rem;">Deprimido/a</div>';
+                html += '<div style="font-size:1.35rem;font-weight:900;color:' + _mcD + ';line-height:1.2;">' + _mpD + '\u00a0%</div>';
+                html += '<div style="' + G + '">n\u00a0=\u00a0' + _ma.malestar.deprimido.n_alto + '\u00a0/\u00a0' + _ma.malestar.deprimido.n + '</div>';
+                html += '</div>';
+            }
+            if (_ma.malestar.solo) {
+                var _mpS = Math.round(_ma.malestar.solo.pct * 100);
+                var _mcS = _mpS >= 25 ? '#dc2626' : _mpS >= 15 ? '#d97706' : '#166534';
+                html += '<div style="background:white;border:1px solid #fecaca;border-radius:6px;padding:.5rem .65rem;">';
+                html += '<div style="font-size:.68rem;font-weight:700;color:#7f1d1d;margin-bottom:.1rem;">Solo/a</div>';
+                html += '<div style="font-size:1.35rem;font-weight:900;color:' + _mcS + ';line-height:1.2;">' + _mpS + '\u00a0%</div>';
+                html += '<div style="' + G + '">n\u00a0=\u00a0' + _ma.malestar.solo.n_alto + '\u00a0/\u00a0' + _ma.malestar.solo.n + '</div>';
+                html += '</div>';
+            }
+            html += '</div>';
+        }
+        html += '<p style="margin:.2rem 0 0;font-size:.72rem;color:#92400e;font-style:italic;">⚠\u00a0IBSE validado para \u226516 a\u00f1os. Resultados en menores exploratorios, no comparables con EAS.</p>';
+        html += '</div>';
+    }
+    var _html6 = html; html = '';
+
+    // ── 7: Referencia externa orientativa (EAS 2023) — al final ─────────────
+    // Comparativa orientativa — muestra de conveniencia vs probabilística ponderada.
+    var _easRef = (typeof _IBSELOCAL_EAS_REF !== 'undefined') ? _IBSELOCAL_EAS_REF : null;
+    if (_easRef) {
+        var _easTot  = _easRef.total.media;
+        var _difEas  = agg.media - _easTot;
+        var _difSign = _difEas >= 0 ? '+' : '';
+        var _difEasCol = Math.abs(_difEas) < 3 ? '#92400e' : _difEas > 0 ? '#166534' : '#c2410c';
+        html += '<div style="background:#eef2ff;border:1px solid #c7d2fe;border-left:3px solid #6366f1;border-radius:7px;padding:.85rem 1rem;margin-bottom:.85rem;">';
+        html += '<div style="font-size:.78rem;font-weight:700;color:#312e81;margin-bottom:.45rem;">Referencia externa orientativa (EAS 2023)</div>';
+        html += '<div style="margin-bottom:.5rem;">';
+        html += '<div style="display:flex;justify-content:space-between;font-size:.7rem;color:#475569;margin-bottom:.15rem;">';
+        html += '<span>' + (municipio || 'Muestra local') + '</span>';
+        html += '<span style="font-weight:700;color:' + nivelCol + ';">' + agg.media.toFixed(1) + '</span></div>';
+        html += '<div style="position:relative;height:10px;background:#e5e7eb;border-radius:3px;margin-bottom:.4rem;">';
+        html += '<div style="position:absolute;left:0;top:0;height:100%;width:' + Math.min(100,agg.media).toFixed(1) + '%;background:' + nivelCol + ';border-radius:3px;"></div>';
+        html += '<div title="Andalucía EAS 2023" style="position:absolute;left:' + Math.min(99,_easTot).toFixed(1) + '%;top:-3px;width:2px;height:16px;background:#6366f1;border-radius:1px;"></div>';
+        html += '</div>';
+        html += '<div style="display:flex;justify-content:space-between;font-size:.7rem;color:#475569;">';
+        html += '<span>Andalucía EAS 2023 (ponderada)</span>';
+        html += '<span style="font-weight:700;color:#6366f1;">' + _easTot.toFixed(1) + ' <span style="font-weight:400;color:#94a3b8;">(IC\u00a095%: ' + _easRef.total.ic_inf.toFixed(1) + '–' + _easRef.total.ic_sup.toFixed(1) + ')</span></span>';
+        html += '</div></div>';
+        html += '<div style="font-size:.77rem;margin-bottom:.4rem;">';
+        html += 'Diferencia respecto al total Andalucía: <span style="font-weight:700;color:' + _difEasCol + ';">' + _difSign + _difEas.toFixed(1) + '\u00a0pts</span>';
+        html += '</div>';
+        html += '<details><summary style="font-size:.71rem;color:#6366f1;cursor:pointer;font-weight:600;">Ver medias EAS por grupo de edad ▸</summary>';
+        html += '<div style="display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.4rem;">';
+        _easRef.edad.forEach(function(eg) {
+            html += '<span style="font-size:.7rem;background:#f8f9fa;border:1px solid #e2e8f0;border-radius:4px;padding:.15rem .45rem;">' + eg.nombre + ': <strong>' + eg.media.toFixed(1) + '</strong></span>';
+        });
+        html += '</div>';
+        html += '<p style="font-size:.68rem;color:#94a3b8;margin:.3rem 0 0;font-style:italic;">Grupos EAS (16-24, 25-34…) ≠ grupos COMPÁS (16-29, 30-44…). No comparar por edad sin ajuste.</p>';
+        html += '</details>';
+        html += '<p style="font-size:.7rem;color:#818cf8;margin:.4rem 0 0;font-style:italic;">⚠\u00a0EAS probabil\u00edstica ponderada vs. muestra de conveniencia. Diferencia orientativa, no inferencial.</p>';
+        html += '</div>';
+    }
+    var _html7 = html; html = '';
+
+    // ── 8: Alertas secundarias ───────────────────────────────────────────────
+    var alertasResto = agg.alertas.filter(function(a) { return !a.prioritaria; });
+    if (alertasResto.length) {
+        html += '<div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:7px;padding:.75rem 1rem;margin-bottom:.85rem;">';
+        html += '<div style="font-size:.78rem;font-weight:700;color:#92400e;margin-bottom:.4rem;">Puntos de atención</div>';
+        alertasResto.forEach(function(a) {
+            html += '<div style="' + G + 'margin-bottom:.3rem;line-height:1.5;">› ' + a.msg + '</div>';
+        });
+        html += '</div>';
+    } else if (!alertasPrev.length) {
+        html += '<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:7px;padding:.65rem 1rem;margin-bottom:.85rem;' + G + '">';
+        html += 'No se detectan situaciones de atención prioritaria en esta muestra.';
+        html += '</div>';
+    }
+    var _html8 = html; html = '';
+
+    // ── 9: Nota metodológica ─────────────────────────────────────────────────
+    html += '<div style="padding:.75rem 1rem;border-top:1px solid #e2e8f0;margin-top:.25rem;">';
+    html += '<div style="font-size:.75rem;font-weight:700;color:#1e293b;margin-bottom:.35rem;">Nota metodológica</div>';
+    html += '<p style="font-size:.74rem;color:#64748b;line-height:1.6;margin:0 0 .3rem;"><strong style="color:#374151;">Instrumento.</strong> IBSE: Índice de Bienestar Socioemocional de Bericat (SEWBI, 2014). 8\u00a0ítems extraídos del módulo de bienestar subjetivo de la ESS. 4\u00a0factores teóricos: Vínculo (depresión/soledad), Situación (felicidad/disfrute), Control (energía/tranquilidad), Persona (optimismo/autovaloración). Escala 18,75–100 (rango teórico con 8 ítems completos).</p>';
+    html += '<p style="font-size:.74rem;color:#64748b;line-height:1.6;margin:0 0 .3rem;"><strong style="color:#374151;">Cálculo.</strong> COMPÁS calcula el IBSE siempre desde los 8 ítems crudos (no usa datos precalculados externos). Fórmula Bericat: P57b positivos: raw×25; P57b negativos: (5−raw)×25; P57c (escala 1–5, 1=mejor): (5−raw)×25. IBSE = media aritmética de los 8 scores. Solo se incluyen adultos (≥\u00a016 años) con los 8 ítems válidos (análisis por casos completos). Los registros con ítems incompletos o edad ausente se excluyen y se contabilizan separadamente.</p>';
+    html += '<p style="font-size:.74rem;color:#64748b;line-height:1.6;margin:0 0 .3rem;"><strong style="color:#374151;">Referencia EAS.</strong> La comparativa con EAS 2023 (Encuesta Andaluza de Salud) es orientativa. La EAS usa muestra probabilística ponderada (n\u00a0≈\u00a07.000 adultos andaluces, cobertura IBSE 98,25\u00a0%). COMPÁS usa muestra de conveniencia. La diferencia tiene valor descriptivo, no permite inferencia estadística. Comparabilidad metodológica en revisión.</p>';
+    html += '<p style="font-size:.74rem;color:#64748b;line-height:1.6;margin:0;"><strong style="color:#374151;">Interpretación.</strong> El IBSE promedio puede ocultar heterogeneidad relevante: examinar los factores por separado, los subgrupos demográficos y los ítems de malestar antes de extraer conclusiones. Los resultados del monitor son descriptivos y apoyan la planificación local; no están diseñados para comparaciones entre municipios ni para diagnóstico individual.</p>';
+    html += '</div>';
+    var _html9 = html;
+    // Orden funcional del monitor: alertas → IBSE global → factores → distribución → muestra → SAM → malestar → positivo → EAS → menores → alertas2 → nota
+    html = _htmlA + _html4 + _html3 + _html4c + _html5 + _html5b + _html4b + _html4d + _html1 + _html2 + _html7 + _html6 + _html8 + _html9;
+
+    return html;
+}
+
+// ── Función auxiliar: tarjeta de dato ────────────────────────────────────────
+function _ibseLocal_tarjeta(label, valor, color) {
+    return '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:.5rem .7rem;text-align:center;">' +
+        '<div style="font-size:.65rem;color:#64748b;margin-bottom:.15rem;">' + label + '</div>' +
+        '<div style="font-size:1.2rem;font-weight:800;color:' + color + ';">' + valor + '</div>' +
+        '</div>';
+}
+
+// ── Store propio del monitor local ──────────────────────────────────────────
+// Independiente de _ibse_v2_respuestas (output del monitor viejo).
+// Se puebla desde datos brutos (window._ibse_v2_rawData) mediante
+// compasLocal_ibse_procesarRaw(), que ejecuta su propio pipeline.
+// Se invalida al limpiar datos IBSE (ver compasLocal_ibse_limpiar).
+var _compasLocalIBSE_datos = [];
+
+// ── Cálculo IBSE desde ítems brutos (fuente única de verdad) ─────────────────
+// [2026-04-18] Nueva función. ibse_total almacenado en REDCap queda ignorado:
+// contiene un bug de origen en el factor Vínculo (detectado en auditoría 2026-04-17)
+// que desplazaba el índice exactamente -6.25 pts de forma constante.
+// Fórmula: Bericat (2014), Convention A — escalas mixtas, rango teórico [18.75, 100].
+//   items orden: [feliz, disfrutar, energia, tranquilo, deprimido, solo, optimista, bienmismo]
+//   P57b positivos (esc. 1-4): raw * 25              → [25, 100]
+//   P57b negativos (esc. 1-4): (5 - raw) * 25        → [25, 100]  (dep, solo: índices 4 y 5)
+//   P57c (esc. 1-5, 1=mejor):  (5 - raw) * 25        → [0,  100]  (opt, bm:   índices 6 y 7)
+//   ibse = media aritmética de los 8 scores           → [18.75, 100]
+// Verificado numéricamente sobre 820 registros Atarfe (SD diff = 0, N excepciones = 0).
+function COMPAS_calcularIBSE_desdeItems(items) {
+    if (!Array.isArray(items) || items.length !== 8) {
+        console.warn('[IBSE] items inválidos:', items);
+        return null;
+    }
+    var fel=items[0], dis=items[1], ene=items[2], tra=items[3];
+    var dep=items[4], sol=items[5], opt=items[6], bm=items[7];
+    if (fel==null||dis==null||ene==null||tra==null||dep==null||sol==null||opt==null||bm==null) {
+        console.warn('[IBSE] valores nulos tras recodificación');
+        return null;
+    }
+    var i_fel=fel*25, i_dis=dis*25, i_ene=ene*25, i_tra=tra*25;    // P57b pos
+    var i_dep=(5-dep)*25, i_sol=(5-sol)*25;                         // P57b neg (inversión)
+    var i_opt=(5-opt)*25, i_bm=(5-bm)*25;                          // P57c (1=mejor)
+    var ibse = (i_fel+i_dis+i_ene+i_tra+i_dep+i_sol+i_opt+i_bm) / 8;
+    return ibse;
+}
+
+// ── Procesado independiente de datos brutos ──────────────────────────────────
+// Entrada: array de objetos crudos con campos ibse_* / sexo / edad
+//          (mismo formato que recibe ibse_v2_procesarFirebase, antes de procesar)
+// Salida:  array { ibse_total, sexo, edad } — solo lo que necesita el nuevo monitor.
+// Usa COMPAS_calcularIBSE_desdeItems (fuente de verdad: ítems, nunca ibse_total almacenado)
+// y _ibseParseNumeroSeguro (utilidad de parseo numérico).
+function compasLocal_ibse_procesarRaw(rawArr) {
+    // [2026-04-18] Fuente única = 8 ítems crudos. ibse_total e ibse_factor_* almacenados IGNORADOS.
+    // Análisis por casos completos: adultos (edad ≥ 16) con los 8 ítems válidos.
+    // Menores (<16) con 8 ítems → arr._menores (bloque independiente).
+    // Incompletos (cualquier ítem nulo, edad ausente/inválida para adultos) → arr._meta.n_excluido.
+    var _vacio = []; _vacio._meta = { n_total_raw:0, n_valido:0, n_excluido:0, n_menores:0 }; _vacio._menores = [];
+    if (!rawArr || !rawArr.length) return _vacio;
+
+    var _nExcl = 0, _adultos = [], _menores = [];
+
+    rawArr.forEach(function(d) {
+        var _sx   = parseInt(d.sexo, 10);
+        var _sexo = (_sx === 1 || _sx === 2) ? _sx : undefined;
+        var _edad = (typeof _ibseParseNumeroSeguro === 'function')
+                    ? _ibseParseNumeroSeguro(d.edad) : parseFloat(d.edad) || null;
+
+        // Parseo y validación de los 8 ítems (ibse_total e ibse_factor_* ignorados)
+        var _dep  = parseFloat(d.ibse_deprimido); _dep  = (!isNaN(_dep)  && _dep  >= 1 && _dep  <= 4) ? _dep  : null;
+        var _solo = parseFloat(d.ibse_solo);       _solo = (!isNaN(_solo) && _solo >= 1 && _solo <= 4) ? _solo : null;
+        var _fel  = parseFloat(d.ibse_feliz);     _fel  = (!isNaN(_fel)  && _fel  >= 1 && _fel  <= 4) ? _fel  : null;
+        var _dis  = parseFloat(d.ibse_disfrutar); _dis  = (!isNaN(_dis)  && _dis  >= 1 && _dis  <= 4) ? _dis  : null;
+        var _ene  = parseFloat(d.ibse_energia);   _ene  = (!isNaN(_ene)  && _ene  >= 1 && _ene  <= 4) ? _ene  : null;
+        var _tra  = parseFloat(d.ibse_tranquilo); _tra  = (!isNaN(_tra)  && _tra  >= 1 && _tra  <= 4) ? _tra  : null;
+        var _opt  = parseFloat(d.ibse_optimista); _opt  = (!isNaN(_opt)  && _opt  >= 1 && _opt  <= 5) ? _opt  : null;
+        var _bie  = parseFloat(d.ibse_bienmismo); _bie  = (!isNaN(_bie)  && _bie  >= 1 && _bie  <= 5) ? _bie  : null;
+
+        // Sin los 8 ítems: excluir siempre (cualquier tramo de edad)
+        if (_dep==null||_solo==null||_fel==null||_dis==null||
+            _ene==null||_tra==null||_opt==null||_bie==null) { _nExcl++; return; }
+
+        // IBSE calculado desde ítems (Convention A, Bericat 2014)
+        var _ibse = COMPAS_calcularIBSE_desdeItems([_fel,_dis,_ene,_tra,_dep,_solo,_opt,_bie]);
+        if (_ibse == null) { _nExcl++; return; }
+
+        // Factores calculados desde ítems (no desde campos almacenados)
+        var _fac = {
+            vinculo:   ((5-_dep)*25 + (5-_solo)*25) / 2,
+            situacion: (_fel*25 + _dis*25) / 2,
+            control:   (_ene*25 + _tra*25) / 2,
+            persona:   ((5-_opt)*25 + (5-_bie)*25) / 2
+        };
+        var _rec = { ibse_total: _ibse, sexo: _sexo, edad: _edad, factores: _fac,
+                     dep_raw: _dep, solo_raw: _solo,
+                     fel_raw: _fel, dis_raw: _dis, ene_raw: _ene, tra_raw: _tra,
+                     opt_raw: _opt, bie_raw: _bie };
+
+        // Menor de 16 con datos completos → bloque independiente
+        if (_edad != null && !isNaN(_edad) && _edad >= 0 && _edad < 16) { _menores.push(_rec); return; }
+
+        // Edad ausente o inválida (adulto): excluir
+        if (_edad == null || isNaN(_edad) || _edad < 0) { _nExcl++; return; }
+
+        // Adulto completo (edad ≥ 16, 8 ítems válidos)
+        _adultos.push(_rec);
+    });
+
+    _adultos._meta    = { n_total_raw: rawArr.length, n_valido: _adultos.length,
+                          n_excluido: _nExcl, n_menores: _menores.length };
+    _adultos._menores = _menores;
+    return _adultos;
+}
+
+// ── Invalidar store cuando se borran datos ───────────────────────────────────
+// Llamar desde ibse_borrarDatos() si se quiere mantener sincronía, o simplemente
+// al abrir el monitor se reprocesa si el store está vacío.
+function compasLocal_ibse_limpiar() {
+    _compasLocalIBSE_datos = [];
+}
+
+// ── Punto de entrada ─────────────────────────────────────────────────────────
+// Fuente de datos (por orden de prioridad):
+//   1. window._ibse_v2_csvReciente.datos  — individuales en memoria tras carga CSV
+//   2. db.ref('ibse_respuestas/' + mun)   — lectura directa propia a Firebase
+// No usa _ibse_v2_respuestas ni window._ibse_v2_rawData.
+function compasLocal_ibse_abrir() {
+    var modal = document.getElementById('modal-ibse-local');
+    if (!modal) return;
+    modal.style.display = 'block';
+
+    var cont = document.getElementById('ibse-local-contenido');
+    if (!cont) return;
+
+    var munKey  = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
+    var munNombre = (munKey && typeof getNombreMunicipio === 'function')
+                   ? getNombreMunicipio(munKey) : '';
+
+    // Mensaje de carga mientras se resuelve la fuente
+    cont.innerHTML = '<div style="text-align:center;padding:2.5rem 1rem;color:#94a3b8;"><p style="margin:0;">Cargando datos…</p></div>';
+
+    // ── Función interna: render final una vez obtenidos los datos ────────────
+    function _renderConDatos(arr) {
+        _compasLocalIBSE_datos = compasLocal_ibse_procesarRaw(arr);
+
+        if (!_compasLocalIBSE_datos.length) {
+            cont.innerHTML = '<div style="text-align:center;padding:2.5rem 1rem;color:#94a3b8;">' +
+                '<p style="margin:0 0 .5rem;">No hay datos IBSE cargados para este municipio.</p>' +
+                '<p style="margin:0;font-size:.8rem;">Carga primero un CSV REDCap o registra respuestas desde el formulario.</p></div>';
+            return;
+        }
+
+        var agg = compasLocal_ibse_agregar(_compasLocalIBSE_datos);
+        window.datosIBSE = agg;
+        var sub = document.getElementById('ibse-local-subtitulo');
+        if (sub && munNombre) sub.textContent = munNombre + ' · Análisis descriptivo de la muestra observada · COMPÁS';
+        cont.innerHTML = compasLocal_ibse_render(agg, munNombre);
+    }
+
+    // ── Fuente 1: CSV reciente en memoria ────────────────────────────────────
+    // ibse_cargarCSV() guarda los individuales en window._ibse_v2_csvReciente.
+    // Solo se usa si corresponde al municipio activo.
+    var csv = window._ibse_v2_csvReciente;
+    if (csv && csv.mun === munKey && Array.isArray(csv.datos) && csv.datos.length) {
+        _renderConDatos(csv.datos);
+        return;
+    }
+
+    // ── Fuente 2: Firebase directo ───────────────────────────────────────────
+    // Ruta demostrada: ibse_cargarCSV escribe aquí; ibse_recalcularAgregado lee aquí.
+    if (!munKey || typeof db === 'undefined') {
+        cont.innerHTML = '<div style="text-align:center;padding:2.5rem 1rem;color:#94a3b8;">' +
+            '<p style="margin:0;">No hay municipio activo o Firebase no disponible.</p></div>';
+        return;
+    }
+
+    db.ref('ibse_respuestas/' + munKey).once('value', function(snap) {
+        var registros = [];
+        snap.forEach(function(child) { registros.push(child.val()); });
+        _renderConDatos(registros);
+    }, function(err) {
+        cont.innerHTML = '<div style="text-align:center;padding:2.5rem 1rem;color:#94a3b8;">' +
+            '<p style="margin:0;">Error al leer datos IBSE: ' + (err && err.message ? err.message : err) + '</p></div>';
+    });
+}
+
+function compasLocal_ibse_cerrar() {
+    var modal = document.getElementById('modal-ibse-local');
+    if (modal) modal.style.display = 'none';
+}
+
+// ── FIN MONITOR IBSE LOCAL ────────────────────────────────────────────────────
+
+// ── SUPERMONITOR IBSE ─────────────────────────────────────────────────────────
+var _ibseSM_agg = null;
+var _ibseSM_mun = '';
+var _ibseSM_tabActivo = 1;
+
+var _IBSESM_TABS = [
+    {n:1,lbl:'Resumen'},{n:2,lbl:'Fuentes'},{n:3,lbl:'Pipeline'},
+    {n:4,lbl:'Construcci\u00f3n'},{n:5,lbl:'SAM'},{n:6,lbl:'BetterSurveys'},
+    {n:7,lbl:'Ref.\u00a0ext.'},{n:8,lbl:'Menores'},{n:9,lbl:'Archivos'}
+];
+
+function ibseSM_abrir() {
+    var modal = document.getElementById('modal-ibse-super');
+    if (!modal) return;
+    var munKey = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
+    _ibseSM_mun = (munKey && typeof getNombreMunicipio === 'function') ? getNombreMunicipio(munKey) : (munKey || '');
+    var titulo = document.getElementById('ibseSM-titulo');
+    if (titulo) titulo.textContent = 'Supermonitor IBSE' + (_ibseSM_mun ? ' \u00b7 ' + _ibseSM_mun : '');
+    var tabBar = document.getElementById('ibseSM-tabs');
+    if (tabBar) tabBar.innerHTML = _IBSESM_TABS.map(function(t){
+        return '<button onclick="ibseSM_tab(' + t.n + ')" id="ibseSM_tab_' + t.n + '" style="padding:.52rem .8rem;border:none;background:transparent;font-size:.73rem;font-weight:600;color:#64748b;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:color .12s;">' + t.lbl + '</button>';
+    }).join('');
+    modal.style.display = 'block';
+    function _openWithData(arr) {
+        if (arr && arr.length) {
+            _ibseSM_agg = compasLocal_ibse_agregar(compasLocal_ibse_procesarRaw(arr));
+        } else if (_compasLocalIBSE_datos && _compasLocalIBSE_datos.length) {
+            _ibseSM_agg = compasLocal_ibse_agregar(_compasLocalIBSE_datos);
+        } else {
+            _ibseSM_agg = null;
+        }
+        ibseSM_tab(1);
+    }
+    var csv = window._ibse_v2_csvReciente;
+    if (csv && csv.mun === munKey && Array.isArray(csv.datos) && csv.datos.length) { _openWithData(csv.datos); return; }
+    if (_compasLocalIBSE_datos && _compasLocalIBSE_datos.length) { _openWithData(null); return; }
+    if (munKey && typeof db !== 'undefined') {
+        var c = document.getElementById('ibseSM_content');
+        if (c) c.innerHTML = '<div style="text-align:center;padding:2.5rem;color:#94a3b8;">Cargando datos\u2026</div>';
+        db.ref('ibse_respuestas/' + munKey).once('value', function(snap) {
+            var regs = []; snap.forEach(function(ch){ regs.push(ch.val()); });
+            _openWithData(regs);
+        }, function() { _openWithData(null); });
+        return;
+    }
+    _openWithData(null);
+}
+
+function ibseSM_cerrar() {
+    var m = document.getElementById('modal-ibse-super');
+    if (m) m.style.display = 'none';
+}
+
+function ibseSM_tab(n) {
+    _ibseSM_tabActivo = n;
+    _IBSESM_TABS.forEach(function(t) {
+        var b = document.getElementById('ibseSM_tab_' + t.n);
+        if (!b) return;
+        if (t.n === n) { b.style.background='#eff6ff'; b.style.color='#1e40af'; b.style.borderBottomColor='#1e40af'; }
+        else           { b.style.background='transparent'; b.style.color='#64748b'; b.style.borderBottomColor='transparent'; }
+    });
+    var c = document.getElementById('ibseSM_content');
+    if (c) c.innerHTML = ibseSM_renderTab(n);
+}
+
+function ibseSM_renderTab(n) {
+    var agg = _ibseSM_agg, mun = _ibseSM_mun || '\u2014';
+    var _G  = 'font-size:.75rem;color:#64748b;';
+    var _H  = 'font-size:.8rem;font-weight:700;color:#1e293b;margin-bottom:.5rem;';
+    var _BK = 'background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:.8rem 1rem;margin-bottom:.8rem;';
+    if (n===1) return _ibseSM_t1(agg,mun,_G,_H,_BK);
+    if (n===2) return _ibseSM_t2(_G,_H,_BK);
+    if (n===3) return _ibseSM_t3(agg,_G,_H,_BK);
+    if (n===4) return _ibseSM_t4(_G,_H,_BK);
+    if (n===5) return _ibseSM_t5(agg,_G,_H,_BK);
+    if (n===6) return _ibseSM_t6(_G,_H,_BK);
+    if (n===7) return _ibseSM_t7(agg,mun,_G,_H,_BK);
+    if (n===8) return _ibseSM_t8(agg,_G,_H,_BK);
+    if (n===9) return _ibseSM_t9(_G,_H,_BK);
+    return '';
+}
+
+// ── Tab 1: Resumen ────────────────────────────────────────────────────────────
+function _ibseSM_t1(agg,mun,_G,_H,_BK) {
+    var h='';
+
+    h+='<div style="'+_H+'font-size:.88rem;color:#1e40af;border-bottom:1px solid #bfdbfe;padding-bottom:.45rem;margin-bottom:.9rem;">Resumen del an\u00e1lisis</div>';
+
+    // ── BLOQUE 0: NAVEGACIÓN RÁPIDA ───────────────────────────────────────────
+    h+='<div style="margin-bottom:.9rem;">';
+    h+='<div style="font-size:.67rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.4rem;">Ir a sección</div>';
+    h+='<div style="display:flex;flex-wrap:wrap;gap:.4rem;">';
+    var _navBtns = [
+        {lbl:'Pipeline',    n:3, ic:'⛓'},
+        {lbl:'SAM',         n:5, ic:'⚖'},
+        {lbl:'BetterSurveys',n:6,ic:'⚙'},
+        {lbl:'Menores',     n:8, ic:'👤'},
+        {lbl:'Archivos',    n:9, ic:'📁'}
+    ];
+    _navBtns.forEach(function(b){
+        h+='<button onclick="ibseSM_tab('+b.n+')" style="display:flex;align-items:center;gap:.3rem;padding:.35rem .7rem;background:white;border:1px solid #cbd5e1;border-radius:5px;font-size:.72rem;font-weight:600;color:#334155;cursor:pointer;white-space:nowrap;">';
+        h+='<span style="font-size:.8rem;">'+b.ic+'</span>'+b.lbl;
+        h+='</button>';
+    });
+    h+='</div></div>';
+
+    // ── BLOQUE 1: MÉTRICAS IBSE ───────────────────────────────────────────────
+    if (agg) {
+        var nc = agg.media>=76?'#166534':agg.media>=51?'#854d0e':'#c2410c';
+        h+='<div style="'+_BK+'">';
+        h+='<div style="'+_H+'">IBSE \u00b7 Resultado observado \u00b7 '+mun+'</div>';
+        h+='<div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:.5rem;">';
+        h+='<div><div style="font-size:2rem;font-weight:900;color:'+nc+';">'+agg.media.toFixed(1)+'</div><div style="'+_G+'">Media (0\u2013100)</div></div>';
+        h+='<div><div style="font-size:1.3rem;font-weight:700;color:#1e293b;">'+agg.mediana.toFixed(1)+'</div><div style="'+_G+'">Mediana</div></div>';
+        h+='<div><div style="font-size:1.3rem;font-weight:700;color:#1e293b;">'+agg.dt.toFixed(1)+'</div><div style="'+_G+'">DT</div></div>';
+        h+='<div><div style="font-size:1.3rem;font-weight:700;color:#1e293b;">'+agg.n_valido+'</div><div style="'+_G+'">n v\u00e1lido</div></div>';
+        h+='</div>';
+        if (agg.sam && agg.sam.disponible && agg.sam.media_ajustada!=null) {
+            h+='<div style="'+_G+'">IBSE ajustado (SAM): <strong>'+agg.sam.media_ajustada.toFixed(1)+'</strong>\u00a0\u00b7\u00a0dictamen: <strong>'+agg.sam.dictamen_reponderabilidad+'</strong></div>';
+        }
+        h+='</div>';
+
+        // ── BLOQUE 2: ESTADO DEL SISTEMA ─────────────────────────────────────
+        var _munKey = (typeof getMunicipioActual === 'function') ? getMunicipioActual() : null;
+        var _csv    = window._ibse_v2_csvReciente;
+        var _fuenteActiva, _fuenteCol;
+        if (_csv && _csv.mun === _munKey && Array.isArray(_csv.datos) && _csv.datos.length) {
+            _fuenteActiva = 'CSV reciente en memoria'; _fuenteCol = '#166534';
+        } else if (typeof _compasLocalIBSE_datos !== 'undefined' && _compasLocalIBSE_datos && _compasLocalIBSE_datos.length) {
+            _fuenteActiva = 'Datos locales procesados'; _fuenteCol = '#0369a1';
+        } else {
+            _fuenteActiva = 'Firebase (cargado al abrir)'; _fuenteCol = '#854d0e';
+        }
+        var _samDisp  = agg.sam && agg.sam.disponible;
+        var _samAdj   = _samDisp && agg.sam.media_ajustada != null;
+        var _bsOk     = _samDisp && agg.sam.dictamen_reponderabilidad === 'reponderable';
+
+        h+='<div style="'+_BK+'">';
+        h+='<div style="'+_H+'">Estado del sistema</div>';
+        h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.4rem;">';
+
+        // Fuente activa
+        h+='<div style="background:white;border:1px solid #e2e8f0;border-radius:5px;padding:.5rem .65rem;">';
+        h+='<div style="font-size:.63rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.18rem;">Fuente activa</div>';
+        h+='<div style="font-size:.74rem;font-weight:700;color:'+_fuenteCol+';">'+_fuenteActiva+'</div>';
+        h+='</div>';
+
+        // SAM
+        h+='<div style="background:white;border:1px solid #e2e8f0;border-radius:5px;padding:.5rem .65rem;">';
+        h+='<div style="font-size:.63rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.18rem;">SAM</div>';
+        if (_samDisp) {
+            h+='<div style="font-size:.74rem;font-weight:700;color:#166534;">\u2714 Disponible';
+            if (_samAdj) h+='\u00a0\u00b7\u00a0ajuste aplicado';
+            h+='</div>';
+        } else {
+            h+='<div style="font-size:.74rem;font-weight:700;color:#94a3b8;">\u2716 No disponible</div>';
+        }
+        h+='</div>';
+
+        // BetterSurveys
+        h+='<div style="background:white;border:1px solid #e2e8f0;border-radius:5px;padding:.5rem .65rem;">';
+        h+='<div style="font-size:.63rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.18rem;">BetterSurveys</div>';
+        if (_bsOk) {
+            h+='<div style="font-size:.74rem;font-weight:700;color:#166534;">\u2714 Aplicado (reponderable)</div>';
+        } else if (_samDisp && agg.sam.dictamen_reponderabilidad === 'parcial') {
+            h+='<div style="font-size:.74rem;font-weight:700;color:#854d0e;">\u26a0 Aplicado (parcial)</div>';
+        } else {
+            h+='<div style="font-size:.74rem;font-weight:700;color:#94a3b8;">\u2716 No aplicado</div>';
+        }
+        h+='</div>';
+
+        h+='</div></div>';
+
+        // ── BLOQUE 3: MUESTRA ─────────────────────────────────────────────────
+        h+='<div style="'+_BK+'">';
+        h+='<div style="'+_H+'">Muestra</div>';
+        h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.45rem;">';
+        [['Registros totales',agg.n_total,'#0369a1'],['Adultos v\u00e1lidos',agg.n_valido,'#166534'],['Excluidos',agg.n_excluido,'#9f1239'],['Menores',agg.n_menores||0,'#c2410c']].forEach(function(r){
+            h+='<div style="background:white;border:1px solid #e2e8f0;border-radius:5px;padding:.5rem .65rem;"><div style="font-size:1rem;font-weight:800;color:'+r[2]+';">'+r[1]+'</div><div style="'+_G+'">'+r[0]+'</div></div>';
+        });
+        h+='</div></div>';
+
+        // ── BLOQUE 4: TRAZABILIDAD RÁPIDA ─────────────────────────────────────
+        var _ck = '<span style="color:#166534;font-weight:700;">\u2714</span>';
+        var _cx = '<span style="color:#94a3b8;">\u2716</span>';
+        var _hayDatos  = true;
+        var _hayProc   = typeof _compasLocalIBSE_datos !== 'undefined' && _compasLocalIBSE_datos && _compasLocalIBSE_datos.length > 0;
+        var _hayAgg    = true;
+        var _haySAM    = !!_samDisp;
+        var _hayAjuste = !!_samAdj;
+
+        h+='<div style="'+_BK+'">';
+        h+='<div style="'+_H+'">Trazabilidad de esta sesi\u00f3n</div>';
+        h+='<div style="display:flex;align-items:center;flex-wrap:wrap;gap:.3rem;font-size:.74rem;">';
+        var _pasos = [
+            {lbl:'Datos',    ok:_hayDatos},
+            {lbl:'Procesado',ok:_hayProc},
+            {lbl:'Agregado', ok:_hayAgg},
+            {lbl:'SAM',      ok:_haySAM},
+            {lbl:'Ajuste',   ok:_hayAjuste}
+        ];
+        _pasos.forEach(function(p,i){
+            h+='<span style="display:flex;align-items:center;gap:.2rem;background:'+(p.ok?'#f0fdf4':'#f8fafc')+';border:1px solid '+(p.ok?'#86efac':'#e2e8f0')+';border-radius:4px;padding:.2rem .5rem;">';
+            h+=(p.ok?_ck:_cx)+'\u00a0'+p.lbl;
+            h+='</span>';
+            if (i<_pasos.length-1) h+='<span style="color:#cbd5e1;font-size:.7rem;">\u2192</span>';
+        });
+        h+='</div></div>';
+
+    } else {
+        h+='<div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:7px;padding:.85rem 1rem;margin-bottom:.8rem;"><p style="margin:0;'+_G+'">Sin datos cargados. Abre primero el Monitor Local (📊\u00a0Local).</p></div>';
+    }
+
+    // ── BLOQUE 5: PIPELINE CANÓNICO (siempre visible) ─────────────────────────
+    h+='<div style="'+_BK+'">';
+    h+='<div style="'+_H+'">Pipeline de datos (Pliego 2023 \u2014 fijo)</div>';
+    h+='<div style="display:flex;align-items:center;flex-wrap:wrap;gap:.3rem;font-size:.77rem;font-weight:600;color:#1e293b;margin-bottom:.4rem;">';
+    [['908 REDCap','#dbeafe'],['810 limpios','#dbeafe'],['665 adultos IBSE','#dcfce7'],['632 an\u00e1lisis final','#dcfce7']].forEach(function(s,i,a){
+        h+='<span style="background:'+s[1]+';padding:.22rem .5rem;border-radius:4px;">'+s[0]+'</span>';
+        if (i<a.length-1) h+='<span style="color:#94a3b8;">\u2192</span>';
+    });
+    h+='</div>';
+    h+='<div style="'+_G+'">Rama paralela: <strong>145 menores</strong> (&lt;16\u00a0a\u00f1os) \u2014 an\u00e1lisis exploratorio separado.</div>';
+    h+='</div>';
+
+    return h;
+}
+
+// ── Tab 2: Fuentes ────────────────────────────────────────────────────────────
+function _ibseSM_t2(_G,_H,_BK) {
+    var h='';
+
+    h+='<div style="'+_H+'font-size:.88rem;color:#1e40af;border-bottom:1px solid #bfdbfe;padding-bottom:.45rem;margin-bottom:.9rem;">Fuentes de datos y marco metodológico</div>';
+
+    // ── 1. CAPTURA ─────────────────────────────────────────
+    h+='<div style="'+_BK+'">';
+    h+='<div style="'+_H+'">Captura primaria · REDCap</div>';
+    h+='<p style="margin:0 0 .35rem;'+_G+'">Respuestas individuales recogidas mediante formulario COMPÁS (REDCap). Incluye módulo IBSE completo (P57b y P57c) con 8 ítems válidos.</p>';
+    h+='<p style="margin:0;'+_G+'">Unidad de análisis: individuo. Fuente base para todos los cálculos del índice.</p>';
+    h+='</div>';
+
+    // ── 2. REFERENCIA EXTERNA ─────────────────────────────
+    h+='<div style="'+_BK+'">';
+    h+='<div style="'+_H+'">Referencia poblacional · EAS 2023</div>';
+    h+='<p style="margin:0 0 .35rem;'+_G+'">Encuesta Andaluza de Salud (EAS 2023). Muestra probabilística representativa de población adulta andaluza.</p>';
+    h+='<p style="margin:0 0 .35rem;'+_G+'">Instrumento IBSE equivalente (SEWBI-8), utilizado para comparación de resultados a nivel autonómico y provincial.</p>';
+    h+='<div style="margin-top:.35rem;padding:.35rem .6rem;background:#eff6ff;border:1px solid #bfdbfe;border-radius:4px;font-size:.68rem;color:#1d4ed8;">El monitor IBSE utiliza de la EAS 2023 únicamente los valores de referencia del índice global (total, sexo y grupos de edad). No utiliza ni muestra el conjunto de 55 determinantes de salud de la EAS/EPVSA — ese conjunto pertenece al módulo de diagnóstico comunitario, no al cálculo del índice.</div>';
+    h+='</div>';
+
+    // ── 3. MARCO POBLACIONAL ─────────────────────────────
+    h+='<div style="'+_BK+'">';
+    h+='<div style="'+_H+'">Estructura poblacional · BDU SAS + Padrón</div>';
+    h+='<p style="margin:0 0 .35rem;'+_G+'">Distribución poblacional por sexo y edad procedente de Base de Datos de Usuarios (BDU SAS).</p>';
+    h+='<p style="margin:0;'+_G+'">Reescalada al total oficial del padrón municipal para garantizar coherencia demográfica en la reponderación.</p>';
+    h+='</div>';
+
+    // ── 4. CALIBRACIÓN ───────────────────────────────────
+    h+='<div style="'+_BK+'">';
+    h+='<div style="'+_H+'">Reponderación · BetterSurveys</div>';
+    h+='<p style="margin:0 0 .35rem;'+_G+'">Ajuste por sexo y grupo de edad mediante pesos de calibración (sexo_bs × grupo_edad_bs).</p>';
+    h+='<p style="margin:0;'+_G+'">Objetivo: aproximar la estructura muestral a la estructura poblacional de referencia.</p>';
+    h+='</div>';
+
+    // ── 5. SÍNTESIS ──────────────────────────────────────
+    h+='<div style="background:#f0fdf4;border:1px solid #86efac;border-left:3px solid #16a34a;border-radius:0 5px 5px 0;padding:.6rem .85rem;">';
+    h+='<p style="margin:0;font-size:.72rem;color:#166534;">El sistema integra datos primarios (REDCap), referencia externa (EAS), estructura poblacional (BDU+padrón) y calibración (BetterSurveys) en un único flujo analítico coherente.</p>';
+    h+='</div>';
+
+    return h;
+}
+
+// ── Tab 3: Pipeline ───────────────────────────────────────────────────────────
+function _ibseSM_t3(agg,_G,_H,_BK) {
+    var h='';
+
+    h+='<div style="'+_H+'font-size:.88rem;color:#1e40af;border-bottom:1px solid #bfdbfe;padding-bottom:.45rem;margin-bottom:.9rem;">Trazabilidad del pipeline</div>';
+
+    // ── PIPELINE CANÓNICO ─────────────────────────────────
+    h+='<div style="'+_BK+'">';
+    h+='<div style="'+_H+'">Pipeline canónico auditado · Atarfe</div>';
+
+    var pasos = [
+        {n:'01', lbl:'Original REDCap', desc:'Exportación bruta inicial del formulario REDCap.', sub:'n = 908', col:'#0369a1'},
+        {n:'02', lbl:'Complete case', desc:'Registros con información válida para continuar el pipeline analítico.', sub:'n = 810', col:'#1d4ed8'},
+        {n:'03', lbl:'Menores ≤15', desc:'Rama específica de menores, separada del análisis principal de adultos.', sub:'n = 145', col:'#c2410c'},
+        {n:'04', lbl:'Adultos ≥16', desc:'Registros de población adulta candidatos al análisis principal IBSE.', sub:'n = 665', col:'#166534'},
+        {n:'05', lbl:'Adultos con flag de duplicados', desc:'Control de duplicados dentro de la rama adulta, sin alterar aún el tamaño de la base.', sub:'n = 665', col:'#854d0e'},
+        {n:'06', lbl:'Adultos finales sin duplicados', desc:'Base analítica canónica del monitor para el análisis adulto.', sub:'n = 632', col:'#15803d'},
+        {n:'06b', lbl:'Versión BetterSurveys', desc:'Base adulta recodificada a sexo_bs y grupo_edad_bs para calibración.', sub:'n = 632', col:'#7c3aed'},
+        {n:'07', lbl:'Versión ponderada', desc:'Base adulta con peso de calibración incorporado para análisis reponderado.', sub:'n = 632', col:'#0f766e'}
+    ];
+
+    pasos.forEach(function(p,i){
+        h+='<div style="display:flex;align-items:flex-start;gap:.7rem;margin-bottom:.55rem;">';
+        h+='<div style="flex-shrink:0;width:54px;text-align:right;"><span style="font-size:.83rem;font-weight:800;color:'+p.col+';">'+p.n+'</span></div>';
+        h+='<div style="flex:1;border-left:2px solid #e2e8f0;padding-left:.75rem;">';
+        h+='<div style="font-size:.76rem;font-weight:700;color:#1e293b;margin-bottom:.1rem;">'+p.lbl+'</div>';
+        h+='<div style="font-size:.67rem;font-weight:700;color:'+p.col+';margin-bottom:.12rem;">'+p.sub+'</div>';
+        h+='<p style="margin:0;'+_G+'">'+p.desc+'</p>';
+        h+='</div></div>';
+        if (i<pasos.length-1) h+='<div style="padding-left:54px;color:#94a3b8;font-size:.8rem;margin-bottom:.25rem;">↓</div>';
+    });
+
+    h+='</div>';
+
+    // ── RELACIÓN ENTRE RAMAS ─────────────────────────────
+    h+='<div style="'+_BK+'border-left:3px solid #f97316;">';
+    h+='<div style="'+_H+'color:#c2410c;">Separación de ramas</div>';
+    h+='<p style="margin:0 0 .3rem;'+_G+'">Desde la base complete case (n = 810) se separan dos ramas analíticas distintas: menores ≤15 años (n = 145) y adultos ≥16 años (n = 665).</p>';
+    h+='<p style="margin:0;'+_G+'">Solo la rama adulta continúa hacia control de duplicados, adaptación BetterSurveys y reponderación.</p>';
+    h+='</div>';
+
+    // ── SESIÓN ACTUAL ────────────────────────────────────
+    if (agg) {
+        h+='<div style="'+_BK+'background:#fffbeb;border-color:#fcd34d;">';
+        h+='<div style="'+_H+'color:#854d0e;">Datos actualmente cargados en sesión</div>';
+        h+='<div style="'+_G+'">Total: <strong>'+agg.n_total+'</strong> · Válidos: <strong>'+agg.n_valido+'</strong> · Excluidos: <strong>'+agg.n_excluido+'</strong> · Menores: <strong>'+(agg.n_menores||0)+'</strong></div>';
+        h+='<p style="margin:.25rem 0 0;font-size:.67rem;color:#92400e;font-style:italic;">Este bloque describe la sesión activa del monitor. No sustituye el pipeline canónico auditado de Atarfe.</p>';
+        h+='</div>';
+    }
+
+    return h;
+}
+
+// ── Tab 4: Construcción analítica ─────────────────────────────────────────────
+function _ibseSM_t4(_G,_H,_BK) {
+    var h='';
+    h+='<div style="'+_H+'font-size:.88rem;color:#1e40af;border-bottom:1px solid #bfdbfe;padding-bottom:.45rem;margin-bottom:.9rem;">Construcci\u00f3n anal\u00edtica del IBSE</div>';
+    h+='<div style="'+_BK+'">';
+    h+='<div style="'+_H+'">Instrumento</div>';
+    h+='<p style="margin:0 0 .3rem;'+_G+'">IBSE \u00b7 \u00cdndice de Bienestar Socioemocional de Bericat (SEWBI, 2014). 8\u00a0\u00edtems del m\u00f3dulo de bienestar subjetivo de la ESS.</p>';
+    h+='<p style="margin:0;'+_G+'">Rango te\u00f3rico: 18,75\u2013100 con 8\u00a0\u00edtems completos. Solo adultos \u226516\u00a0a\u00f1os con todos los \u00edtems v\u00e1lidos.</p>';
+    h+='</div>';
+    h+='<div style="'+_BK+'">';
+    h+='<div style="'+_H+'">8 \u00cdtems</div>';
+    h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;">';
+    var i4 = (typeof IBSE_ITEMS_4!=='undefined') ? IBSE_ITEMS_4 : ['deprimido/a','feliz','solo/a','disfrutar de la vida'];
+    var i5 = (typeof IBSE_ITEMS_5!=='undefined') ? IBSE_ITEMS_5 : ['con energ\u00eda','tranquilo/a','optimista','bien consigo mismo/a'];
+    h+='<div style="background:white;border:1px solid #fecaca;border-radius:5px;padding:.6rem .75rem;">';
+    h+='<div style="font-size:.67rem;font-weight:700;color:#991b1b;margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.04em;">P57b \u00b7 Escala 1\u20134</div>';
+    i4.forEach(function(it){ h+='<div style="'+_G+'margin-bottom:.12rem;">\u2022\u00a0'+it+'</div>'; });
+    h+='<div style="font-size:.63rem;color:#94a3b8;margin-top:.3rem;">Negativos (deprimido, solo): (5\u2212raw)\u00d725\u00a0\u00b7\u00a0Positivos: raw\u00d725</div>';
+    h+='</div>';
+    h+='<div style="background:white;border:1px solid #bbf7d0;border-radius:5px;padding:.6rem .75rem;">';
+    h+='<div style="font-size:.67rem;font-weight:700;color:#166534;margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.04em;">P57c \u00b7 Escala 1\u20135</div>';
+    i5.forEach(function(it){ h+='<div style="'+_G+'margin-bottom:.12rem;">\u2022\u00a0'+it+'</div>'; });
+    h+='<div style="font-size:.63rem;color:#94a3b8;margin-top:.3rem;">(5\u2212raw)\u00d725 para todos</div>';
+    h+='</div>';
+    h+='</div></div>';
+    h+='<div style="'+_BK+'">';
+    h+='<div style="'+_H+'">F\u00f3rmula</div>';
+    h+='<div style="background:white;border:1px solid #e2e8f0;border-radius:5px;padding:.6rem .9rem;font-family:monospace;font-size:.77rem;color:#1e293b;margin-bottom:.35rem;">IBSE\u00a0=\u00a0(score\u2081\u00a0+\u00a0score\u2082\u00a0+\u00a0\u2026\u00a0+\u00a0score\u2088)\u00a0/\u00a08</div>';
+    h+='<p style="margin:0;'+_G+'">Cada score normalizado a 0\u2013100. Solo registros con los 8\u00a0\u00edtems presentes.</p>';
+    h+='</div>';
+    h+='<div style="'+_BK+'">';
+    h+='<div style="'+_H+'">4 Factores te\u00f3ricos</div>';
+    [['V\u00ednculo','deprimido/a\u00a0+\u00a0solo/a','aislamiento y depresi\u00f3n'],
+     ['Situaci\u00f3n','feliz\u00a0+\u00a0disfrutar de la vida','satisfacci\u00f3n vital'],
+     ['Control','con energ\u00eda\u00a0+\u00a0tranquilo/a','autoeficacia y calma'],
+     ['Persona','optimista\u00a0+\u00a0bien consigo mismo/a','optimismo y autovaloraci\u00f3n']
+    ].forEach(function(f){
+        h+='<div style="display:flex;gap:.5rem;align-items:baseline;border-bottom:1px solid #f1f5f9;padding:.28rem 0;">';
+        h+='<div style="font-size:.76rem;font-weight:700;color:#1e293b;min-width:80px;">'+f[0]+'</div>';
+        h+='<div style="'+_G+'flex:1;">'+f[1]+'</div>';
+        h+='<div style="font-size:.66rem;color:#94a3b8;font-style:italic;">'+f[2]+'</div>';
+        h+='</div>';
+    });
+    h+='</div>';
+    return h;
+}
+
+// ── Tab 5: SAM ────────────────────────────────────────────────────────────────
+function _ibseSM_t5(agg,_G,_H,_BK) {
+    var h='';
+
+    h+='<div style="'+_H+'font-size:.88rem;color:#1e40af;border-bottom:1px solid #bfdbfe;padding-bottom:.45rem;margin-bottom:.9rem;">Estructura muestral SAM</div>';
+
+    if (!agg || !agg.sam || !agg.sam.disponible) {
+        h+='<div style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:7px;padding:1rem;'+_G+'font-style:italic;">Datos SAM no disponibles. Esta sección requiere estructura poblacional BDU SAS y total oficial de padrón para el ajuste demográfico.</div>';
+        return h;
+    }
+
+    var s = agg.sam;
+    var dc = s.dictamen_reponderabilidad === 'reponderable' ? '#166534' : s.dictamen_reponderabilidad === 'parcial' ? '#854d0e' : '#991b1b';
+
+    // ── 1. MARCO POBLACIONAL ─────────────────────────────
+    h+='<div style="'+_BK+'">';
+    h+='<div style="'+_H+'">Marco poblacional de referencia</div>';
+    h+='<p style="margin:0 0 .35rem;'+_G+'">Estructura por sexo y edad procedente de BDU SAS (Centro de AP = Atarfe), utilizada como base estructural del ajuste.</p>';
+    h+='<p style="margin:0 0 .35rem;'+_G+'">Total BDU identificado: <strong>18.728</strong>.</p>';
+    h+='<p style="margin:0 0 .35rem;'+_G+'">Total oficial de padrón utilizado para reescalado: <strong>20.455</strong>.</p>';
+    h+='<p style="margin:0 0 .35rem;'+_G+'">Factor de ajuste aplicado: <strong>1,092215</strong>. La estructura se conserva y la magnitud total se adapta al padrón.</p>';
+    h+='<p style="margin:0;'+_G+'">Tipo de ajuste: <strong>sexo \u00d7 edad</strong>.</p>';
+    h+='</div>';
+
+    // ── 2. DICTAMEN ──────────────────────────────────────
+    h+='<div style="'+_BK+'">';
+    h+='<div style="'+_H+'">Dictamen de reponderabilidad</div>';
+    h+='<span style="display:inline-block;font-size:.8rem;font-weight:800;background:'+dc+';color:white;padding:.28rem .75rem;border-radius:5px;margin-bottom:.45rem;">'+s.dictamen_reponderabilidad.toUpperCase().replace(/_/g,' ')+'</span>';
+    h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:.4rem;margin-top:.35rem;">';
+    h+='<div style="background:white;border:1px solid #e2e8f0;border-radius:5px;padding:.48rem .6rem;"><div style="font-size:.9rem;font-weight:800;color:#1e293b;">'+(s.cobertura*100).toFixed(1)+' %</div><div style="'+_G+'">Cobertura teórica</div></div>';
+    h+='<div style="background:white;border:1px solid #e2e8f0;border-radius:5px;padding:.48rem .6rem;"><div style="font-size:.9rem;font-weight:800;color:#dc2626;">'+s.n_infra+'</div><div style="'+_G+'">Grupos infra</div></div>';
+    h+='<div style="background:white;border:1px solid #e2e8f0;border-radius:5px;padding:.48rem .6rem;"><div style="font-size:.9rem;font-weight:800;color:#d97706;">'+s.n_sobre+'</div><div style="'+_G+'">Grupos sobre</div></div>';
+    if (s.media_ajustada!=null) {
+        h+='<div style="background:white;border:1px solid #e2e8f0;border-radius:5px;padding:.48rem .6rem;"><div style="font-size:.9rem;font-weight:800;color:#0369a1;">'+s.media_ajustada.toFixed(1)+'</div><div style="'+_G+'">IBSE ajustado</div></div>';
+    }
+    h+='</div>';
+    h+='</div>';
+
+    // ── 3. CELDAS BASE ───────────────────────────────────
+    h+='<div style="'+_BK+'">';
+    h+='<div style="'+_H+'">Celdas base (10 grupos sexo × edad)</div>';
+    h+='<p style="margin:0 0 .35rem;'+_G+'">Grupos utilizados en la calibración: hombres y mujeres en 16-29, 30-44, 45-59 y 60+, excluyendo menores.</p>';
+    h+='<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:.72rem;">';
+    h+='<thead><tr style="background:#f1f5f9;"><th style="text-align:left;padding:.25rem .45rem;color:#475569;">Grupo</th><th style="text-align:right;padding:.25rem .45rem;color:#64748b;">Pob. ajustada</th><th style="text-align:right;padding:.25rem .45rem;color:#1d4ed8;">n teórico</th><th style="text-align:right;padding:.25rem .45rem;color:#1e293b;">n real</th><th style="text-align:right;padding:.25rem .45rem;color:#1e293b;">Ratio</th></tr></thead><tbody>';
+
+    s.grupos.forEach(function(row){
+        var r = row.n_teorico > 0 ? row.n_real / row.n_teorico : null;
+        var infra = r != null && r < 0.8;
+        var sobre = r != null && r > 1.2;
+        h+='<tr style="background:'+(infra?'#fff1f2':sobre?'#fff7ed':'#fff')+';border-top:1px solid #f1f5f9;">';
+        h+='<td style="padding:.2rem .45rem;color:#374151;">'+(row.sexo==='h'?'♂':'♀')+' '+row.grupo+'</td>';
+        h+='<td style="text-align:right;padding:.2rem .45rem;color:#64748b;">'+row.pob+'</td>';
+        h+='<td style="text-align:right;padding:.2rem .45rem;color:#1d4ed8;">'+row.n_teorico.toFixed(1)+'</td>';
+        h+='<td style="text-align:right;padding:.2rem .45rem;font-weight:700;">'+row.n_real+'</td>';
+        h+='<td style="text-align:right;padding:.2rem .45rem;font-weight:700;color:'+(infra?'#dc2626':sobre?'#d97706':'#16a34a')+'">'+(r!=null?r.toFixed(2):'—')+'</td>';
+        h+='</tr>';
+    });
+
+    h+='</tbody></table></div>';
+    h+='</div>';
+
+    // ── 3b. VISUALIZACIÓN GRÁFICA ────────────────────────
+    h+='<div style="'+_BK+'">';
+    h+='<div style="'+_H+'">Distribución demográfica: observado vs. esperado</div>';
+    h+='<p style="margin:0 0 .45rem;'+_G+'">Representación gráfica de la composición muestral real (azul) frente a la esperada por la estructura poblacional de referencia (gris).</p>';
+    var _maxN=0;
+    s.grupos.forEach(function(g){_maxN=Math.max(_maxN,g.n_real,Math.ceil(g.n_teorico));});
+    if(_maxN>0){
+        h+='<div style="display:grid;grid-template-columns:4rem 1fr 1fr 3rem;gap:.2rem;align-items:center;border-bottom:1px solid #e2e8f0;padding-bottom:.25rem;margin-bottom:.2rem;">';
+        h+='<div style="font-size:.62rem;color:#64748b;font-weight:600;">Grupo</div>';
+        h+='<div style="font-size:.62rem;color:#1d4ed8;font-weight:600;">Observado</div>';
+        h+='<div style="font-size:.62rem;color:#6b7280;font-weight:600;">Esperado</div>';
+        h+='<div style="font-size:.62rem;color:#374151;font-weight:600;text-align:right;">Ratio</div>';
+        h+='</div>';
+        s.grupos.forEach(function(row){
+            var r=row.n_teorico>0?row.n_real/row.n_teorico:null;
+            var infra=r!==null&&r<0.8;
+            var sobre=r!==null&&r>1.2;
+            var rc=infra?'#dc2626':sobre?'#d97706':'#16a34a';
+            var bR=(row.n_real/_maxN*100).toFixed(1);
+            var bT=(Math.ceil(row.n_teorico)/_maxN*100).toFixed(1);
+            h+='<div style="display:grid;grid-template-columns:4rem 1fr 1fr 3rem;gap:.2rem;align-items:center;padding:.2rem .1rem;background:'+(infra?'#fff1f2':sobre?'#fff7ed':'transparent')+';border-radius:3px;">';
+            h+='<div style="font-size:.7rem;color:#374151;white-space:nowrap;">'+(row.sexo==='h'?'\u2642':'\u2640')+'\u00a0'+row.grupo+'</div>';
+            h+='<div style="display:flex;align-items:center;gap:.25rem;">';
+            h+='<div style="flex:1;height:10px;background:#dbeafe;border-radius:2px;overflow:hidden;"><div style="height:100%;width:'+bR+'%;background:#1d4ed8;border-radius:2px;"></div></div>';
+            h+='<span style="font-size:.66rem;color:#1d4ed8;min-width:1.7rem;text-align:right;font-weight:700;">'+row.n_real+'</span>';
+            h+='</div>';
+            h+='<div style="display:flex;align-items:center;gap:.25rem;">';
+            h+='<div style="flex:1;height:10px;background:#f1f5f9;border-radius:2px;overflow:hidden;"><div style="height:100%;width:'+bT+'%;background:#94a3b8;border-radius:2px;"></div></div>';
+            h+='<span style="font-size:.66rem;color:#64748b;min-width:1.7rem;text-align:right;">'+Math.ceil(row.n_teorico)+'</span>';
+            h+='</div>';
+            h+='<div style="font-size:.7rem;font-weight:700;color:'+rc+';text-align:right;">'+(r!==null?r.toFixed(2):'—')+'</div>';
+            h+='</div>';
+        });
+        h+='<div style="display:flex;flex-wrap:wrap;gap:.7rem;margin-top:.45rem;">';
+        [['#1d4ed8','Observado (n real)'],['#94a3b8','Esperado (n te\u00f3rico)'],['#dc2626','Infrarrepr. (<\u00a00,80)'],['#d97706','Sobrerrepr. (>\u00a01,20)']].forEach(function(l){
+            h+='<div style="display:flex;align-items:center;gap:.25rem;font-size:.62rem;color:#475569;"><div style="width:12px;height:6px;background:'+l[0]+';border-radius:1px;"></div>'+l[1]+'</div>';
+        });
+        h+='</div>';
+    } else {
+        h+='<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:.7rem;'+_G+'color:#94a3b8;font-style:italic;">Sin datos de grupos suficientes para la visualizaci\u00f3n gr\u00e1fica. Comprueba que el agregado SAM incluye la propiedad <code>grupos</code>.</div>';
+    }
+    h+='</div>';
+
+    // ── 4. NOTA METODOLÓGICA ─────────────────────────────
+    h+='<div style="background:#eff6ff;border:1px solid #bfdbfe;border-left:3px solid #2563eb;border-radius:0 5px 5px 0;padding:.6rem .85rem;">';
+    h+='<p style="margin:0 0 .3rem;font-size:.72rem;color:#1d4ed8;">Ajuste demogr\u00e1fico aplicado para corregir la composici\u00f3n muestral. Resultados orientativos. No modifica microdatos.</p>';
+    h+='<p style="margin:0;font-size:.72rem;color:#1d4ed8;">Poblaci\u00f3n base: <strong>20.455</strong> \u00b7 Factor: <strong>1,092215</strong> \u00b7 Tipo: <strong>sexo \u00d7 edad</strong>. La estructura del BDU SAS reescalada al padr\u00f3n se utiliza como referencia; no procede exclusivamente de ninguna de las dos fuentes por separado.</p>';
+    h+='</div>';
+
+    return h;
+}
+
+// ── Tab 6: BetterSurveys ──────────────────────────────────────────────────────
+function _ibseSM_t6(_G,_H,_BK) {
+    var h='';
+
+    h+='<div style="'+_H+'font-size:.88rem;color:#1e40af;border-bottom:1px solid #bfdbfe;padding-bottom:.45rem;margin-bottom:.9rem;">Reponderación · BetterSurveys</div>';
+
+    // ── 1. INSUMOS ───────────────────────────────────────
+    h+='<div style="'+_BK+'">';
+    h+='<div style="'+_H+'">Insumos de la calibración</div>';
+    h+='<p style="margin:0 0 .35rem;'+_G+'">Base analítica de entrada: adultos finales sin duplicados (n = 632).</p>';
+    h+='<p style="margin:0 0 .35rem;'+_G+'">Variables de calibración: <strong>sexo_bs</strong> y <strong>grupo_edad_bs</strong>.</p>';
+    h+='<p style="margin:0 0 .35rem;'+_G+'">Grupos de edad utilizados: <strong>16-29</strong>, <strong>30-44</strong>, <strong>45-59</strong> y <strong>60+</strong>.</p>';
+    h+='<p style="margin:0;'+_G+'">Población de referencia: estructura por sexo y edad procedente de BDU SAS, reescalada al total oficial del padrón municipal.</p>';
+    h+='</div>';
+
+    // ── 2. RESULTADOS ────────────────────────────────────
+    h+='<div style="'+_BK+'">';
+    h+='<div style="'+_H+'">Resultados de los pesos</div>';
+    h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:.45rem;margin-bottom:.5rem;">';
+    [['Media','1,00'],['DT','0,00434'],['CV','0,43 %'],['Mín','0,993'],['Máx','1,01']].forEach(function(s){
+        h+='<div style="background:white;border:1px solid #e2e8f0;border-radius:5px;padding:.5rem .65rem;"><div style="font-size:.95rem;font-weight:800;color:#1e40af;">'+s[1]+'</div><div style="'+_G+'">'+s[0]+'</div></div>';
+    });
+    h+='</div>';
+    h+='<p style="margin:0;'+_G+'">Los pesos obtenidos son casi unitarios y muestran una variabilidad mínima entre celdas.</p>';
+    h+='</div>';
+
+    // ── 3. INTERPRETACIÓN ────────────────────────────────
+    h+='<div style="'+_BK+'">';
+    h+='<div style="'+_H+'">Interpretación técnica</div>';
+    h+='<p style="margin:0 0 .35rem;'+_G+'">La media de pesos igual a 1,00 indica ausencia de desplazamiento sistemático del conjunto de la muestra.</p>';
+    h+='<p style="margin:0 0 .35rem;'+_G+'">El CV muy bajo y el rango estrecho indican que la composición muestral ya era próxima a la estructura poblacional de referencia.</p>';
+    h+='<p style="margin:0;'+_G+'">La reponderación es aplicable, pero su impacto esperado sobre el resultado global es pequeño.</p>';
+    h+='</div>';
+
+    // ── 4. CONCLUSIÓN OPERATIVA ──────────────────────────
+    h+='<div style="background:#f0fdf4;border:1px solid #86efac;border-left:3px solid #16a34a;border-radius:0 5px 5px 0;padding:.6rem .85rem;">';
+    h+='<p style="margin:0;font-size:.72rem;color:#166534;"><strong>Conclusión:</strong> muestra reponderable. La corrección por sexo y edad es metodológicamente válida, pero no modifica de forma sustantiva la estructura de la muestra ni el valor esperado del índice.</p>';
+    h+='</div>';
+
+    return h;
+}
+
+// ── Tab 7: Referencias externas ───────────────────────────────────────────────
+function _ibseSM_t7(agg,mun,_G,_H,_BK) {
+    var h='';
+    h+='<div style="'+_H+'font-size:.88rem;color:#1e40af;border-bottom:1px solid #bfdbfe;padding-bottom:.45rem;margin-bottom:.9rem;">Diferencias con referencias externas</div>';
+    var easRef=(typeof _IBSELOCAL_EAS_REF!=='undefined')?_IBSELOCAL_EAS_REF:null;
+    if (easRef) {
+        h+='<div style="'+_BK+'">';
+        h+='<div style="'+_H+'">EAS 2023 \u00b7 Andaluc\u00eda (referencia)</div>';
+        h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.4rem;margin-bottom:.5rem;">';
+        h+='<div style="background:white;border:1px solid #e2e8f0;border-radius:5px;padding:.5rem .65rem;"><div style="font-size:.95rem;font-weight:800;color:#6366f1;">'+easRef.total.media.toFixed(1)+'</div><div style="'+_G+'">Total Andaluc\u00eda</div><div style="font-size:.63rem;color:#94a3b8;">IC\u00a095%: '+easRef.total.ic_inf.toFixed(1)+'\u2013'+easRef.total.ic_sup.toFixed(1)+'</div></div>';
+        h+='<div style="background:white;border:1px solid #e2e8f0;border-radius:5px;padding:.5rem .65rem;"><div style="font-size:.95rem;font-weight:800;color:#6366f1;">'+easRef.hombres.media.toFixed(1)+'</div><div style="'+_G+'">Hombres</div></div>';
+        h+='<div style="background:white;border:1px solid #e2e8f0;border-radius:5px;padding:.5rem .65rem;"><div style="font-size:.95rem;font-weight:800;color:#6366f1;">'+easRef.mujeres.media.toFixed(1)+'</div><div style="'+_G+'">Mujeres</div></div>';
+        h+='</div>';
+        if (agg) {
+            var dif=agg.media-easRef.total.media;
+            var ds=(dif>=0?'+':'')+dif.toFixed(1);
+            var dc=Math.abs(dif)<3?'#854d0e':dif>0?'#166534':'#c2410c';
+            h+='<div style="background:white;border:1px solid #e2e8f0;border-radius:5px;padding:.6rem .85rem;margin-bottom:.4rem;">';
+            h+='<div style="font-size:.73rem;font-weight:600;color:#374151;margin-bottom:.2rem;">'+mun+' vs. Andaluc\u00eda EAS 2023</div>';
+            h+='<div style="font-size:1.55rem;font-weight:900;color:'+dc+';">'+ds+'\u00a0pts</div>';
+            h+='<div style="'+_G+'">Local: '+agg.media.toFixed(1)+'\u00a0\u00b7\u00a0EAS: '+easRef.total.media.toFixed(1)+'</div>';
+            h+='</div>';
+        }
+        h+='</div>';
+        h+='<div style="'+_BK+'">';
+        h+='<div style="'+_H+'">EAS 2023 por grupo de edad</div>';
+        h+='<div style="display:flex;flex-wrap:wrap;gap:.3rem;">';
+        easRef.edad.forEach(function(eg){
+            h+='<span style="font-size:.72rem;background:white;border:1px solid #e2e8f0;border-radius:4px;padding:.18rem .48rem;">'+eg.nombre+': <strong>'+eg.media.toFixed(1)+'</strong></span>';
+        });
+        h+='</div>';
+        h+='<p style="margin:.35rem 0 0;font-size:.66rem;color:#94a3b8;font-style:italic;">Grupos EAS (16-24, 25-34\u2026) \u2260 grupos COMP\u00c1S (16-29, 30-44\u2026). No comparar por edad sin ajuste.</p>';
+        h+='</div>';
+    } else {
+        h+='<div style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:7px;padding:1rem;'+_G+'font-style:italic;">Referencia EAS no disponible.</div>';
+    }
+    h+='<div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:7px;padding:.75rem 1rem;">';
+    h+='<div style="font-size:.74rem;font-weight:700;color:#92400e;margin-bottom:.3rem;">Limitaciones de la comparativa</div>';
+    h+='<ul style="margin:0;padding-left:1.2rem;">';
+    ['EAS: muestra probabil\u00edstica ponderada (n\u00a0\u2248\u00a07.000). COMP\u00c1S: muestra de conveniencia.',
+     'Diferencias de tiempo de recogida y contexto municipal.',
+     'Comparativa orientativa. No inferencial ni evaluativa.',
+     'Granada EAS 2023: 81,8\u00a0pts (referencia provincial disponible).'
+    ].forEach(function(li){
+        h+='<li style="'+_G+'margin-bottom:.18rem;">'+li+'</li>';
+    });
+    h+='</ul></div>';
+    return h;
+}
+
+// ── Tab 8: Menores ────────────────────────────────────────────────────────────
+function _ibseSM_t8(agg,_G,_H,_BK) {
+    var h='';
+
+    // ── Cabecera ─────────────────────────────────────────
+    h+='<div style="'+_H+'font-size:.88rem;color:#1e40af;border-bottom:1px solid #bfdbfe;padding-bottom:.45rem;margin-bottom:.9rem;">Menores de 16\u00a0a\u00f1os \u2014 an\u00e1lisis exploratorio</div>';
+
+    // ── Caja metodológica (muy visible, parte alta) ──────
+    h+='<div style="background:#fff7ed;border:2px solid #f97316;border-radius:7px;padding:.75rem 1rem;margin-bottom:.85rem;">';
+    h+='<div style="font-size:.78rem;font-weight:800;color:#c2410c;margin-bottom:.32rem;">\u26a0\ufe0f Nota metodol\u00f3gica</div>';
+    h+='<ul style="margin:0;padding-left:1.1rem;">';
+    ['IBSE no validado para menores de 16\u00a0a\u00f1os.',
+     'Resultados exploratorios, no comparables con adultos ni con EAS.',
+     'Uso exclusivamente descriptivo.'
+    ].forEach(function(li){h+='<li style="font-size:.74rem;color:#9a3412;margin-bottom:.2rem;">'+li+'</li>';});
+    h+='</ul></div>';
+
+    // ── N pipeline ───────────────────────────────────────
+    h+='<div style="'+_BK+'border-left:3px solid #f97316;">';
+    h+='<div style="'+_H+'color:#c2410c;">N registros (pipeline fijo \u2014 Pliego 2023)</div>';
+    h+='<div style="font-size:1.9rem;font-weight:900;color:#c2410c;">145</div>';
+    h+='<p style="margin:.2rem 0 0;'+_G+'">Registros de personas &lt;16\u00a0a\u00f1os en la misma recogida de datos. Separados del an\u00e1lisis principal.</p>';
+    h+='</div>';
+
+    if (agg && agg.menores_agg) {
+        var ma=agg.menores_agg;
+        var mc=ma.media>=76?'#166534':ma.media>=51?'#854d0e':'#c2410c';
+        var lvl=ma.media>=76?'alto':ma.media>=51?'moderado':ma.media>=26?'bajo':'muy bajo';
+
+        // ── Indicadores IBSE ─────────────────────────────
+        h+='<div style="'+_BK+'">';
+        h+='<div style="'+_H+'">Indicadores IBSE (n\u00a0=\u00a0'+ma.n+')</div>';
+        h+='<div style="display:flex;gap:1.5rem;flex-wrap:wrap;">';
+        h+='<div><div style="font-size:1.5rem;font-weight:900;color:'+mc+';">'+ma.media.toFixed(1)+'</div><div style="'+_G+'">Media IBSE</div></div>';
+        h+='<div><div style="font-size:1rem;font-weight:700;color:#1e293b;">'+ma.mediana.toFixed(1)+'</div><div style="'+_G+'">Mediana</div></div>';
+        h+='<div><div style="font-size:1rem;font-weight:700;color:#1e293b;">'+ma.min.toFixed(0)+'\u2013'+ma.max.toFixed(0)+'</div><div style="'+_G+'">Rango</div></div>';
+        h+='<div><div style="font-size:1rem;font-weight:700;color:#475569;">'+lvl+'</div><div style="'+_G+'">Nivel</div></div>';
+        h+='</div></div>';
+
+        // ── Señales de malestar ──────────────────────────
+        h+='<div style="'+_BK+'">';
+        h+='<div style="'+_H+'">Se\u00f1ales de malestar (menores)</div>';
+        if (ma.malestar && (ma.malestar.deprimido || ma.malestar.solo)) {
+            h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem;">';
+            if (ma.malestar.deprimido) {
+                var _mpD=Math.round(ma.malestar.deprimido.pct*100);
+                var _mcD=_mpD>=25?'#dc2626':_mpD>=15?'#d97706':'#166534';
+                h+='<div style="background:white;border:1px solid #fecaca;border-radius:6px;padding:.5rem .65rem;">';
+                h+='<div style="font-size:.68rem;font-weight:700;color:#7f1d1d;margin-bottom:.1rem;">Deprimido/a</div>';
+                h+='<div style="font-size:1.35rem;font-weight:900;color:'+_mcD+';line-height:1.2;">'+_mpD+'\u00a0%</div>';
+                h+='<div style="'+_G+'">n\u00a0=\u00a0'+ma.malestar.deprimido.n_alto+'\u00a0/\u00a0'+ma.malestar.deprimido.n+'</div>';
+                h+='</div>';
+            } else {
+                h+='<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:.5rem .65rem;font-style:italic;'+_G+'color:#94a3b8;">Deprimido/a: sin datos</div>';
+            }
+            if (ma.malestar.solo) {
+                var _mpS=Math.round(ma.malestar.solo.pct*100);
+                var _mcS=_mpS>=25?'#dc2626':_mpS>=15?'#d97706':'#166534';
+                h+='<div style="background:white;border:1px solid #fecaca;border-radius:6px;padding:.5rem .65rem;">';
+                h+='<div style="font-size:.68rem;font-weight:700;color:#7f1d1d;margin-bottom:.1rem;">Solo/a</div>';
+                h+='<div style="font-size:1.35rem;font-weight:900;color:'+_mcS+';line-height:1.2;">'+_mpS+'\u00a0%</div>';
+                h+='<div style="'+_G+'">n\u00a0=\u00a0'+ma.malestar.solo.n_alto+'\u00a0/\u00a0'+ma.malestar.solo.n+'</div>';
+                h+='</div>';
+            } else {
+                h+='<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:.5rem .65rem;font-style:italic;'+_G+'color:#94a3b8;">Solo/a: sin datos</div>';
+            }
+            h+='</div>';
+        } else {
+            h+='<p style="margin:0;'+_G+'color:#94a3b8;font-style:italic;">Se\u00f1ales de malestar no disponibles para este conjunto.</p>';
+        }
+        h+='</div>';
+
+    } else if (agg) {
+        h+='<div style="'+_BK+'"><p style="margin:0;'+_G+'font-style:italic;">Sin menores en la muestra actualmente cargada.</p></div>';
+    } else {
+        h+='<div style="'+_BK+'"><p style="margin:0;'+_G+'font-style:italic;">Datos no disponibles. Abre primero el Monitor Local para que el agregado se calcule.</p></div>';
+    }
+
+    // ── Contexto metodológico complementario ─────────────
+    h+='<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:.65rem .9rem;">';
+    h+='<div style="font-size:.72rem;font-weight:700;color:#475569;margin-bottom:.22rem;">Contexto adicional</div>';
+    h+='<ul style="margin:0;padding-left:1.1rem;">';
+    ['EAS 2023 usa KIDSCREEN\u201127 para menores: instrumento diferente, no comparable.',
+     'Se\u00f1ales de malestar: \u00edtems \u201cdeprimido/a\u201d y \u201csolo/a\u201d (escala 1\u20134, umbral \u22653 operativo).',
+     'Fichero fuente: 07_menores.csv (separado del an\u00e1lisis principal).'
+    ].forEach(function(li){h+='<li style="font-size:.71rem;color:#475569;margin-bottom:.15rem;">'+li+'</li>';});
+    h+='</ul></div>';
+
+    return h;
+}
+
+// ── Tab 9: Archivos y auditoría ───────────────────────────────────────────────
+function _ibseSM_t9(_G,_H,_BK) {
+    var h='';
+    h+='<div style="'+_H+'font-size:.88rem;color:#1e40af;border-bottom:1px solid #bfdbfe;padding-bottom:.45rem;margin-bottom:.9rem;">Archivos y auditor\u00eda</div>';
+    h+='<div style="'+_BK+'">';
+    h+='<div style="'+_H+'">Inventario de archivos (pipeline Pliego 2023)</div>';
+    [['01','01_raw_redcap.csv','Exportaci\u00f3n directa REDCap. Todos los registros. Sin transformaciones.','fijo'],
+     ['02','02_limpieza.R / .log','Script de limpieza y log de exclusiones con justificaci\u00f3n por registro.','fijo'],
+     ['03','03_adultos_ibse.csv','Registros adultos (\u226516) con los 8\u00a0\u00edtems IBSE v\u00e1lidos. Base del an\u00e1lisis principal.','fijo'],
+     ['04','04_analisis_final.csv','Muestra final (n\u00a0=\u00a0632) tras todas las exclusiones. Input del c\u00e1lculo IBSE.','fijo'],
+     ['05','05_sam_padron.csv','Datos padr\u00f3n INE por municipio para SAM. Actualizaci\u00f3n anual posible.','variable'],
+     ['06','06_ibse_resultados.csv','Resultados del \u00edndice IBSE por registro con pesos SAM. Output del pipeline.','fijo'],
+     ['07','07_menores.csv','Registros de menores &lt;16\u00a0a\u00f1os. An\u00e1lisis exploratorio separado.','fijo']
+    ].forEach(function(f){
+        h+='<div style="display:flex;align-items:flex-start;gap:.6rem;border-bottom:1px solid #f1f5f9;padding:.38rem 0;">';
+        h+='<span style="flex-shrink:0;font-size:.68rem;font-weight:800;color:white;background:#1e40af;padding:.12rem .38rem;border-radius:3px;font-family:monospace;">'+f[0]+'</span>';
+        h+='<div style="flex:1;"><div style="font-size:.73rem;font-weight:700;color:#1e293b;font-family:monospace;">'+f[1]+'</div><p style="margin:.08rem 0 0;'+_G+'">'+f[2]+'</p></div>';
+        h+='<span style="flex-shrink:0;font-size:.62rem;color:'+(f[3]==='fijo'?'#374151':'#854d0e')+';font-style:italic;">'+f[3]+'</span>';
+        h+='</div>';
+    });
+    h+='</div>';
+    h+='<div style="'+_BK+'background:#f0fdf4;border-color:#86efac;">';
+    h+='<div style="'+_H+'color:#166534;">Log de auditor\u00eda</div>';
+    h+='<p style="margin:0 0 .3rem;font-size:.71rem;color:#166534;font-style:italic;">Pendiente de integraci\u00f3n. El log registrar\u00e1 cambios de par\u00e1metros, versiones del instrumento y modificaciones del pipeline.</p>';
+    h+='<div style="'+_G+'">Versi\u00f3n: COMP\u00c1S \u00b7 IBSE Supermonitor v1.0 \u00b7 2026</div>';
+    h+='</div>';
+    return h;
+}
+// ── FIN SUPERMONITOR IBSE ─────────────────────────────────────────────────────
 
 // ══════════════════════════════════════════════════════════════════════════════
 // CUESTIONARIO DUKE-UNC-11 — Captura por ítems + cálculo + persistencia
